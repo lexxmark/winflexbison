@@ -1,4 +1,8 @@
 win_flex is a port of flex 2.5.35 tool to windows platform.
-win_flex require only windows system dlls (kernel32.dll and ws2_32.dll).
-How to use win_flex please refer to original flex documentation at sourceforge.net/projects/flex/
-Enjoy
+win_flex requires only windows system dlls (kernel32.dll and ws2_32.dll).
+If win_flex used to generate C++ output it requires FlexLexer.h header file.
+
+win_bison is a port of bison 2.5 tool to windows platform,
+win_bison requires only windows system dll (kernel32.dll).
+win_bison (as original bison) requires /data folder to generate output.
+win_bison generates output files doesn't depend on /data folder.
