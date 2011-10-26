@@ -1,0 +1,11 @@
+#define PACKAGE_BUGREPORT "http://sourceforge.net/p/winflex/tickets"
+#define VERSION "2.5"
+#define PACKAGE_COPYRIGHT_YEAR "2011"
+#define LOCALEDIR ""
+#define PACKAGE_STRING "bison"
+#define PACKAGE_URL "http://sourceforge.net/projects/winflex/"
+#define PACKAGE ""
+#define PACKAGE_VERSION "2.5"
+#define PACKAGE_NAME "bison"
+#define PKGDATADIR "data"
+#define RENAME_OPEN_FILE_WORKS 1
