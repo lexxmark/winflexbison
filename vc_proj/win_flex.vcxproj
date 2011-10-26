@@ -11,64 +11,64 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\buf.c" />
-    <ClCompile Include="..\src\ccl.c" />
-    <ClCompile Include="..\src\dfa.c" />
-    <ClCompile Include="..\src\ecs.c" />
-    <ClCompile Include="..\src\filter.c" />
-    <ClCompile Include="..\src\gen.c" />
-    <ClCompile Include="..\src\m4\builtin.c" />
-    <ClCompile Include="..\src\m4\debug.c" />
-    <ClCompile Include="..\src\m4\error.c" />
-    <ClCompile Include="..\src\m4\eval.c" />
-    <ClCompile Include="..\src\m4\format.c" />
-    <ClCompile Include="..\src\m4\freeze.c" />
-    <ClCompile Include="..\src\m4\getopt.c" />
-    <ClCompile Include="..\src\m4\getopt1.c" />
-    <ClCompile Include="..\src\m4\input.c" />
-    <ClCompile Include="..\src\m4\m4.c" />
-    <ClCompile Include="..\src\m4\macro.c" />
-    <ClCompile Include="..\src\m4\obstack.c" />
-    <ClCompile Include="..\src\m4\output.c" />
-    <ClCompile Include="..\src\m4\path.c" />
-    <ClCompile Include="..\src\m4\symtab.c" />
-    <ClCompile Include="..\src\m4\xmalloc.c" />
-    <ClCompile Include="..\src\m4\xstrdup.c" />
-    <ClCompile Include="..\src\main.c" />
-    <ClCompile Include="..\src\misc.c" />
-    <ClCompile Include="..\src\nfa.c" />
-    <ClCompile Include="..\src\options.c" />
-    <ClCompile Include="..\src\parse.c" />
-    <ClCompile Include="..\src\regex.c" />
-    <ClCompile Include="..\src\regex1.c" />
-    <ClCompile Include="..\src\scan.c" />
-    <ClCompile Include="..\src\scanflags.c" />
-    <ClCompile Include="..\src\scanopt.c" />
-    <ClCompile Include="..\src\skel.c" />
-    <ClCompile Include="..\src\sym.c" />
-    <ClCompile Include="..\src\tables.c" />
-    <ClCompile Include="..\src\tables_shared.c" />
-    <ClCompile Include="..\src\tblcmp.c" />
-    <ClCompile Include="..\src\yylex.c" />
+    <ClCompile Include="..\flex\src\buf.c" />
+    <ClCompile Include="..\flex\src\ccl.c" />
+    <ClCompile Include="..\flex\src\dfa.c" />
+    <ClCompile Include="..\flex\src\ecs.c" />
+    <ClCompile Include="..\flex\src\filter.c" />
+    <ClCompile Include="..\flex\src\gen.c" />
+    <ClCompile Include="..\flex\src\m4\builtin.c" />
+    <ClCompile Include="..\flex\src\m4\debug.c" />
+    <ClCompile Include="..\flex\src\m4\error.c" />
+    <ClCompile Include="..\flex\src\m4\eval.c" />
+    <ClCompile Include="..\flex\src\m4\format.c" />
+    <ClCompile Include="..\flex\src\m4\freeze.c" />
+    <ClCompile Include="..\flex\src\m4\getopt.c" />
+    <ClCompile Include="..\flex\src\m4\getopt1.c" />
+    <ClCompile Include="..\flex\src\m4\input.c" />
+    <ClCompile Include="..\flex\src\m4\m4.c" />
+    <ClCompile Include="..\flex\src\m4\macro.c" />
+    <ClCompile Include="..\flex\src\m4\obstack.c" />
+    <ClCompile Include="..\flex\src\m4\output.c" />
+    <ClCompile Include="..\flex\src\m4\path.c" />
+    <ClCompile Include="..\flex\src\m4\symtab.c" />
+    <ClCompile Include="..\flex\src\m4\xmalloc.c" />
+    <ClCompile Include="..\flex\src\m4\xstrdup.c" />
+    <ClCompile Include="..\flex\src\main.c" />
+    <ClCompile Include="..\flex\src\misc.c" />
+    <ClCompile Include="..\flex\src\nfa.c" />
+    <ClCompile Include="..\flex\src\options.c" />
+    <ClCompile Include="..\flex\src\parse.c" />
+    <ClCompile Include="..\flex\src\regex.c" />
+    <ClCompile Include="..\flex\src\regex1.c" />
+    <ClCompile Include="..\flex\src\scan.c" />
+    <ClCompile Include="..\flex\src\scanflags.c" />
+    <ClCompile Include="..\flex\src\scanopt.c" />
+    <ClCompile Include="..\flex\src\skel.c" />
+    <ClCompile Include="..\flex\src\sym.c" />
+    <ClCompile Include="..\flex\src\tables.c" />
+    <ClCompile Include="..\flex\src\tables_shared.c" />
+    <ClCompile Include="..\flex\src\tblcmp.c" />
+    <ClCompile Include="..\flex\src\yylex.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\flexdef.h" />
-    <ClInclude Include="..\src\flexint.h" />
-    <ClInclude Include="..\src\FlexLexer.h" />
-    <ClInclude Include="..\src\gettext.h" />
-    <ClInclude Include="..\src\m4\getopt.h" />
-    <ClInclude Include="..\src\m4\m4.h" />
-    <ClInclude Include="..\src\m4\obstack.h" />
-    <ClInclude Include="..\src\options.h" />
-    <ClInclude Include="..\src\parse.h" />
-    <ClInclude Include="..\src\regex.h" />
-    <ClInclude Include="..\src\scanopt.h" />
-    <ClInclude Include="..\src\tables.h" />
-    <ClInclude Include="..\src\tables_shared.h" />
+    <ClInclude Include="..\flex\src\flexdef.h" />
+    <ClInclude Include="..\flex\src\flexint.h" />
+    <ClInclude Include="..\flex\src\FlexLexer.h" />
+    <ClInclude Include="..\flex\src\gettext.h" />
+    <ClInclude Include="..\flex\src\m4\getopt.h" />
+    <ClInclude Include="..\flex\src\m4\m4.h" />
+    <ClInclude Include="..\flex\src\m4\obstack.h" />
+    <ClInclude Include="..\flex\src\options.h" />
+    <ClInclude Include="..\flex\src\parse.h" />
+    <ClInclude Include="..\flex\src\regex.h" />
+    <ClInclude Include="..\flex\src\scanopt.h" />
+    <ClInclude Include="..\flex\src\tables.h" />
+    <ClInclude Include="..\flex\src\tables_shared.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\parse.y" />
-    <None Include="..\src\scan.l" />
+    <None Include="..\flex\src\parse.y" />
+    <None Include="..\flex\src\scan.l" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6903C473-1332-4773-85CA-6F26CA194AC1}</ProjectGuid>
@@ -100,12 +100,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\tmp\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\tmp\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\tmp\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\tmp\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -114,7 +114,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\flex\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
@@ -134,7 +134,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\flex\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>

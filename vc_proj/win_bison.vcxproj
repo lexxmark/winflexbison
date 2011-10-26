@@ -1,0 +1,366 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\bison\src\AnnotationList.c" />
+    <ClCompile Include="..\bison\src\assoc.c" />
+    <ClCompile Include="..\bison\src\closure.c" />
+    <ClCompile Include="..\bison\src\complain.c" />
+    <ClCompile Include="..\bison\src\conflicts.c" />
+    <ClCompile Include="..\bison\src\derives.c" />
+    <ClCompile Include="..\bison\src\files.c" />
+    <ClCompile Include="..\bison\src\getargs.c" />
+    <ClCompile Include="..\bison\src\gram.c" />
+    <ClCompile Include="..\bison\src\graphviz.c" />
+    <ClCompile Include="..\bison\src\ielr.c" />
+    <ClCompile Include="..\bison\src\InadequacyList.c" />
+    <ClCompile Include="..\bison\src\lalr.c" />
+    <ClCompile Include="..\bison\src\lib\abitset.c" />
+    <ClCompile Include="..\bison\src\lib\argmatch.c" />
+    <ClCompile Include="..\bison\src\lib\basename-lgpl.c" />
+    <ClCompile Include="..\bison\src\lib\bitset.c" />
+    <ClCompile Include="..\bison\src\lib\bitsetv-print.c" />
+    <ClCompile Include="..\bison\src\lib\bitsetv.c" />
+    <ClCompile Include="..\bison\src\lib\bitset_stats.c" />
+    <ClCompile Include="..\bison\src\lib\c-ctype.c" />
+    <ClCompile Include="..\bison\src\lib\c-strcasecmp.c" />
+    <ClCompile Include="..\bison\src\lib\c-strncasecmp.c" />
+    <ClCompile Include="..\bison\src\lib\dirname-lgpl.c" />
+    <ClCompile Include="..\bison\src\lib\dirname.c" />
+    <ClCompile Include="..\bison\src\lib\ebitset.c" />
+    <ClCompile Include="..\bison\src\lib\error.c" />
+    <ClCompile Include="..\bison\src\lib\exitfail.c" />
+    <ClCompile Include="..\bison\src\lib\get-errno.c" />
+    <ClCompile Include="..\bison\src\lib\getopt.c" />
+    <ClCompile Include="..\bison\src\lib\getopt1.c" />
+    <ClCompile Include="..\bison\src\lib\hash.c" />
+    <ClCompile Include="..\bison\src\lib\lbitset.c" />
+    <ClCompile Include="..\bison\src\lib\localcharset.c" />
+    <ClCompile Include="..\bison\src\lib\mbswidth.c" />
+    <ClCompile Include="..\bison\src\lib\obstack.c" />
+    <ClCompile Include="..\bison\src\lib\quote.c" />
+    <ClCompile Include="..\bison\src\lib\quotearg.c" />
+    <ClCompile Include="..\bison\src\lib\timevar.c" />
+    <ClCompile Include="..\bison\src\lib\vbitset.c" />
+    <ClCompile Include="..\bison\src\lib\wcwidth.c" />
+    <ClCompile Include="..\bison\src\lib\width.c" />
+    <ClCompile Include="..\bison\src\lib\xalloc-die.c" />
+    <ClCompile Include="..\bison\src\lib\xmalloc.c" />
+    <ClCompile Include="..\bison\src\lib\xstrndup.c" />
+    <ClCompile Include="..\bison\src\location.c" />
+    <ClCompile Include="..\bison\src\LR0.c" />
+    <ClCompile Include="..\bison\src\m4\lib\clean-temp.c" />
+    <ClCompile Include="..\bison\src\m4\lib\close-stream.c" />
+    <ClCompile Include="..\bison\src\m4\lib\closein.c" />
+    <ClCompile Include="..\bison\src\m4\lib\closeout.c" />
+    <ClCompile Include="..\bison\src\m4\lib\fd-safer.c" />
+    <ClCompile Include="..\bison\src\m4\lib\filenamecat-lgpl.c" />
+    <ClCompile Include="..\bison\src\m4\lib\gl_avltree_oset.c" />
+    <ClCompile Include="..\bison\src\m4\lib\gl_linkedhash_list.c" />
+    <ClCompile Include="..\bison\src\m4\lib\gl_list.c" />
+    <ClCompile Include="..\bison\src\m4\lib\gl_oset.c" />
+    <ClCompile Include="..\bison\src\m4\lib\gl_xlist.c" />
+    <ClCompile Include="..\bison\src\m4\lib\gl_xoset.c" />
+    <ClCompile Include="..\bison\src\m4\lib\memchr2.c" />
+    <ClCompile Include="..\bison\src\m4\lib\mkdtemp.c" />
+    <ClCompile Include="..\bison\src\m4\lib\mkstemp-safer.c" />
+    <ClCompile Include="..\bison\src\m4\lib\mkstemp.c" />
+    <ClCompile Include="..\bison\src\m4\lib\printf-args.c" />
+    <ClCompile Include="..\bison\src\m4\lib\printf-parse.c" />
+    <ClCompile Include="..\bison\src\m4\lib\regex.c" />
+    <ClCompile Include="..\bison\src\m4\lib\regex_internal.c" />
+    <ClCompile Include="..\bison\src\m4\lib\tempname.c" />
+    <ClCompile Include="..\bison\src\m4\lib\tmpdir.c" />
+    <ClCompile Include="..\bison\src\m4\lib\vasnprintf.c" />
+    <ClCompile Include="..\bison\src\m4\lib\vasprintf.c" />
+    <ClCompile Include="..\bison\src\m4\lib\verror.c" />
+    <ClCompile Include="..\bison\src\m4\lib\xasprintf.c" />
+    <ClCompile Include="..\bison\src\m4\lib\xprintf.c" />
+    <ClCompile Include="..\bison\src\m4\lib\xvasprintf.c" />
+    <ClCompile Include="..\bison\src\m4\m4.c" />
+    <ClCompile Include="..\bison\src\m4\m4_builtin.c" />
+    <ClCompile Include="..\bison\src\m4\m4_debug.c" />
+    <ClCompile Include="..\bison\src\m4\m4_eval.c" />
+    <ClCompile Include="..\bison\src\m4\m4_format.c" />
+    <ClCompile Include="..\bison\src\m4\m4_freeze.c" />
+    <ClCompile Include="..\bison\src\m4\m4_input.c" />
+    <ClCompile Include="..\bison\src\m4\m4_output.c" />
+    <ClCompile Include="..\bison\src\m4\m4_path.c" />
+    <ClCompile Include="..\bison\src\m4\m4_symtab.c" />
+    <ClCompile Include="..\bison\src\m4\macro.c" />
+    <ClCompile Include="..\bison\src\main.c" />
+    <ClCompile Include="..\bison\src\muscle-tab.c" />
+    <ClCompile Include="..\bison\src\named-ref.c" />
+    <ClCompile Include="..\bison\src\nullable.c" />
+    <ClCompile Include="..\bison\src\output.c" />
+    <ClCompile Include="..\bison\src\parse-gram.c" />
+    <ClCompile Include="..\bison\src\print-xml.c" />
+    <ClCompile Include="..\bison\src\print.c" />
+    <ClCompile Include="..\bison\src\print_graph.c" />
+    <ClCompile Include="..\bison\src\reader.c" />
+    <ClCompile Include="..\bison\src\reduce.c" />
+    <ClCompile Include="..\bison\src\relation.c" />
+    <ClCompile Include="..\bison\src\Sbitset.c" />
+    <ClCompile Include="..\bison\src\scan-code.c" />
+    <ClCompile Include="..\bison\src\scan-gram.c" />
+    <ClCompile Include="..\bison\src\scan-skel.c" />
+    <ClCompile Include="..\bison\src\state.c" />
+    <ClCompile Include="..\bison\src\symlist.c" />
+    <ClCompile Include="..\bison\src\symtab.c" />
+    <ClCompile Include="..\bison\src\tables.c" />
+    <ClCompile Include="..\bison\src\uniqstr.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\bison\src\AnnotationList.h" />
+    <ClInclude Include="..\bison\src\assoc.h" />
+    <ClInclude Include="..\bison\src\closure.h" />
+    <ClInclude Include="..\bison\src\complain.h" />
+    <ClInclude Include="..\bison\src\config.h" />
+    <ClInclude Include="..\bison\src\conflicts.h" />
+    <ClInclude Include="..\bison\src\derives.h" />
+    <ClInclude Include="..\bison\src\files.h" />
+    <ClInclude Include="..\bison\src\flex-scanner.h" />
+    <ClInclude Include="..\bison\src\getargs.h" />
+    <ClInclude Include="..\bison\src\gram.h" />
+    <ClInclude Include="..\bison\src\graphviz.h" />
+    <ClInclude Include="..\bison\src\ielr.h" />
+    <ClInclude Include="..\bison\src\InadequacyList.h" />
+    <ClInclude Include="..\bison\src\lalr.h" />
+    <ClInclude Include="..\bison\src\lib\abitset.h" />
+    <ClInclude Include="..\bison\src\lib\argmatch.h" />
+    <ClInclude Include="..\bison\src\lib\bbitset.h" />
+    <ClInclude Include="..\bison\src\lib\bitrotate.h" />
+    <ClInclude Include="..\bison\src\lib\bitset.h" />
+    <ClInclude Include="..\bison\src\lib\bitsetv-print.h" />
+    <ClInclude Include="..\bison\src\lib\bitsetv.h" />
+    <ClInclude Include="..\bison\src\lib\bitset_stats.h" />
+    <ClInclude Include="..\bison\src\lib\c-ctype.h" />
+    <ClInclude Include="..\bison\src\lib\c-strcase.h" />
+    <ClInclude Include="..\bison\src\lib\cjk.h" />
+    <ClInclude Include="..\bison\src\lib\dirname.h" />
+    <ClInclude Include="..\bison\src\lib\dosname.h" />
+    <ClInclude Include="..\bison\src\lib\ebitset.h" />
+    <ClInclude Include="..\bison\src\lib\error.h" />
+    <ClInclude Include="..\bison\src\lib\exitfail.h" />
+    <ClInclude Include="..\bison\src\lib\get-errno.h" />
+    <ClInclude Include="..\bison\src\lib\getopt.h" />
+    <ClInclude Include="..\bison\src\lib\getopt_int.h" />
+    <ClInclude Include="..\bison\src\lib\gettext.h" />
+    <ClInclude Include="..\bison\src\lib\hash.h" />
+    <ClInclude Include="..\bison\src\lib\lbitset.h" />
+    <ClInclude Include="..\bison\src\lib\localcharset.h" />
+    <ClInclude Include="..\bison\src\lib\mbswidth.h" />
+    <ClInclude Include="..\bison\src\lib\obstack.h" />
+    <ClInclude Include="..\bison\src\lib\quote.h" />
+    <ClInclude Include="..\bison\src\lib\quotearg.h" />
+    <ClInclude Include="..\bison\src\lib\stdbool.h" />
+    <ClInclude Include="..\bison\src\lib\stdio-safer.h" />
+    <ClInclude Include="..\bison\src\lib\streq.h" />
+    <ClInclude Include="..\bison\src\lib\timevar.h" />
+    <ClInclude Include="..\bison\src\lib\unitypes.in.h" />
+    <ClInclude Include="..\bison\src\lib\uniwidth.in.h" />
+    <ClInclude Include="..\bison\src\lib\vbitset.h" />
+    <ClInclude Include="..\bison\src\lib\verify.h" />
+    <ClInclude Include="..\bison\src\lib\xalloc.h" />
+    <ClInclude Include="..\bison\src\lib\xstrndup.h" />
+    <ClInclude Include="..\bison\src\location.h" />
+    <ClInclude Include="..\bison\src\LR0.h" />
+    <ClInclude Include="..\bison\src\m4\lib\binary-io.h" />
+    <ClInclude Include="..\bison\src\m4\lib\c-stack.h" />
+    <ClInclude Include="..\bison\src\m4\lib\clean-temp.h" />
+    <ClInclude Include="..\bison\src\m4\lib\cloexec.h" />
+    <ClInclude Include="..\bison\src\m4\lib\close-stream.h" />
+    <ClInclude Include="..\bison\src\m4\lib\closein.h" />
+    <ClInclude Include="..\bison\src\m4\lib\closeout.h" />
+    <ClInclude Include="..\bison\src\m4\lib\filenamecat.h" />
+    <ClInclude Include="..\bison\src\m4\lib\fpending.h" />
+    <ClInclude Include="..\bison\src\m4\lib\freadahead.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_anyhash_list1.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_anyhash_list2.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_anylinked_list1.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_anylinked_list2.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_anytree_oset.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_avltree_oset.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_linkedhash_list.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_list.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_oset.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_xlist.h" />
+    <ClInclude Include="..\bison\src\m4\lib\gl_xoset.h" />
+    <ClInclude Include="..\bison\src\m4\lib\ignore-value.h" />
+    <ClInclude Include="..\bison\src\m4\lib\malloca.h" />
+    <ClInclude Include="..\bison\src\m4\lib\memchr2.h" />
+    <ClInclude Include="..\bison\src\m4\lib\pathmax.h" />
+    <ClInclude Include="..\bison\src\m4\lib\printf-args.h" />
+    <ClInclude Include="..\bison\src\m4\lib\printf-parse.h" />
+    <ClInclude Include="..\bison\src\m4\lib\progname.h" />
+    <ClInclude Include="..\bison\src\m4\lib\regex.h" />
+    <ClInclude Include="..\bison\src\m4\lib\regex_internal.h" />
+    <ClInclude Include="..\bison\src\m4\lib\stdio--.h" />
+    <ClInclude Include="..\bison\src\m4\lib\stdlib--.h" />
+    <ClInclude Include="..\bison\src\m4\lib\stdlib-safer.h" />
+    <ClInclude Include="..\bison\src\m4\lib\tempname.h" />
+    <ClInclude Include="..\bison\src\m4\lib\tmpdir.h" />
+    <ClInclude Include="..\bison\src\m4\lib\unistd--.h" />
+    <ClInclude Include="..\bison\src\m4\lib\unistd-safer.h" />
+    <ClInclude Include="..\bison\src\m4\lib\vasnprintf.h" />
+    <ClInclude Include="..\bison\src\m4\lib\verror.h" />
+    <ClInclude Include="..\bison\src\m4\lib\version-etc.h" />
+    <ClInclude Include="..\bison\src\m4\lib\xmalloca.h" />
+    <ClInclude Include="..\bison\src\m4\lib\xprintf.h" />
+    <ClInclude Include="..\bison\src\m4\lib\xsize.h" />
+    <ClInclude Include="..\bison\src\m4\lib\xvasprintf.h" />
+    <ClInclude Include="..\bison\src\m4\m4.h" />
+    <ClInclude Include="..\bison\src\muscle-tab.h" />
+    <ClInclude Include="..\bison\src\named-ref.h" />
+    <ClInclude Include="..\bison\src\nullable.h" />
+    <ClInclude Include="..\bison\src\output.h" />
+    <ClInclude Include="..\bison\src\parse-gram.h" />
+    <ClInclude Include="..\bison\src\print-xml.h" />
+    <ClInclude Include="..\bison\src\print.h" />
+    <ClInclude Include="..\bison\src\print_graph.h" />
+    <ClInclude Include="..\bison\src\reader.h" />
+    <ClInclude Include="..\bison\src\reduce.h" />
+    <ClInclude Include="..\bison\src\relation.h" />
+    <ClInclude Include="..\bison\src\Sbitset.h" />
+    <ClInclude Include="..\bison\src\scan-code.h" />
+    <ClInclude Include="..\bison\src\scan-gram.h" />
+    <ClInclude Include="..\bison\src\scan-skel.h" />
+    <ClInclude Include="..\bison\src\state.h" />
+    <ClInclude Include="..\bison\src\symlist.h" />
+    <ClInclude Include="..\bison\src\symtab.h" />
+    <ClInclude Include="..\bison\src\system.h" />
+    <ClInclude Include="..\bison\src\tables.h" />
+    <ClInclude Include="..\bison\src\uniqstr.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\bison\src\lib\timevar.def" />
+    <None Include="..\bison\src\parse-gram.y" />
+    <None Include="..\bison\src\scan-code.l" />
+    <None Include="..\bison\src\scan-gram.l" />
+    <None Include="..\bison\src\scan-skel.l" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{48A69F51-CAAB-401D-BB38-0E1B8C01AA2B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>win_bison</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)..\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\tmp\$(Configuration)\$(ProjectName)\</IntDir>
+    <CustomBuildAfterTargets>
+    </CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)..\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\tmp\$(Configuration)\$(ProjectName)\</IntDir>
+    <CustomBuildAfterTargets>
+    </CustomBuildAfterTargets>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\bison\src;$(ProjectDir)..\bison\src\lib;$(ProjectDir)..\bison\src\m4;$(ProjectDir)..\bison\src\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>
+      </Outputs>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\bison\src;$(ProjectDir)..\bison\src\lib;$(ProjectDir)..\bison\src\m4;$(ProjectDir)..\bison\src\m4\lib;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\m4;$(ProjectDir)..\src\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>Default</CompileAs>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>
+      </Outputs>
+      <Message>
+      </Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

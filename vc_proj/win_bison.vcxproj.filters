@@ -1,0 +1,719 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{70ee086b-f289-4585-9d74-9ecf2a8b5acc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2070dbf6-0bc4-4b08-a236-36c2261e5567}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="m4">
+      <UniqueIdentifier>{ee8cd585-8353-43c5-b6e8-32a4cfeb3be9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="m4\lib">
+      <UniqueIdentifier>{5e7a6685-60ed-47a6-83db-1f59d3e2e525}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\bison\src\lib\abitset.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\argmatch.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\basename-lgpl.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\bitset.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\bitset_stats.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\bitsetv.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\bitsetv-print.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\c-ctype.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\c-strcasecmp.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\c-strncasecmp.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\dirname.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\dirname-lgpl.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\ebitset.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\error.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\exitfail.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\get-errno.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\getopt.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\getopt1.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\hash.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\lbitset.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\localcharset.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\mbswidth.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\obstack.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\quote.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\quotearg.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\timevar.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\vbitset.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\wcwidth.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\width.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\xalloc-die.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\xmalloc.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lib\xstrndup.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\m4.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\m4_builtin.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\m4_debug.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\m4_eval.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\m4_format.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\m4_freeze.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\m4_input.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\m4_output.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\m4_path.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\m4_symtab.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\macro.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\clean-temp.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\closein.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\closeout.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\close-stream.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\fd-safer.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\filenamecat-lgpl.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\gl_avltree_oset.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\gl_linkedhash_list.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\gl_list.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\gl_oset.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\gl_xlist.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\gl_xoset.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\memchr2.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\mkdtemp.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\mkstemp.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\mkstemp-safer.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\printf-args.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\printf-parse.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\regex.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\regex_internal.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\tempname.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\tmpdir.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\vasnprintf.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\vasprintf.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\verror.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\xasprintf.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\xprintf.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\m4\lib\xvasprintf.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\AnnotationList.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\assoc.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\closure.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\complain.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\conflicts.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\derives.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\files.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\getargs.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\gram.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\graphviz.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\ielr.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\InadequacyList.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\lalr.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\location.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\LR0.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\main.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\muscle-tab.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\named-ref.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\nullable.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\output.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\parse-gram.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\print.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\print_graph.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\print-xml.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\reader.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\reduce.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\relation.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\Sbitset.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\scan-code.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\scan-gram.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\scan-skel.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\state.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\symlist.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\symtab.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\tables.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\bison\src\uniqstr.c">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\bison\src\lib\abitset.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\argmatch.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\bbitset.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\bitrotate.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\bitset.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\bitset_stats.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\bitsetv.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\bitsetv-print.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\c-ctype.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\cjk.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\c-strcase.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\dirname.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\dosname.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\ebitset.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\error.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\exitfail.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\get-errno.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\getopt.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\getopt_int.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\gettext.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\hash.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\lbitset.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\localcharset.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\mbswidth.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\obstack.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\quote.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\quotearg.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\stdbool.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\stdio-safer.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\streq.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\timevar.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\unitypes.in.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\uniwidth.in.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\vbitset.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\verify.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\xalloc.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lib\xstrndup.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\m4.h">
+      <Filter>m4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\binary-io.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\clean-temp.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\cloexec.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\closein.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\closeout.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\close-stream.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\c-stack.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\filenamecat.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\fpending.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\freadahead.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_anyhash_list1.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_anyhash_list2.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_anylinked_list1.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_anylinked_list2.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_anytree_oset.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_avltree_oset.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_linkedhash_list.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_list.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_oset.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_xlist.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\gl_xoset.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\ignore-value.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\malloca.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\memchr2.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\pathmax.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\printf-args.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\printf-parse.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\progname.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\regex.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\regex_internal.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\stdio--.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\stdlib--.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\stdlib-safer.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\tempname.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\tmpdir.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\unistd--.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\unistd-safer.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\vasnprintf.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\verror.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\version-etc.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\xmalloca.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\xprintf.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\xsize.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\m4\lib\xvasprintf.h">
+      <Filter>m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\AnnotationList.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\assoc.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\closure.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\complain.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\config.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\conflicts.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\derives.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\files.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\flex-scanner.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\getargs.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\gram.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\graphviz.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\ielr.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\InadequacyList.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\lalr.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\location.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\LR0.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\muscle-tab.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\named-ref.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\nullable.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\output.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\parse-gram.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\print.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\print_graph.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\print-xml.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\reader.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\reduce.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\relation.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\Sbitset.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\scan-code.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\scan-gram.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\scan-skel.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\state.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\symlist.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\symtab.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\system.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\tables.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\bison\src\uniqstr.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\bison\src\lib\timevar.def">
+      <Filter>lib</Filter>
+    </None>
+    <None Include="..\bison\src\parse-gram.y">
+      <Filter>src</Filter>
+    </None>
+    <None Include="..\bison\src\scan-code.l">
+      <Filter>src</Filter>
+    </None>
+    <None Include="..\bison\src\scan-gram.l">
+      <Filter>src</Filter>
+    </None>
+    <None Include="..\bison\src\scan-skel.l">
+      <Filter>src</Filter>
+    </None>
+  </ItemGroup>
+</Project>
