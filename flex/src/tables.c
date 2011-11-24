@@ -274,9 +274,13 @@ int yytbl_writen (struct yytbl_writer *wr, void *v, flex_int32_t len)
 	return len;
 }
 
-//#include <Winsock2.h>
-extern unsigned long __stdcall htonl(__in unsigned long hostlong);
-extern unsigned short __stdcall htons(__in unsigned short hostshort);
+#define SWAP_BYTE_ORDER_UINT(val)	(((val << 24) & 0xFF000000) |\
+									 ((val <<  8) & 0x00FF0000) |\
+									 ((val >>  8) & 0x0000FF00) |\
+									 ((val >> 24) & 0x000000FF))
+
+#define SWAP_BYTE_OREDR_USHORT(val) (((val << 8) & 0xFF00) |\
+									 ((val >> 8) & 0x00FF))
 
 /** Write four bytes in network byte order
  *  @param  wr  the table writer
@@ -288,7 +292,8 @@ int yytbl_write32 (struct yytbl_writer *wr, flex_uint32_t v)
 	flex_uint32_t vnet;
 	size_t  bytes, rv;
 
-	vnet = htonl (v);
+//	vnet = htonl (v);
+	vnet = SWAP_BYTE_ORDER_UINT (v);
 	bytes = sizeof (flex_uint32_t);
 	rv = fwrite (&vnet, bytes, 1, wr->out);
 	if (rv != 1)
@@ -307,7 +312,8 @@ int yytbl_write16 (struct yytbl_writer *wr, flex_uint16_t v)
 	flex_uint16_t vnet;
 	size_t  bytes, rv;
 
-	vnet = htons (v);
+//	vnet = htons (v);
+	vnet = SWAP_BYTE_OREDR_USHORT (v);
 	bytes = sizeof (flex_uint16_t);
 	rv = fwrite (&vnet, bytes, 1, wr->out);
 	if (rv != 1)

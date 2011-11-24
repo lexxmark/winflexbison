@@ -511,11 +511,18 @@ int filter_tee_header (struct filter *chain)
 	return 0;
 }
 
-extern int main_m4_p(FILE* in, FILE* out);
+extern int main_m4 (int argc, char *const *argv, FILE* in, FILE* out);
 
 int filter_m4_p (struct filter *chain)
 {
-	return main_m4_p(chain->in_file, chain->out_file);
+    char const *argv[10];
+    int i = 0;
+
+    argv[i++] = "M4";
+    argv[i++] = "-P";
+    argv[i++] = NULL;
+
+	return main_m4 (i-1, argv, chain->in_file, chain->out_file);
 }
 
 /** Adjust the line numbers in the #line directives of the generated scanner.
