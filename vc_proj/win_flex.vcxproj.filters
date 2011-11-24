@@ -4,9 +4,6 @@
     <Filter Include="src">
       <UniqueIdentifier>{adf9975e-7abe-4673-87a6-0759bfe6488e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="m4">
-      <UniqueIdentifier>{201969a6-44c4-4298-910e-34b037891ee5}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\flex\src\buf.c">
@@ -75,57 +72,6 @@
     <ClCompile Include="..\flex\src\yylex.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\flex\src\m4\builtin.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\debug.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\error.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\eval.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\format.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\freeze.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\getopt.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\getopt1.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\input.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\m4.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\macro.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\obstack.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\output.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\path.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\symtab.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\xmalloc.c">
-      <Filter>m4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\flex\src\m4\xstrdup.c">
-      <Filter>m4</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\flex\src\flexdef.h">
@@ -157,15 +103,6 @@
     </ClInclude>
     <ClInclude Include="..\flex\src\tables_shared.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\flex\src\m4\getopt.h">
-      <Filter>m4</Filter>
-    </ClInclude>
-    <ClInclude Include="..\flex\src\m4\m4.h">
-      <Filter>m4</Filter>
-    </ClInclude>
-    <ClInclude Include="..\flex\src\m4\obstack.h">
-      <Filter>m4</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
