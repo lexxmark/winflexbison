@@ -488,7 +488,7 @@ muscles_output (FILE *out)
 | Call the skeleton parser.  |
 `---------------------------*/
 extern int
-main_m4 (int argc, char *const *argv, char* include_dir, FILE* in, FILE* out);
+main_m4 (int argc, char *const *argv, FILE* in, FILE* out);
 
 static void
 output_skeleton (void)
@@ -602,7 +602,7 @@ output_skeleton (void)
              "fopen");
   }
 
-  if (main_m4(i-1, argv, pkgdatadir, m4_in, m4_out))
+  if (main_m4(i-1, argv, m4_in, m4_out))
       error (EXIT_FAILURE, get_errno (),
              "m4 failed");
 
