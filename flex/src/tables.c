@@ -279,7 +279,7 @@ int yytbl_writen (struct yytbl_writer *wr, void *v, flex_int32_t len)
 									 ((val >>  8) & 0x0000FF00) |\
 									 ((val >> 24) & 0x000000FF))
 
-#define SWAP_BYTE_OREDR_USHORT(val) (((val << 8) & 0xFF00) |\
+#define SWAP_BYTE_ORDER_USHORT(val) (((val << 8) & 0xFF00) |\
 									 ((val >> 8) & 0x00FF))
 
 /** Write four bytes in network byte order
@@ -313,7 +313,7 @@ int yytbl_write16 (struct yytbl_writer *wr, flex_uint16_t v)
 	size_t  bytes, rv;
 
 //	vnet = htons (v);
-	vnet = SWAP_BYTE_OREDR_USHORT (v);
+	vnet = SWAP_BYTE_ORDER_USHORT(v);
 	bytes = sizeof (flex_uint16_t);
 	rv = fwrite (&vnet, bytes, 1, wr->out);
 	if (rv != 1)
