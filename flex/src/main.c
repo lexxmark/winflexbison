@@ -44,7 +44,7 @@ static char flex_version[] = "2.5.35";//FLEX_VERSION;
 void flexinit PROTO ((int, char **));
 void readin PROTO ((void));
 void set_up_initial_allocations PROTO ((void));
-static char *basename2 PROTO ((char *path, int should_strip_ext));
+static char *basename2 PROTO ((char *path, int should_strip_ext, char **ext_path));
 
 
 /* these globals are all defined and commented in flexdef.h */
@@ -783,6 +783,7 @@ void flexinit (argc, argv)
 	int     i, sawcmpflag, rv, optind;
 	char   *arg;
 	scanopt_t sopt;
+	char *ext_path = 0;
 
 	char   *flex_temp_out_main_template = add_tmp_dir("~flex_temp_out_main_XXXXXX");
 	flex_temp_out_main = _mktemp(flex_temp_out_main_template);
@@ -835,10 +836,9 @@ void flexinit (argc, argv)
     flex_init_regex();
 
 	/* Enable C++ if program name ends with '+'. */
-	program_name = basename2 (argv[0], 1);
+	program_name = basename2 (argv[0], 0, &ext_path);
 
-	if (program_name[0] != '\0' &&
-	    program_name[strlen (program_name) - 1] == '+')
+	if (ext_path && *(--ext_path) == '+')
 		C_plus_plus = true;
 
 	/* read flags */
@@ -1620,9 +1620,10 @@ void set_up_initial_allocations ()
 
 /* extracts basename from path, optionally stripping the extension "\.*"
  * (same concept as /bin/sh `basename`, but different handling of extension). */
-static char *basename2 (path, strip_ext)
+static char *basename2 (path, strip_ext, ext_path)
      char   *path;
      int strip_ext;		/* boolean */
+	 char **ext_path;
 {
 	char   *b, *e = 0;
 
@@ -1635,8 +1636,14 @@ static char *basename2 (path, strip_ext)
 		else if (*path == '.')
 			e = path;
 
-	if (strip_ext && e && e > b)
-		*e = '\0';
+	if (e && e > b)
+	{
+		if (strip_ext)
+			*e = '\0';
+		else if (ext_path)
+			*ext_path = e;
+	}
+
 	return b;
 }
 
