@@ -714,9 +714,11 @@ output (void)
   obstack_free (&format_obstack, NULL);
 }
 
+extern char* local_pkgdatadir;
+
 char const *
 compute_pkgdatadir (void)
 {
   char const *pkgdatadir = getenv ("BISON_PKGDATADIR");
-  return pkgdatadir ? pkgdatadir : PKGDATADIR;
+  return pkgdatadir ? pkgdatadir : local_pkgdatadir;
 }

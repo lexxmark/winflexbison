@@ -73,9 +73,40 @@ static char *basename2 (path, strip_ext)
 	return b;
 }
 
+char* get_local_pkgdatadir(const char* program_path)
+{
+	const char* dir = program_path;
+	const char* last_divider = 0;
+	char* local_pkgdatadir = NULL;
+	size_t dir_len = 0;
+	size_t local_pkgdatadir_len = 0;
+
+	while (*dir)
+	{
+		if (*dir == '\\' || *dir == '/')
+			last_divider = dir;
+		++dir;
+	}
+
+	if (!last_divider)
+		return 0;
+
+	++last_divider;
+
+	dir_len = last_divider - program_path;
+	local_pkgdatadir_len = dir_len+strlen(PKGDATADIR);
+	local_pkgdatadir = (char*)malloc((local_pkgdatadir_len+1)*sizeof(char));
+	strncpy(local_pkgdatadir, program_path, dir_len);
+	strcpy(&local_pkgdatadir[dir_len], PKGDATADIR);
+	return local_pkgdatadir;
+}
+
+char* local_pkgdatadir = 0;
+
 int main (int argc, char *argv[])
 {
   program_name = basename2 (argv[0], 1);
+  local_pkgdatadir = get_local_pkgdatadir(argv[0]);
 
   setlocale (LC_ALL, "");
   (void) bindtextdomain (PACKAGE, LOCALEDIR);
@@ -218,7 +249,9 @@ int main (int argc, char *argv[])
   if (trace_flag & trace_bitsets)
     bitset_stats_dump (stderr);
 
- finish:
+finish:
+
+  free(local_pkgdatadir);
 
   /* Stop timing and print the times.  */
   timevar_stop (TV_TOTAL);
