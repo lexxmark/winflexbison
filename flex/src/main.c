@@ -112,7 +112,7 @@ char   *tablesfilename=0,*tablesname=0;
 struct yytbl_writer tableswr;
 
 int     prev_stdout = 0;
-char   *flex_temp_out_main="~flex_temp_out_main";
+char   *flex_temp_out_main=0;
 
 /* Make sure program_name is initialized so we don't crash if writing
  * out an error message before getting the program name from argv[0].
@@ -767,6 +767,9 @@ void flexend (exit_status)
 			 tblsiz);
 	}
 
+	free (flex_temp_out_main);
+	flex_temp_out_main = 0;
+	
 	exit (exit_status);
 }
 
@@ -780,6 +783,9 @@ void flexinit (argc, argv)
 	int     i, sawcmpflag, rv, optind;
 	char   *arg;
 	scanopt_t sopt;
+
+	char   *flex_temp_out_main_template = add_tmp_dir("~flex_temp_out_main_XXXXXX");
+	flex_temp_out_main = _mktemp(flex_temp_out_main_template);
 
 	printstats = syntaxerror = trace = spprdflt = false;
 	lex_compat = posix_compat = C_plus_plus = backing_up_report =

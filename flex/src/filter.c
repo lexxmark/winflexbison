@@ -39,6 +39,28 @@ static const char letters[] =
 #include <sys/stat.h>
 #include <stdio.h>
 
+/* Adds temporary dir if environment variable FLEX_TMP_DIR is set */
+char* add_tmp_dir(const char* tmp_file_name)
+{
+	char* new_tmp_file_name = 0;
+	size_t tmp_dir_len = 0;
+	size_t len = 0;
+	char const *tmp_dir = getenv ("FLEX_TMP_DIR");
+
+	if (!tmp_dir)
+		return _strdup(tmp_file_name);
+
+	tmp_dir_len = strlen(tmp_dir);
+	len = tmp_dir_len + strlen(tmp_file_name) + 2; // two extra chars: '\' between dir and file name and '\0' at the end
+	new_tmp_file_name = (char*)malloc(len*sizeof(char));
+	if (tmp_dir[tmp_dir_len-1] == '\\' || tmp_dir[tmp_dir_len-1] == '/')
+		sprintf(new_tmp_file_name, "%s%s", tmp_dir, tmp_file_name);
+	else
+		sprintf(new_tmp_file_name, "%s\\%s", tmp_dir, tmp_file_name);
+
+	return new_tmp_file_name;
+}
+
 int max_temp_file_names = 100;
 int num_temp_file_names = 0;
 char* temp_file_names[100];
@@ -84,10 +106,11 @@ FILE* mkstempFILE (char *tmpl, const char *mode)
 	/* This is where the Xs start.  */
 	XXXXXX = &tmpl[len - 6];
 
-	/* Get some more or less random data.  */
+	/* Get some more or less random data but unique per process */
 	{
-		static unsigned long long g_value = 827363;
-		g_value += 100;
+		static unsigned long long g_value;
+		g_value = _getpid();
+ 		g_value += 100;
 		random_time_bits = (((unsigned long long)234546 << 32)
 			| (unsigned long long)g_value);
 	}
@@ -95,6 +118,7 @@ FILE* mkstempFILE (char *tmpl, const char *mode)
 
 	for (count = 0; count < attempts; value += 7777, ++count)
 	{
+		char* tmp_file_name = 0;
 		unsigned long long v = value;
 
 		/* Fill in the random bits.  */
@@ -110,17 +134,21 @@ FILE* mkstempFILE (char *tmpl, const char *mode)
 		v /= 62;
 		XXXXXX[5] = letters[v % 62];
 
+		tmp_file_name = add_tmp_dir(tmpl);
 		/* file doesn't exist */
-		if (r = _access(tmpl, 0) == -1)
+		if (r = _access(tmp_file_name, 0) == -1)
 		{
-			fd = fopen (tmpl, mode);
+			fd = fopen (tmp_file_name, mode);
 			if (fd)
 			{
-				temp_file_names[num_temp_file_names] = _strdup(tmpl);
+				temp_file_names[num_temp_file_names] = tmp_file_name;
 				++num_temp_file_names;
 				return fd;
 			}
 		}
+
+		free(tmp_file_name);
+		tmp_file_name = 0;
 	}
 
 	/* We got out of the loop because we ran out of combinations to try.  */

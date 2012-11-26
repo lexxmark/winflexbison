@@ -1199,6 +1199,7 @@ extern int filter_tee_header PROTO((struct filter *chain));
 extern int filter_fix_linedirs PROTO((struct filter *chain));
 extern int filter_m4_p PROTO((struct filter *chain));
 
+extern char* add_tmp_dir PROTO((const char* tmp_file_name));
 extern FILE* mkstempFILE PROTO((char *tmpl, const char *mode));
 extern void unlinktemp();
 
