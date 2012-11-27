@@ -5,3 +5,11 @@ If win_flex used to generate C++ output it requires FlexLexer.h header file.
 win_bison is a port of bison 2.5 tool to windows platform,
 win_bison requires only windows system dll (kernel32.dll).
 win_bison (as original bison) requires /data folder to generate output.
+
+
+version 1.1
+--------------
+fixed win_flex.exe parallel invocations (now all temporary files are process specific)
+added FLEX_TMP_DIR environment variable support to redirect temporary files folder
+added '.exe' to program name in win_flex.exe --version output (CMake support)
+fixed win_bison.exe to use /data subfolder related to executable path rather than current working directory
