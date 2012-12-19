@@ -90,9 +90,32 @@ struct Buf *buf_linedir (struct Buf *buf, const char* filename, int lineno)
 {
     char   *t, *fmt = "#line %d \"%s\"\n";
     size_t tsz;
+
+	const char *s1;
+	char *s2;
+	char _filename[MAXLINE];
+
+	// escape file name special chars
+	{
+		s1 = filename;
+		s2 = _filename;
+
+		while ((s2 - _filename) < (MAXLINE - 1) && *s1) {
+			/* Escape the backslash */
+			if (*s1 == '\\')
+				*s2++ = '\\';
+			/* Escape the double quote */
+			if (*s1 == '\"')
+				*s2++ = '\\';
+			/* Copy the character as usual */
+			*s2++ = *s1++;
+		}
+
+		*s2 = '\0';
+	}
     
-    t = flex_alloc (tsz = strlen (fmt) + strlen (filename) + (int)(1 + log10(lineno>=0?lineno:-lineno)) + 1);
-    snprintf (t, tsz, fmt, lineno, filename);
+    t = flex_alloc (tsz = strlen (fmt) + strlen (_filename) + (int)(1 + log10(lineno>=0?lineno:-lineno)) + 1);
+    snprintf (t, tsz, fmt, lineno, _filename);
     buf = buf_strappend (buf, t);
     flex_free (t);
     return buf;
