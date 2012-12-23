@@ -3,7 +3,7 @@
 <!--
     xml2text.xsl - transform Bison XML Report into plain text.
 
-    Copyright (C) 2007-2011 Free Software Foundation, Inc.
+    Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -230,7 +230,7 @@
 <xsl:template match="automaton/state">
   <xsl:param name="pad"/>
   <xsl:text>&#10;&#10;</xsl:text>
-  <xsl:text>state </xsl:text>
+  <xsl:text>State </xsl:text>
   <xsl:value-of select="@number"/>
   <xsl:text>&#10;&#10;</xsl:text>
   <xsl:apply-templates select="itemset/item">
@@ -520,18 +520,6 @@
       </xsl:call-template>
     </xsl:otherwise>
   </xsl:choose>
-</xsl:template>
-
-<xsl:template name="space">
-  <xsl:param name="repeat">0</xsl:param>
-  <xsl:param name="fill" select="' '"/>
-  <xsl:if test="number($repeat) &gt;= 1">
-    <xsl:call-template name="space">
-      <xsl:with-param name="repeat" select="$repeat - 1"/>
-      <xsl:with-param name="fill" select="$fill"/>
-    </xsl:call-template>
-    <xsl:value-of select="$fill"/>
-  </xsl:if>
 </xsl:template>
 
 <xsl:template name="line-wrap">

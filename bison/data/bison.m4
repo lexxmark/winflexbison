@@ -2,7 +2,7 @@
 
 # Language-independent M4 Macros for Bison.
 
-# Copyright (C) 2002, 2004-2011 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2004-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -58,6 +58,30 @@ This special exception was added by the Free Software Foundation in
 version 2.2 of Bison.])])
 
 
+## -------- ##
+## Output.  ##
+## -------- ##
+
+# b4_output_begin(FILE)
+# ---------------------
+# Enable output, i.e., send to diversion 0, expand after "#", and
+# generate the tag to output into FILE.  Must be followed by EOL.
+m4_define([b4_output_begin],
+[m4_changecom()
+m4_divert_push(0)dnl
+@output(m4_unquote([$1])@)@dnl
+])
+
+
+# b4_output_end()
+# ---------------
+# Output nothing, restore # as comment character (no expansions after #).
+m4_define([b4_output_end],
+[m4_divert_pop(0)
+m4_changecom([#])
+])
+
+
 ## ---------------- ##
 ## Error handling.  ##
 ## ---------------- ##
@@ -85,7 +109,7 @@ m4_if(m4_sysval, [0], [], [m4_fatal([$0: cannot write to stdout])])])
 #
 # For example:
 #
-#   b4_error([[warn]], [[invalid value for `%s': %s]], [[foo]], [[3]])
+#   b4_error([[warn]], [[invalid value for '%s': %s]], [[foo]], [[3]])
 m4_define([b4_error],
 [b4_cat([[@]$1[(]$2[]]dnl
 [m4_if([$#], [2], [],
@@ -114,7 +138,7 @@ m4_define([b4_error_at],
 #
 # For example:
 #
-#   b4_warn([[invalid value for `%s': %s]], [[foo]], [[3]])
+#   b4_warn([[invalid value for '%s': %s]], [[foo]], [[3]])
 #
 # As a simple test suite, this:
 #
@@ -183,21 +207,6 @@ m4_define([b4_fatal_at],
 m4_exit(1)])
 
 
-## ---------------- ##
-## Default values.  ##
-## ---------------- ##
-
-# m4_define_default([b4_lex_param], [])   dnl breaks other skeletons
-m4_define_default([b4_pre_prologue], [])
-m4_define_default([b4_post_prologue], [])
-m4_define_default([b4_epilogue], [])
-m4_define_default([b4_parse_param], [])
-
-# The initial column and line.
-m4_define_default([b4_location_initial_column], [1])
-m4_define_default([b4_location_initial_line],   [1])
-
-
 ## ------------ ##
 ## Data Types.  ##
 ## ------------ ##
@@ -233,9 +242,9 @@ m4_define([b4_define_flag_if],
 
 # _b4_define_flag_if($1, $2, FLAG)
 # --------------------------------
-# This macro works around the impossibility to define macros
-# inside macros, because issuing `[$1]' is not possible in M4 :(.
-# This sucks hard, GNU M4 should really provide M5 like $$1.
+# Work around the impossibility to define macros inside macros,
+# because issuing `[$1]' is not possible in M4.  GNU M4 should provide
+# $$1 a la M5/TeX.
 m4_define([_b4_define_flag_if],
 [m4_if([$1$2], $[1]$[2], [],
        [m4_fatal([$0: Invalid arguments: $@])])dnl
@@ -246,17 +255,17 @@ m4_define([b4_$3_if],
 # b4_FLAG_if(IF-TRUE, IF-FALSE)
 # -----------------------------
 # Expand IF-TRUE, if FLAG is true, IF-FALSE otherwise.
-b4_define_flag_if([defines])	        # Whether headers are requested.
-b4_define_flag_if([error_verbose])	# Whether error are verbose.
-b4_define_flag_if([glr])		# Whether a GLR parser is requested.
-b4_define_flag_if([locations])	        # Whether locations are tracked.
-b4_define_flag_if([nondeterministic])	# Whether conflicts should be handled.
-b4_define_flag_if([yacc])	        # Whether POSIX Yacc is emulated.
+b4_define_flag_if([defines])            # Whether headers are requested.
+b4_define_flag_if([error_verbose])      # Whether error are verbose.
+b4_define_flag_if([glr])                # Whether a GLR parser is requested.
+b4_define_flag_if([locations])          # Whether locations are tracked.
+b4_define_flag_if([nondeterministic])   # Whether conflicts should be handled.
+b4_define_flag_if([token_table])        # Whether yytoken_table is demanded.
+b4_define_flag_if([yacc])               # Whether POSIX Yacc is emulated.
 
+# yytoken_table is needed to support verbose errors.
+b4_error_verbose_if([m4_define([b4_token_table_flag], [1])])
 
-## ------------------------- ##
-## Assigning token numbers.  ##
-## ------------------------- ##
 
 
 ## ----------- ##
@@ -274,8 +283,8 @@ m4_define([b4_basename],
 # b4_syncline(LINE, FILE)
 # -----------------------
 m4_define([b4_syncline],
-[b4_flag_if([synclines], [
-b4_sync_end([__line__], [b4_basename(m4_quote(__file__))])
+[b4_flag_if([synclines],
+[b4_sync_end([__line__], [b4_basename(m4_quote(__file__))])
 b4_sync_start([$1], [$2])])])
 
 m4_define([b4_sync_end], [b4_comment([Line $1 of $2])])
@@ -354,7 +363,7 @@ m4_pushdef([b4_start], m4_car(m4_shift(b4_occurrence)))dnl
 m4_pushdef([b4_end], m4_shift(m4_shift(b4_occurrence)))dnl
 m4_ifndef($3[(]m4_quote(b4_user_name)[)],
           [b4_complain_at([b4_start], [b4_end],
-                          [[%s `%s' is not used]],
+                          [[%s '%s' is not used]],
                           [$1], [b4_user_name])])[]dnl
 m4_popdef([b4_occurrence])dnl
 m4_popdef([b4_user_name])dnl
@@ -412,7 +421,7 @@ m4_define([b4_percent_define_get_loc],
           [m4_pushdef([b4_loc], m4_indir([b4_percent_define_loc(]$1[)]))dnl
 b4_loc[]dnl
 m4_popdef([b4_loc])],
-          [b4_fatal([[undefined %%define variable `%s' passed to b4_percent_define_get_loc]], [$1])])])
+          [b4_fatal([[b4_percent_define_get_loc: undefined %%define variable '%s']], [$1])])])
 
 # b4_percent_define_get_syncline(VARIABLE)
 # ----------------------------------------
@@ -429,7 +438,7 @@ m4_popdef([b4_loc])],
 m4_define([b4_percent_define_get_syncline],
 [m4_ifdef([b4_percent_define_syncline(]$1[)],
           [m4_indir([b4_percent_define_syncline(]$1[)])],
-          [b4_fatal([[undefined %%define variable `%s' passed to b4_percent_define_get_syncline]], [$1])])])
+          [b4_fatal([[b4_percent_define_get_syncline: undefined %%define variable '%s']], [$1])])])
 
 # b4_percent_define_ifdef(VARIABLE, IF-TRUE, [IF-FALSE])
 # ------------------------------------------------------
@@ -464,10 +473,10 @@ m4_define([b4_percent_define_flag_if],
   [m4_case(b4_percent_define_get([$1]),
            [], [$2], [true], [$2], [false], [$3],
            [m4_expand_once([b4_complain_at(b4_percent_define_get_loc([$1]),
-                                           [[invalid value for %%define Boolean variable `%s']],
+                                           [[invalid value for %%define Boolean variable '%s']],
                                            [$1])],
                            [[b4_percent_define_flag_if($1)]])])],
-  [b4_fatal([[undefined %%define variable `%s' passed to b4_percent_define_flag_if]], [$1])])])
+  [b4_fatal([[b4_percent_define_flag_if: undefined %%define variable '%s']], [$1])])])
 
 # b4_percent_define_default(VARIABLE, DEFAULT)
 # --------------------------------------------
@@ -516,15 +525,15 @@ m4_define([_b4_percent_define_check_values],
                             [m4_define([b4_good_value], [1])])])])dnl
    m4_if(b4_good_value, [0],
          [b4_complain_at(b4_percent_define_get_loc([$1]),
-                         [[invalid value for %%define variable `%s': `%s']],
+                         [[invalid value for %%define variable '%s': '%s']],
                          [$1],
                          m4_dquote(m4_indir([b4_percent_define(]$1[)])))
           m4_foreach([b4_value], m4_dquote(m4_shift($@)),
                      [b4_complain_at(b4_percent_define_get_loc([$1]),
-                                     [[accepted value: `%s']],
+                                     [[accepted value: '%s']],
                                      m4_dquote(b4_value))])])dnl
    m4_popdef([b4_good_value])],
-  [b4_fatal([[undefined %%define variable `%s' passed to b4_percent_define_check_values]], [$1])])])
+  [b4_fatal([[b4_percent_define_check_values: undefined %%define variable '%s']], [$1])])])
 
 # b4_percent_code_get([QUALIFIER])
 # --------------------------------
@@ -576,3 +585,26 @@ m4_wrap_lifo([
 b4_check_user_names_wrap([[define]], [[variable]])
 b4_check_user_names_wrap([[code]], [[qualifier]])
 ])
+
+
+## ---------------- ##
+## Default values.  ##
+## ---------------- ##
+
+# m4_define_default([b4_lex_param], [])   dnl breaks other skeletons
+m4_define_default([b4_pre_prologue], [])
+m4_define_default([b4_post_prologue], [])
+m4_define_default([b4_epilogue], [])
+m4_define_default([b4_parse_param], [])
+
+# The initial column and line.
+m4_define_default([b4_location_initial_column], [1])
+m4_define_default([b4_location_initial_line],   [1])
+
+# Sanity checks.
+b4_percent_define_ifdef([api.prefix],
+[m4_ifdef([b4_prefix],
+[b4_complain_at(b4_percent_define_get_loc([api.prefix]),
+                [['%s' and '%s' cannot be used together]],
+                [%name-prefix],
+                [%define api.prefix])])])

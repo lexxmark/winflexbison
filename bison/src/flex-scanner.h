@@ -1,6 +1,6 @@
 /* Common parts between scan-code.l, scan-gram.l, and scan-skel.l.
 
-   Copyright (C) 2006, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2012 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -21,7 +21,14 @@
 # error "FLEX_PREFIX not defined"
 #endif
 
+/* Flex full version as a number.  */
+#define FLEX_VERSION                    \
+  ((YY_FLEX_MAJOR_VERSION) * 1000000    \
+   + (YY_FLEX_MINOR_VERSION) * 1000     \
+   + (YY_FLEX_SUBMINOR_VERSION))
+
 /* Pacify "gcc -Wmissing-prototypes" when flex 2.5.31 is used.  */
+# if FLEX_VERSION <= 2005031
 int   FLEX_PREFIX (get_lineno) (void);
 FILE *FLEX_PREFIX (get_in) (void);
 FILE *FLEX_PREFIX (get_out) (void);
@@ -33,6 +40,7 @@ void  FLEX_PREFIX (set_out) (FILE *);
 int   FLEX_PREFIX (get_debug) (void);
 void  FLEX_PREFIX (set_debug) (int);
 int   FLEX_PREFIX (lex_destroy) (void);
+#endif
 
 #define last_string    FLEX_PREFIX (last_string)
 
@@ -51,12 +59,7 @@ int   FLEX_PREFIX (lex_destroy) (void);
    versions according to the Flex manual) leak memory if yylex_destroy is not
    invoked.  However, yylex_destroy is not defined before Flex 2.5.9, so give
    an implementation here that at least appears to work with Flex 2.5.4.  */
-#if !defined(YY_FLEX_MAJOR_VERSION) || YY_FLEX_MAJOR_VERSION < 2 \
-    || (YY_FLEX_MAJOR_VERSION == 2 \
-        && (!defined(YY_FLEX_MINOR_VERSION) || YY_FLEX_MINOR_VERSION < 5 \
-            || (YY_FLEX_MINOR_VERSION == 5 \
-                && (!defined(YY_FLEX_SUBMINOR_VERSION) \
-                    || YY_FLEX_SUBMINOR_VERSION < 9))))
+#if FLEX_VERSION <= 2005009
 # define yylex_destroy() yy_delete_buffer (YY_CURRENT_BUFFER)
 #endif
 
@@ -71,20 +74,18 @@ int   FLEX_PREFIX (lex_destroy) (void);
 
 #ifndef FLEX_NO_OBSTACK
 
-#include "obstack.h"
-
 static struct obstack obstack_for_string;
 
-#define STRING_GROW   \
+# define STRING_GROW   \
   obstack_grow (&obstack_for_string, yytext, yyleng)
 
-#define STRING_FINISH					\
+# define STRING_FINISH					\
   do {							\
     obstack_1grow (&obstack_for_string, '\0');		\
     last_string = obstack_finish (&obstack_for_string);	\
   } while (0)
 
-#define STRING_FREE \
+# define STRING_FREE \
   obstack_free (&obstack_for_string, last_string)
 
 #endif

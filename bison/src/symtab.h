@@ -1,6 +1,6 @@
 /* Definitions for symtab.c and callers, part of Bison.
 
-   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2007, 2009-2011 Free
+   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2007, 2009-2012 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -60,23 +60,30 @@ struct symbol
   /** The location of its first occurrence.  */
   location location;
 
-  /** Its \c \%type.  */
+  /** Its \c \%type.
+
+      Beware that this is the type_name as was entered by the user,
+      including silly things such as "]" if she entered "%token <]> t".
+      Therefore, when outputting type_name to M4, be sure to escape it
+      into "@}".  See quoted_output for instance.  */
   uniqstr type_name;
+
   /** Its \c \%type's location.  */
   location type_location;
 
   /** Any \c \%destructor declared specifically for this symbol.
 
-     Access this field only through <tt>symbol</tt>'s interface functions.  For
-     example, if <tt>symbol::destructor = NULL</tt>, a default \c \%destructor
-     or a per-type \c \%destructor might be appropriate, and
-     \c symbol_destructor_get will compute the correct one.  */
+      Access this field only through <tt>symbol</tt>'s interface
+      functions.  For example, if <tt>symbol::destructor = NULL</tt>, a
+      default \c \%destructor or a per-type \c \%destructor might be
+      appropriate, and \c symbol_destructor_get will compute the
+      correct one.  */
   code_props destructor;
 
   /** Any \c \%printer declared specifically for this symbol.
 
-     Access this field only through <tt>symbol</tt>'s interface functions.
-     \sa symbol::destructor  */
+      Access this field only through <tt>symbol</tt>'s interface functions.
+      \sa symbol::destructor  */
   code_props printer;
 
   symbol_number number;
@@ -153,7 +160,7 @@ code_props const *symbol_printer_get (symbol const *sym);
    Do nothing if invoked with \c undef_assoc as \c assoc.  */
 void symbol_precedence_set (symbol *sym, int prec, assoc a, location loc);
 
-/** Set the \c _class associated with \c sym.  */
+/** Set the \c class associated with \c sym.  */
 void symbol_class_set (symbol *sym, symbol_class class, location loc,
 		       bool declaring);
 

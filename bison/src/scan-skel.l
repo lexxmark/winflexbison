@@ -1,6 +1,6 @@
 /* Scan Bison Skeletons.                                       -*- C -*-
 
-   Copyright (C) 2001-2007, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2007, 2009-2012 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -72,12 +72,11 @@ static void fail_for_invalid_at (char const *at);
 "@@" fputc ('@', yyout);
 "@{" fputc ('[', yyout);
 "@}" fputc (']', yyout);
-"@`" /* Emtpy.  Used by b4_cat in ../data/bison.m4.  */
-@\n  /* Likewise.  */
+"@`" continue;  /* Used by b4_cat in ../data/bison.m4.  */
+@\n  continue;
 
 "@oline@"  fprintf (yyout, "%d", out_lineno + 1);
 "@ofile@"  QPUTS (outname);
-"@dir_prefix@" QPUTS (dir_prefix);
 
 @[a-z_]+"(" {
   yytext[yyleng-1] = '\0';
@@ -88,9 +87,9 @@ static void fail_for_invalid_at (char const *at);
 }
 
   /* This pattern must not match more than the previous @ patterns. */
-@[^@{}`(\n]* fail_for_invalid_at (yytext);
-\n	   out_lineno++; ECHO;
-[^@\n]+	   ECHO;
+@[^@{}`(\n]*  fail_for_invalid_at (yytext);
+\n            out_lineno++; ECHO;
+[^@\n]+       ECHO;
 
 <INITIAL><<EOF>> {
   if (outname)
@@ -101,15 +100,15 @@ static void fail_for_invalid_at (char const *at);
   return EOF;
 }
 
-<SC_AT_DIRECTIVE_ARGS>{
-  [^@]+ { STRING_GROW; }
+<SC_AT_DIRECTIVE_ARGS>
+{
+  [^@]+  STRING_GROW;
 
-  "@@" { obstack_1grow (&obstack_for_string, '@'); }
-  "@{" { obstack_1grow (&obstack_for_string, '['); }
-  "@}" { obstack_1grow (&obstack_for_string, ']'); }
-  "@`" /* Empty.  Useful for starting an argument
-          that begins with whitespace. */
-  @\n  /* Empty.  */
+  "@@"   obstack_1grow (&obstack_for_string, '@');
+  "@{"   obstack_1grow (&obstack_for_string, '[');
+  "@}"   obstack_1grow (&obstack_for_string, ']');
+  "@`"   continue; /* For starting an argument that begins with whitespace. */
+  @\n    continue;
 
   @[,)] {
     if (at_directive_argc >= AT_DIRECTIVE_ARGC_MAX)
@@ -132,15 +131,17 @@ static void fail_for_invalid_at (char const *at);
       }
   }
 
-  @.? { fail_for_invalid_at (yytext); }
+  @.?  fail_for_invalid_at (yytext);
 }
 
-<SC_AT_DIRECTIVE_SKIP_WS>{
-  [ \t\r\n]
-  . { yyless (0); BEGIN SC_AT_DIRECTIVE_ARGS; }
+<SC_AT_DIRECTIVE_SKIP_WS>
+{
+  [ \t\r\n]    continue;
+  .            { yyless (0); BEGIN SC_AT_DIRECTIVE_ARGS; }
 }
 
-<SC_AT_DIRECTIVE_ARGS,SC_AT_DIRECTIVE_SKIP_WS>{
+<SC_AT_DIRECTIVE_ARGS,SC_AT_DIRECTIVE_SKIP_WS>
+{
   <<EOF>> {
     fatal (_("unclosed %s directive in skeleton"), at_directive_argv[0]);
   }

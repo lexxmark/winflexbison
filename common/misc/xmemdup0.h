@@ -1,7 +1,6 @@
-/* quote.c - quote arguments for output
+/* xmemdup0.h -- copy a block of arbitrary bytes, plus a trailing NUL
 
-   Copyright (C) 1998-2001, 2003, 2005-2006, 2009-2011 Free Software
-   Foundation, Inc.
+   Copyright (C) 2008-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,25 +15,27 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Written by Paul Eggert <eggert@twinsun.com> */
+#ifndef XMEMDUP_H_
+# define XMEMDUP_H_
 
-#include <config.h>
+# include <stddef.h>
 
-#include "quotearg.h"
-#include "quote.h"
 
-/* Return an unambiguous printable representation of NAME,
-   allocated in slot N, suitable for diagnostics.  */
-char const *
-quote_n (int n, char const *name)
-{
-  return quotearg_n_style (n, locale_quoting_style, name);
+# ifdef __cplusplus
+extern "C" {
+# endif
+
+/* This function is always triggered when memory is exhausted.
+   It must be defined by the application, either explicitly
+   or by using gnulib's xalloc-die module.  This is the
+   function to call when one wants the program to die because of a
+   memory allocation failure.  */
+//extern _Noreturn void xalloc_die (void);
+
+char *xmemdup0 (void const *p, size_t s);
+
+# ifdef __cplusplus
 }
+# endif
 
-/* Return an unambiguous printable representation of NAME,
-   suitable for diagnostics.  */
-char const *
-quote (char const *name)
-{
-  return quote_n (0, name);
-}
+#endif /* !XMEMDUP0_H_ */

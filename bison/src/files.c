@@ -1,6 +1,6 @@
 /* Open and close files for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2011 Free Software
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2012 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -25,6 +25,7 @@
 #include <dirname.h>
 #include <get-errno.h>
 #include <quote.h>
+#include <quotearg.h>
 #include <stdio-safer.h>
 #include <xstrndup.h>
 
@@ -109,7 +110,8 @@ xfopen (const char *name, const char *mode)
 
   ptr = fopen (name, mode);
   if (!ptr)
-    error (EXIT_FAILURE, get_errno (), _("cannot open file `%s'"), name);
+    error (EXIT_FAILURE, get_errno (),
+           _("%s: cannot open"), quotearg_colon (name));
 
   return ptr;
 }
@@ -125,7 +127,7 @@ xfclose (FILE *ptr)
     return;
 
   if (ferror (ptr))
-    error (EXIT_FAILURE, 0, _("I/O error"));
+    error (EXIT_FAILURE, 0, _("input/output error"));
 
   if (fclose (ptr) != 0)
     error (EXIT_FAILURE, get_errno (), _("cannot close file"));

@@ -1,6 +1,6 @@
 /* Print an xml on generated parser, for Bison,
 
-   Copyright (C) 2007, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009-2012 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -23,7 +23,6 @@
 #include <stdarg.h>
 
 #include <bitset.h>
-#include <quotearg.h>
 
 #include "LR0.h"
 #include "closure.h"
@@ -39,6 +38,7 @@
 #include "state.h"
 #include "symtab.h"
 #include "tables.h"
+#include <string.h>
 
 static bitset no_reduce_set;
 struct escape_buf

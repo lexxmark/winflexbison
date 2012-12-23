@@ -1,6 +1,6 @@
 %{/* Bison Grammar Parser                             -*- C -*-
 
-   Copyright (C) 2002-2011 Free Software Foundation, Inc.
+   Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -20,6 +20,7 @@
 #include <config.h>
 #include "system.h"
 
+#include "c-ctype.h"
 #include "complain.h"
 #include "conflicts.h"
 #include "files.h"
@@ -32,6 +33,7 @@
 #include "symlist.h"
 #include "scan-gram.h"
 #include "scan-code.h"
+#include "xmemdup0.h"
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)  (Current) = lloc_default (Rhs, N)
 static YYLTYPE lloc_default (YYLTYPE const *, int);
@@ -92,14 +94,14 @@ current_lhs(symbol *sym, location loc, named_ref *ref)
 %}
 
 %debug
-%verbose
-%defines
-%locations
-%pure-parser
-%error-verbose
+%define api.prefix "gram_"
+%define api.pure
 %define parse.lac full
-%name-prefix="gram_"
+%defines
+%error-verbose
 %expect 0
+%locations
+%verbose
 
 %initial-action
 {
@@ -250,7 +252,7 @@ prologue_declaration:
                         plain_code.code, @1);
       code_scanner_last_string_free ();
     }
-| "%debug"                         { debug_flag = true; }
+| "%debug"                         { debug = true; }
 | "%define" variable content.opt
     {
       muscle_percent_define_insert ($2, @2, $3,
@@ -346,17 +348,27 @@ grammar_declaration:
     }
 | "%destructor" "{...}" generic_symlist
     {
-      symbol_list *list;
-      for (list = $3; list; list = list->next)
-	symbol_list_destructor_set (list, $2, @2);
-      symbol_list_free ($3);
+      code_props code;
+      code_props_symbol_action_init (&code, $2, @2);
+      code_props_translate_code (&code);
+      {
+        symbol_list *list;
+        for (list = $3; list; list = list->next)
+          symbol_list_destructor_set (list, &code);
+        symbol_list_free ($3);
+      }
     }
 | "%printer" "{...}" generic_symlist
     {
-      symbol_list *list;
-      for (list = $3; list; list = list->next)
-	symbol_list_printer_set (list, $2, @2);
-      symbol_list_free ($3);
+      code_props code;
+      code_props_symbol_action_init (&code, $2, @2);
+      code_props_translate_code (&code);
+      {
+        symbol_list *list;
+        for (list = $3; list; list = list->next)
+          symbol_list_printer_set (list, &code);
+        symbol_list_free ($3);
+      }
     }
 | "%default-prec"
     {
@@ -686,7 +698,7 @@ lloc_default (YYLTYPE const *rhs, int n)
   loc.start = rhs[n].end;
   loc.end = rhs[n].end;
 
-  /* Ignore empty nonterminals the start of the the right-hand side.
+  /* Ignore empty nonterminals the start of the right-hand side.
      Do not bother to ignore them at the end of the right-hand side,
      since empty nonterminals have the same end as their predecessors.  */
   for (i = 1; i <= n; i++)
@@ -723,27 +735,19 @@ add_param (char const *type, char *decl, location loc)
 
   /* Strip the surrounding '{' and '}', and any blanks just inside
      the braces.  */
-  while (*--p == ' ' || *p == '\t')
-    continue;
+  --p;
+  while (c_isspace ((unsigned char) *p))
+    --p;
   p[1] = '\0';
-  while (*++decl == ' ' || *decl == '\t')
-    continue;
+  ++decl;
+  while (c_isspace ((unsigned char) *decl))
+    ++decl;
 
   if (! name_start)
     complain_at (loc, _("missing identifier in parameter declaration"));
   else
     {
-      char *name;
-      size_t name_len;
-
-      for (name_len = 1;
-	   memchr (alphanum, name_start[name_len], sizeof alphanum);
-	   name_len++)
-	continue;
-
-      name = xmalloc (name_len + 1);
-      memcpy (name, name_start, name_len);
-      name[name_len] = '\0';
+      char *name = xmemdup0 (name_start, strspn (name_start, alphanum));
       muscle_pair_list_grow (type, decl, name);
       free (name);
     }
@@ -758,8 +762,8 @@ version_check (location const *loc, char const *version)
   if (strverscmp (version, PACKAGE_VERSION) > 0)
     {
       complain_at (*loc, "require bison %s, but have %s",
-		   version, PACKAGE_VERSION);
-      exit (63);
+                   version, PACKAGE_VERSION);
+      exit (EX_MISMATCH);
     }
 }
 

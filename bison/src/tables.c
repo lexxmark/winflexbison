@@ -1,6 +1,6 @@
 /* Output the generated parsing program for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2006, 2009-2011 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2006, 2009-2012 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -22,7 +22,6 @@
 #include "system.h"
 
 #include <bitsetv.h>
-#include <quotearg.h>
 
 #include "complain.h"
 #include "conflicts.h"
@@ -816,8 +815,8 @@ tables_generate (void)
   /* This is a poor way to make sure the sizes are properly
      correlated.  In particular the signedness is not taken into
      account.  But it's not useless.  */
-  verify (sizeof(nstates) <= sizeof(nvectors)
-	  && sizeof(nvars) <= sizeof(nvectors));
+  verify (sizeof nstates <= sizeof nvectors
+	  && sizeof nvars <= sizeof nvectors);
 
   nvectors = state_number_as_int (nstates) + nvars;
 

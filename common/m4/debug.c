@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 
 /* File for debugging output.  */
-FILE *debug = NULL;
+FILE *_debug = NULL;
 
 /* Obstack for trace messages.  */
 static struct obstack trace;
@@ -133,19 +133,19 @@ debug_set_file (FILE *fp)
 {
   struct stat stdout_stat, debug_stat;
 
-  if (debug != NULL && debug != stderr && debug != stdout
-      && close_stream (debug) != 0)
+  if (_debug != NULL && _debug != stderr && _debug != stdout
+      && close_stream (_debug) != 0)
     {
       M4ERROR ((warning_status, errno, "error writing to debug stream"));
       retcode = EXIT_FAILURE;
     }
-  debug = fp;
+  _debug = fp;
 
-  if (debug != NULL && debug != stdout)
+  if (_debug != NULL && _debug != stdout)
     {
       if (fstat (1, &stdout_stat) < 0)
         return;
-      if (fstat (fileno (debug), &debug_stat) < 0)
+      if (fstat (fileno (_debug), &debug_stat) < 0)
         return;
 
       /* mingw has a bug where fstat on a regular file reports st_ino
@@ -154,13 +154,13 @@ debug_set_file (FILE *fp)
           && stdout_stat.st_dev == debug_stat.st_dev
           && stdout_stat.st_ino != 0)
         {
-          if (debug != stderr && close_stream (debug) != 0)
+          if (_debug != stderr && close_stream (_debug) != 0)
             {
               M4ERROR ((warning_status, errno,
                         "error writing to debug stream"));
               retcode = EXIT_FAILURE;
             }
-          debug = stdout;
+          _debug = stdout;
         }
     }
 }
@@ -174,8 +174,8 @@ debug_flush_files (void)
 {
   fflush (stdout);
   fflush (stderr);
-  if (debug != NULL && debug != stdout && debug != stderr)
-    fflush (debug);
+  if (_debug != NULL && _debug != stdout && _debug != stderr)
+    fflush (_debug);
   /* POSIX requires that if m4 doesn't consume all input, but stdin is
      opened on a seekable file, that the file pointer be left at the
      next character on exit (but places no restrictions on the file
@@ -233,15 +233,15 @@ debug_set_output (const char *name)
 void
 debug_message_prefix (void)
 {
-  xfprintf (debug, "m4debug:");
+  xfprintf (_debug, "m4debug:");
   if (current_line)
   {
     if (debug_level & DEBUG_TRACE_FILE)
-      xfprintf (debug, "%s:", current_file);
+      xfprintf (_debug, "%s:", current_file);
     if (debug_level & DEBUG_TRACE_LINE)
-      xfprintf (debug, "%d:", current_line);
+      xfprintf (_debug, "%d:", current_line);
   }
-  putc (' ', debug);
+  putc (' ', _debug);
 }
 
 /* The rest of this file contains the functions for macro tracing output.

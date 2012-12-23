@@ -3,7 +3,7 @@
 <!--
     bison.xsl - common templates for Bison XSLT.
 
-    Copyright (C) 2007-2011 Free Software Foundation, Inc.
+    Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -88,6 +88,18 @@
   <xsl:value-of select="string-length(translate($conflict-data, 'r', ''))"/>
   <xsl:text>,</xsl:text>
   <xsl:value-of select="string-length(translate($conflict-data, 's', ''))"/>
+</xsl:template>
+
+<xsl:template name="space">
+  <xsl:param name="repeat">0</xsl:param>
+  <xsl:param name="fill" select="' '"/>
+  <xsl:if test="number($repeat) &gt;= 1">
+    <xsl:call-template name="space">
+      <xsl:with-param name="repeat" select="$repeat - 1"/>
+      <xsl:with-param name="fill" select="$fill"/>
+    </xsl:call-template>
+    <xsl:value-of select="$fill"/>
+  </xsl:if>
 </xsl:template>
 
 </xsl:stylesheet>

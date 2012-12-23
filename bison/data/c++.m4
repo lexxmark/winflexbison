@@ -2,7 +2,7 @@
 
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2011 Free Software Foundation, Inc.
+# Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ b4_percent_define_default([[parser_class_name]], [[parser]])
 # Don't do that so that we remember whether we're using a user
 # request, or the default value.
 #
-# b4_percent_define_default([[location_type]], [[location]])
+# b4_percent_define_default([[api.location.type]], [[location]])
 
 b4_percent_define_default([[filename_type]], [[std::string]])
 b4_percent_define_default([[namespace]], m4_defn([b4_prefix]))
@@ -95,6 +95,8 @@ m4_map_sep([     b4_token_enum], [,
            [$@])
    };
 ])
+
+
 
 
 ## ----------------- ##
@@ -172,3 +174,32 @@ m4_define([b4_cc_var_decls],
 ], [$@])])
 m4_define([b4_cc_var_decl],
 	  [    $1;])
+
+
+## ---------##
+## Values.  ##
+## ---------##
+
+# b4_yylloc_default_define
+# ------------------------
+# Define YYLLOC_DEFAULT.
+m4_define([b4_yylloc_default_define],
+[[/* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
+   If N is 0, then set CURRENT to the empty location which ends
+   the previous symbol: RHS[0] (always defined).  */
+
+# ifndef YYLLOC_DEFAULT
+#  define YYLLOC_DEFAULT(Current, Rhs, N)                               \
+    do                                                                  \
+      if (N)                                                            \
+        {                                                               \
+          (Current).begin  = YYRHSLOC (Rhs, 1).begin;                   \
+          (Current).end    = YYRHSLOC (Rhs, N).end;                     \
+        }                                                               \
+      else                                                              \
+        {                                                               \
+          (Current).begin = (Current).end = YYRHSLOC (Rhs, 0).end;      \
+        }                                                               \
+    while (/*CONSTCOND*/ false)
+# endif
+]])

@@ -57,6 +57,7 @@
 //#include <unistd.h>
 #include <io.h>
 #include <fcntl.h>
+#include <process.h>
 
 #include <sys/stat.h>
 
@@ -246,7 +247,7 @@ __gen_tempname (char *tmpl, int suffixlen, int flags, int kind)
     random_time_bits = ((uint64_t) i << 16) ^ 23546;
   }
 #endif
-  value += random_time_bits ^ 34466;
+  value += random_time_bits ^ _getpid ();
 
   for (count = 0; count < attempts; value += 7777, ++count)
     {

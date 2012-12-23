@@ -40,6 +40,9 @@
 #  define HAVE_STATIC_ASSERT 1
 # endif
 
+// for windows compiler
+#  define HAVE_STATIC_ASSERT 1
+
 /* Each of these macros verifies that its argument R is nonzero.  To
    be portable, R should be an integer constant expression.  Unlike
    assert (R), there is no run-time overhead.

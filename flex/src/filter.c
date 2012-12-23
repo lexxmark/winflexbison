@@ -189,6 +189,8 @@ struct filter *filter_create_ext (struct filter *chain, const char *cmd,
 
 	/* allocate and initialize new filter */
 	f = (struct filter *) flex_alloc (sizeof (struct filter));
+	if (!f)
+		flexerror (_("flex_alloc failed (f) in filter_create_ext"));
 	memset (f, 0, sizeof (*f));
 	f->filter_func = NULL;
 	f->extra = NULL;
@@ -208,6 +210,8 @@ struct filter *filter_create_ext (struct filter *chain, const char *cmd,
 	f->argv =
 		(const char **) flex_alloc (sizeof (char *) *
 					    (max_args + 1));
+	if (!f->argv)
+		flexerror (_("flex_alloc failed (f->argv) in filter_create_ext"));
 	f->argv[f->argc++] = cmd;
 
 	va_start (ap, cmd);
@@ -245,7 +249,12 @@ struct filter *filter_create_int (struct filter *chain,
 
 	/* allocate and initialize new filter */
 	f = (struct filter *) flex_alloc (sizeof (struct filter));
+	if (!f)
+		flexerror (_("flex_alloc failed in filter_create_int"));
 	memset (f, 0, sizeof (*f));
+	f->next = NULL;
+	f->in_file = NULL;
+	f->out_file = NULL;
 
 	f->filter_func = filter_func;
 	f->extra = extra;
@@ -478,6 +487,8 @@ int filter_tee_header (struct filter *chain)
 		outfilename ? outfilename : "<stdout>");
 
 	buf = (char *) flex_alloc (readsz);
+	if (!buf)
+		flexerror (_("flex_alloc failed in filter_tee_header"));
 	while (fgets (buf, readsz, chain->in_file)) {
 		fputs (buf, to_c);
 		if (write_header)
@@ -571,6 +582,8 @@ int filter_fix_linedirs (struct filter *chain)
 		return 0;
 
 	buf = (char *) flex_alloc (readsz);
+	if (!buf)
+		flexerror (_("flex_alloc failed in filter_fix_linedirs"));
 
 	while (fgets (buf, readsz, chain->in_file)) {
 

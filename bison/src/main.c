@@ -1,6 +1,6 @@
 /* Top level entry point of Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2002, 2004-2011 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2002, 2004-2012 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -24,10 +24,12 @@
 #include <bitset_stats.h>
 #include <bitset.h>
 //#include <configmake.h>
+#include <progname.h>
 #include <quotearg.h>
 #include <timevar.h>
 
 #include "LR0.h"
+#include "closeout.h"
 #include "complain.h"
 #include "conflicts.h"
 #include "derives.h"
@@ -42,6 +44,7 @@
 #include "print.h"
 #include "print_graph.h"
 #include "print-xml.h"
+#include <quote.h>
 #include "reader.h"
 #include "reduce.h"
 #include "scan-code.h"
@@ -103,8 +106,10 @@ char* get_local_pkgdatadir(const char* program_path)
 
 char* local_pkgdatadir = 0;
 
-int main (int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
+  set_program_name (argv[0]);
   program_name = basename2 (argv[0], 1);
   local_pkgdatadir = get_local_pkgdatadir(argv[0]);
 
@@ -112,6 +117,16 @@ int main (int argc, char *argv[])
   (void) bindtextdomain (PACKAGE, LOCALEDIR);
   (void) bindtextdomain ("bison-runtime", LOCALEDIR);
   (void) textdomain (PACKAGE);
+
+  {
+    char const *cp = getenv ("LC_CTYPE");
+    if (cp && !strcmp (cp, "C"))
+      set_custom_quoting (&quote_quoting_options, "'", "'");
+    else
+      set_quoting_style (&quote_quoting_options, locale_quoting_style);
+  }
+
+  atexit (close_stdout);
 
   uniqstrs_new ();
   muscle_init ();
@@ -249,13 +264,14 @@ int main (int argc, char *argv[])
   if (trace_flag & trace_bitsets)
     bitset_stats_dump (stderr);
 
-finish:
-
+ finish:
   free(local_pkgdatadir);
 
   /* Stop timing and print the times.  */
   timevar_stop (TV_TOTAL);
   timevar_print (stderr);
+
+  cleanup_caret ();
 
   return complaint_issued ? EXIT_FAILURE : EXIT_SUCCESS;
 }

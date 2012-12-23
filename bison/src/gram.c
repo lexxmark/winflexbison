@@ -1,6 +1,6 @@
 /* Allocate input grammar variables for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 2001-2003, 2005-2011 Free Software
+   Copyright (C) 1984, 1986, 1989, 2001-2003, 2005-2012 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -20,8 +20,6 @@
 
 #include <config.h>
 #include "system.h"
-
-#include <quotearg.h>
 
 #include "complain.h"
 #include "getargs.h"
@@ -310,11 +308,16 @@ grammar_rules_useless_report (const char *message)
   for (r = 0; r < nrules ; ++r)
     if (!rules[r].useful)
       {
-        warn_at (rules[r].location, "%s: ", message);
-        if (warnings_flag & warnings_other)
+        if (feature_flag & feature_caret)
+          warn_at (rules[r].location, "%s", message);
+        else
           {
-            rule_print (&rules[r], stderr);
-            fflush (stderr);
+            warn_at (rules[r].location, "%s: ", message);
+            if (warnings_flag & warnings_other)
+              {
+                rule_print (&rules[r], stderr);
+                fflush (stderr);
+              }
           }
       }
 }

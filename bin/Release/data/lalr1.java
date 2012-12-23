@@ -1,6 +1,6 @@
 # Java skeleton for Bison -*- autoconf -*-
 
-# Copyright (C) 2007-2011 Free Software Foundation, Inc.
+# Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,10 +22,9 @@ m4_ifval(m4_defn([b4_symbol_destructors]),
         [b4_fatal([%s: %%destructor does not make sense in Java], [b4_skeleton])],
         [])
 
-m4_divert_push(0)dnl
-@output(b4_parser_file_name@)@
+b4_output_begin([b4_parser_file_name])
 b4_copyright([Skeleton implementation for Bison LALR(1) parsers in Java],
-             [2007-2011])
+             [2007-2012])
 
 b4_percent_define_ifdef([package], [package b4_percent_define_get([package]);
 ])[/* First part of user declarations.  */
@@ -454,18 +453,14 @@ b4_lexer_if([[
     /// Semantic value of the lookahead.
     b4_yystype[ yylval = null;
 
-    int yyresult;
-
     yycdebug ("Starting parse\n");
     yyerrstatus_ = 0;
 
 ]m4_ifdef([b4_initial_action], [
-m4_pushdef([b4_at_dollar],     [yylloc])dnl
-m4_pushdef([b4_dollar_dollar], [yylval])dnl
-    /* User initialization code.  */
-    b4_user_initial_action
-m4_popdef([b4_dollar_dollar])dnl
-m4_popdef([b4_at_dollar])])dnl
+b4_dollar_pushdef([yylval], [], [yylloc])dnl
+/* User initialization code.  */
+b4_user_initial_action
+b4_dollar_popdef])[]dnl
 
   [  /* Initialize the stack.  */
     yystack.push (yystate, yylval]b4_locations_if([, yylloc])[);
@@ -644,7 +639,7 @@ m4_popdef([b4_at_dollar])])dnl
 	      }
 
 	    /* Pop the current state because it cannot handle the error token.  */
-	    if (yystack.height == 1)
+	    if (yystack.height == 0)
 	      return false;
 
 	    ]b4_locations_if([yyerrloc = yystack.locationAt (0);])[
@@ -929,4 +924,4 @@ b4_percent_code_get[]dnl
 }
 
 b4_epilogue
-m4_divert_pop(0)dnl
+b4_output_end()

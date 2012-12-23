@@ -1,6 +1,6 @@
 /* Locations for Bison
 
-   Copyright (C) 2002, 2004-2011 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004-2012 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -21,7 +21,6 @@
 # define LOCATION_H_
 
 # include "uniqstr.h"
-#include "stdbool.h"
 
 /* A boundary between two characters.  */
 typedef struct
@@ -70,8 +69,7 @@ boundary_cmp (boundary a, boundary b)
 }
 
 /* Return nonzero if A and B are equal boundaries.  */
-static  bool
-equal_boundaries (boundary a, boundary b)
+static  bool equal_boundaries (boundary a, boundary b)
 {
   return (a.column == b.column
 	  && a.line == b.line
@@ -89,7 +87,7 @@ typedef struct
 
 } location;
 
-#define YYLTYPE location
+#define GRAM_LTYPE location
 
 #define EMPTY_LOCATION_INIT {{NULL, 0, 0}, {NULL, 0, 0}}
 extern location const empty_location;
@@ -102,6 +100,13 @@ void location_compute (location *loc,
 /* Print location to file. Return number of actually printed
    characters.  */
 unsigned location_print (FILE *out, location loc);
+
+/* Free any allocated ressources and close any open file handles that are
+   left-over by the usage of location_caret.  */
+void cleanup_caret (void);
+
+/* Output to OUT the line and caret corresponding to location LOC.  */
+void location_caret (FILE *out, location loc);
 
 /* Return -1, 0, 1, depending whether a is before, equal, or
    after b.  */

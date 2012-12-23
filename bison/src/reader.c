@@ -1,7 +1,7 @@
 /* Input parser for Bison
 
    Copyright (C) 1984, 1986, 1989, 1992, 1998, 2000-2003, 2005-2007,
-   2009-2011 Free Software Foundation, Inc.
+   2009-2012 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -22,7 +22,6 @@
 #include "system.h"
 
 #include <quote.h>
-#include <quotearg.h>
 
 #include "complain.h"
 #include "conflicts.h"
@@ -129,12 +128,16 @@ record_merge_function_type (int merger, uniqstr type, location declaration_loc)
   aver (merge_function != NULL && merger_find == merger);
   if (merge_function->type != NULL && !UNIQSTR_EQ (merge_function->type, type))
     {
-      complain_at (declaration_loc,
-		   _("result type clash on merge function `%s': <%s> != <%s>"),
-		   merge_function->name, type, merge_function->type);
-      complain_at (merge_function->type_declaration_location,
-		   _("previous declaration"));
-    }
+      unsigned indent = 0;
+      complain_at_indent (declaration_loc, &indent,
+                          _("result type clash on merge function %s: "
+                            "<%s> != <%s>"),
+                          quote (merge_function->name), type,
+                          merge_function->type);
+      indent += SUB_INDENT;
+      complain_at_indent (merge_function->type_declaration_location, &indent,
+                          _("previous declaration"));
+   }
   merge_function->type = uniqstr_new (type);
   merge_function->type_declaration_location = declaration_loc;
 }
@@ -322,9 +325,9 @@ grammar_rule_check (const symbol_list *r)
             void (*warn_at_ptr)(location, char const*, ...) =
               midrule_warning ? midrule_value_at : warn_at;
             if (n)
-              warn_at_ptr (r->location, _("unused value: $%d"), n);
+              warn_at_ptr (l->location, _("unused value: $%d"), n);
             else
-              warn_at_ptr (r->location, _("unset value: $$"));
+              warn_at_ptr (l->location, _("unset value: $$"));
           }
       }
   }

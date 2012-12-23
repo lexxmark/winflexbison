@@ -1,6 +1,6 @@
 /* Keeping a unique copy of strings.
 
-   Copyright (C) 2002-2003, 2008-2011 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2008-2012 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -38,7 +38,7 @@ uniqstr uniqstr_vsprintf (char const *format, ...);
 char* uniqstr_get_format (char const *aaa, ...);
 
 /* Two uniqstr values have the same value iff they are the same.  */
-#define UNIQSTR_EQ(USTR1, USTR2) ((USTR1) == (USTR2))
+#define UNIQSTR_EQ(USTR1, USTR2) (!!((USTR1) == (USTR2)))
 
 /* Compare two uniqstr a la strcmp: negative for <, nul for =, and
    positive for >.  Undefined order, relies on addresses.  */

@@ -1,6 +1,6 @@
 /* Parse command line arguments for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2011 Free Software
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2012 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -26,7 +26,7 @@
 #include <c-strcase.h>
 //#include <configmake.h>
 #include <error.h>
-#include <quotearg.h>
+#include <mbstring.h>
 
 /* Hack to get <getopt.h> to declare getopt with a prototype.  */
 #if lint && ! defined __GNU_LIBRARY__
@@ -41,13 +41,16 @@
 # undef HACK_FOR___GNU_LIBRARY___PROTOTYPE
 #endif
 
+#include <progname.h>
+
 #include "complain.h"
 #include "files.h"
 #include "getargs.h"
 #include "muscle-tab.h"
+#include "quote.h"
 #include "uniqstr.h"
 
-bool debug_flag;
+bool debug;
 bool defines_flag;
 bool graph_flag;
 bool xml_flag;
@@ -61,6 +64,7 @@ bool error_verbose = false;
 bool nondeterministic_parser = false;
 bool glr_parser = false;
 
+int feature_flag = feature_none;
 int report_flag = report_none;
 int trace_flag = trace_none;
 int warnings_flag = warnings_conflicts_sr | warnings_conflicts_rr
@@ -78,8 +82,6 @@ const char *skeleton = NULL;
 int language_prio = default_prio;
 struct bison_language const *language = &valid_languages[0];
 const char *include = NULL;
-
-char *program_name;
 
 
 /** Decode an option's set of keys.
@@ -257,6 +259,26 @@ static const int warnings_types[] =
 
 ARGMATCH_VERIFY (warnings_args, warnings_types);
 
+/*-----------------------.
+| --feature's handling.  |
+`-----------------------*/
+
+static const char * const feature_args[] =
+{
+  "none",
+  "caret", "diagnostics-show-caret",
+  "all",
+  0
+};
+
+static const int feature_types[] =
+{
+  feature_none,
+  feature_caret, feature_caret,
+  feature_all
+};
+
+ARGMATCH_VERIFY (feature_args, feature_types);
 
 /*-------------------------------------------.
 | Display the help message and exit STATUS.  |
@@ -301,23 +323,24 @@ Operation modes:\n\
       --print-datadir        output directory containing skeletons and XSLT\n\
   -y, --yacc                 emulate POSIX Yacc\n\
   -W, --warnings[=CATEGORY]  report the warnings falling in CATEGORY\n\
+  -f, --feature[=FEATURE]    activate miscellaneous features\n\
 \n\
 "), stdout);
 
       fputs (_("\
 Parser:\n\
   -L, --language=LANGUAGE          specify the output programming language\n\
-                                   (this is an experimental feature)\n\
   -S, --skeleton=FILE              specify the skeleton to use\n\
   -t, --debug                      instrument the parser for debugging\n\
       --locations                  enable location support\n\
-  -D, --define=NAME[=VALUE]        similar to `%define NAME \"VALUE\"'\n\
-  -F, --force-define=NAME[=VALUE]  override `%define NAME \"VALUE\"'\n\
+  -D, --define=NAME[=VALUE]        similar to '%define NAME \"VALUE\"'\n\
+  -F, --force-define=NAME[=VALUE]  override '%define NAME \"VALUE\"'\n\
   -p, --name-prefix=PREFIX         prepend PREFIX to the external symbols\n\
-  -l, --no-lines                   don't generate `#line' directives\n\
+                                   deprecated by '-Dapi.prefix=PREFIX'\n\
+  -l, --no-lines                   don't generate '#line' directives\n\
   -k, --token-table                include a table of token names\n\
-\n\
 "), stdout);
+      putc ('\n', stdout);
 
       /* Keep -d and --defines separate so that ../build-aux/cross-options.pl
        * won't assume that -d also takes an argument.  */
@@ -333,8 +356,8 @@ Output:\n\
   -g, --graph[=FILE]         also output a graph of the automaton\n\
   -x, --xml[=FILE]           also output an XML report of the automaton\n\
                              (the XML schema is experimental)\n\
-\n\
 "), stdout);
+      putc ('\n', stdout);
 
       fputs (_("\
 Warning categories include:\n\
@@ -342,13 +365,14 @@ Warning categories include:\n\
   `yacc'            incompatibilities with POSIX Yacc\n\
   `conflicts-sr'    S/R conflicts (enabled by default)\n\
   `conflicts-rr'    R/R conflicts (enabled by default)\n\
+  `deprecated'      obsolete constructs\n\
   `other'           all other warnings (enabled by default)\n\
   `all'             all the warnings\n\
   `no-CATEGORY'     turn off warnings in CATEGORY\n\
   `none'            turn off all the warnings\n\
   `error'           treat warnings as errors\n\
-\n\
 "), stdout);
+      putc ('\n', stdout);
 
       fputs (_("\
 THINGS is a list of comma separated words that can include:\n\
@@ -359,8 +383,34 @@ THINGS is a list of comma separated words that can include:\n\
   `all'          include all the above information\n\
   `none'         disable the report\n\
 "), stdout);
+      putc ('\n', stdout);
 
-      printf (_("\nReport bugs to <%s>.\n"), PACKAGE_BUGREPORT);
+      fputs (_("\
+FEATURE is a list of comma separated words that can include:\n\
+  `caret'        show errors with carets\n\
+  `all'          all of the above\n\
+  `none'         disable all of the above\n\
+  "), stdout);
+
+      putc ('\n', stdout);
+      printf (_("Report bugs to <%s>.\n"), PACKAGE_BUGREPORT);
+      printf (_("%s home page: <%s>.\n"), PACKAGE_NAME, PACKAGE_URL);
+      fputs (_("General help using GNU software: "
+               "<http://www.gnu.org/gethelp/>.\n"),
+             stdout);
+      /* Don't output this redundant message for English locales.
+         Note we still output for 'C' so that it gets included in the
+         man page.  /
+      const char *lc_messages = setlocale (LC_MESSAGES, NULL);
+      if (lc_messages && strcmp (lc_messages, "en_"))
+        /* TRANSLATORS: Replace LANG_CODE in this URL with your language
+           code <http://translationproject.org/team/LANG_CODE.html> to
+           form one of the URLs at http://translationproject.org/team/.
+           Otherwise, replace the entire URL with your translation team's
+           email address.  /
+        fputs (_("Report translation bugs to "
+                 "<http://translationproject.org/team/>.\n"), stdout);*/
+      fputs (_("For complete documentation, run: info bison.\n"), stdout);
     }
 
   exit (status);
@@ -418,20 +468,20 @@ language_argmatch (char const *arg, int prio, location loc)
     {
       int i;
       for (i = 0; valid_languages[i].language[0]; i++)
-	if (c_strcasecmp (arg, valid_languages[i].language) == 0)
-	  {
-	    language_prio = prio;
-	    language = &valid_languages[i];
-	    return;
-	  }
-      msg = _("invalid language `%s'");
+        if (c_strcasecmp (arg, valid_languages[i].language) == 0)
+          {
+            language_prio = prio;
+            language = &valid_languages[i];
+            return;
+          }
+      msg = _("%s: invalid language");
     }
   else if (language_prio == prio)
     msg = _("multiple language declarations are invalid");
   else
     return;
 
-  complain_at (loc, msg, arg);
+  complain_at (loc, msg, quotearg_colon (arg));
 }
 
 /*----------------------.
@@ -450,6 +500,7 @@ static char const short_options[] =
   "W::"
   "b:"
   "d"
+  "f::"
   "e"
   "g::"
   "h"
@@ -502,6 +553,7 @@ static struct option const long_options[] =
 
   /* Output.  */
   { "defines",     optional_argument,   0,   'd' },
+  { "feature",     optional_argument,   0,   'f' },
 
   /* Operation modes.  */
   { "fixed-output-files", no_argument,  0,   'y' },
@@ -536,10 +588,11 @@ command_line_location (void)
 {
   location res;
   /* "<command line>" is used in GCC's messages about -D. */
-  boundary_set (&res.start, uniqstr_new ("<command line>"), optind, -1);
+  boundary_set (&res.start, uniqstr_new ("<command line>"), optind - 1, -1);
   res.end = res.start;
   return res;
 }
+
 
 void
 getargs (int argc, char *argv[])
@@ -593,6 +646,10 @@ getargs (int argc, char *argv[])
 	version ();
 	exit (EXIT_SUCCESS);
 
+      case 'f':
+        FLAGS_ARGMATCH (feature, optarg);
+        break;
+
       case 'W':
 	FLAGS_ARGMATCH (warnings, optarg);
 	break;
@@ -605,13 +662,19 @@ getargs (int argc, char *argv[])
         /* Here, the -d and --defines options are differentiated.  */
         defines_flag = true;
         if (optarg)
-          spec_defines_file = xstrdup (AS_FILE_NAME (optarg));
+          {
+            free (spec_defines_file);
+            spec_defines_file = xstrdup (AS_FILE_NAME (optarg));
+          }
         break;
 
       case 'g':
 	graph_flag = true;
 	if (optarg)
-	  spec_graph_file = xstrdup (AS_FILE_NAME (optarg));
+          {
+            free (spec_graph_file);
+            spec_graph_file = xstrdup (AS_FILE_NAME (optarg));
+          }
 	break;
 
       case 'h':
@@ -638,7 +701,7 @@ getargs (int argc, char *argv[])
 	break;
 
       case 't':
-	debug_flag = true;
+	debug = true;
 	break;
 
       case 'v':
@@ -648,7 +711,10 @@ getargs (int argc, char *argv[])
       case 'x':
 	xml_flag = true;
 	if (optarg)
-	  spec_xml_file = xstrdup (AS_FILE_NAME (optarg));
+          {
+            free (spec_xml_file);
+            spec_xml_file = xstrdup (AS_FILE_NAME (optarg));
+          }
 	break;
 
       case 'y':
@@ -668,6 +734,7 @@ getargs (int argc, char *argv[])
 	exit (EXIT_SUCCESS);
 
       case REPORT_FILE_OPTION:
+        free (spec_verbose_file);
 	spec_verbose_file = xstrdup (AS_FILE_NAME (optarg));
 	break;
 
@@ -678,9 +745,9 @@ getargs (int argc, char *argv[])
   if (argc - optind != 1)
     {
       if (argc - optind < 1)
-	error (0, 0, _("missing operand after `%s'"), argv[argc - 1]);
+        error (0, 0, _("%s: missing operand"), quotearg_colon (argv[argc - 1]));
       else
-	error (0, 0, _("extra operand `%s'"), argv[optind + 1]);
+        error (0, 0, _("extra operand %s"), quote (argv[optind + 1]));
       usage (EXIT_FAILURE);
     }
 

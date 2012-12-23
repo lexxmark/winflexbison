@@ -1,6 +1,6 @@
 /* Grammar reduction for Bison.
 
-   Copyright (C) 1988-1989, 2000-2003, 2005-2011 Free Software
+   Copyright (C) 1988-1989, 2000-2003, 2005-2012 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -29,7 +29,6 @@
 #include "system.h"
 
 #include <bitset.h>
-#include <quotearg.h>
 
 #include "complain.h"
 #include "files.h"

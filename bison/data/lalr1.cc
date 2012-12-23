@@ -1,6 +1,6 @@
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2011 Free Software Foundation, Inc.
+# Copyright (C) 2002-2012 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,50 +24,35 @@ m4_define([b4_parser_class_name],
 b4_defines_if([],
               [b4_fatal([b4_skeleton[: using %%defines is mandatory]])])
 
-b4_percent_define_ifdef([[location_type]], [],
+b4_percent_define_ifdef([[api.location.type]], [],
   [# Backward compatibility.
   m4_define([b4_location_constructors])
   m4_include(b4_pkgdatadir/[location.cc])])
+m4_include(b4_pkgdatadir/[stack.hh])
 
-# We do want M4 expansion after # for CPP macros.
-m4_changecom()
-m4_divert_push(0)dnl
 b4_defines_if(
-[@output(b4_spec_defines_file@)@
+[b4_output_begin([b4_spec_defines_file])
 b4_copyright([Skeleton interface for Bison LALR(1) parsers in C++],
-             [2002-2011])
-dnl FIXME: This is wrong, we want computed header guards.
+             [2002-2012])
 [
+/**
+ ** \file ]b4_spec_defines_file[
+ ** Define the ]b4_namespace_ref[::parser class.
+ */
+
 /* C++ LALR(1) parser skeleton written by Akim Demaille.  */
 
-#ifndef PARSER_HEADER_H
-# define PARSER_HEADER_H
+]b4_cpp_guard_open([b4_spec_defines_file])[
 
 ]b4_percent_code_get([[requires]])[
 
 #include <string>
 #include <iostream>
 #include "stack.hh"
-]b4_percent_define_ifdef([[location_type]], [],
+]b4_percent_define_ifdef([[api.location.type]], [],
                          [[#include "location.hh"]])[
 
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG ]b4_debug_flag[
-#endif
-
-/* Enabling verbose error messages.  */
-#ifdef YYERROR_VERBOSE
-# undef YYERROR_VERBOSE
-# define YYERROR_VERBOSE 1
-#else
-# define YYERROR_VERBOSE ]b4_error_verbose_flag[
-#endif
-
-/* Enabling the token table.  */
-#ifndef YYTOKEN_TABLE
-# define YYTOKEN_TABLE ]b4_token_table[
-#endif
+]b4_YYDEBUG_define[
 
 ]b4_namespace_open[
 
@@ -76,7 +61,7 @@ dnl FIXME: This is wrong, we want computed header guards.
   {
   public:
     /// Symbol semantic values.
-#ifndef YYSTYPE
+#ifndef ]b4_api_PREFIX[STYPE
 ]m4_ifdef([b4_stype],
 [    union semantic_type
     {
@@ -84,12 +69,12 @@ b4_user_stype
     };],
 [m4_if(b4_tag_seen_flag, 0,
 [[    typedef int semantic_type;]],
-[[    typedef YYSTYPE semantic_type;]])])[
+[[    typedef ]b4_api_PREFIX[STYPE semantic_type;]])])[
 #else
-    typedef YYSTYPE semantic_type;
+    typedef ]b4_api_PREFIX[STYPE semantic_type;
 #endif
     /// Symbol locations.
-    typedef ]b4_percent_define_get([[location_type]],
+    typedef ]b4_percent_define_get([[api.location.type]],
                                    [[location]])[ location_type;
     /// Tokens.
     struct token
@@ -107,7 +92,7 @@ b4_user_stype
     /// \returns  0 iff parsing succeeded.
     virtual int parse ();
 
-#if YYDEBUG
+#if ]b4_api_PREFIX[DEBUG
     /// The current debugging stream.
     std::ostream& debug_stream () const;
     /// Set the current debugging stream.
@@ -132,7 +117,7 @@ b4_user_stype
     /// \param tok     the lookahead token.
     virtual std::string yysyntax_error_ (int yystate, int tok);
 
-#if YYDEBUG
+#if ]b4_api_PREFIX[DEBUG
     /// \brief Report a symbol value on the debug stream.
     /// \param yytype       The token type.
     /// \param yyvaluep     Its semantic value.
@@ -205,17 +190,15 @@ b4_user_stype
     /// For a rule, its LHS.
     static const ]b4_int_type_for([b4_r1])[ yyr1_[];
     /// For a rule, its RHS length.
-    static const ]b4_int_type_for([b4_r2])[ yyr2_[];
-
-#if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
-    /// For a symbol, its name in clear.
-    static const char* const yytname_[];
-#endif]b4_error_verbose_if([
+    static const ]b4_int_type_for([b4_r2])[ yyr2_[]; ]b4_error_verbose_if([
 
     /// Convert the symbol name \a n to a form suitable for a diagnostic.
     static std::string yytnamerr_ (const char *n);])[
 
-#if YYDEBUG
+]b4_token_table_if([], [[#if ]b4_api_PREFIX[DEBUG]])[
+    /// For a symbol, its name in clear.
+    static const char* const yytname_[];
+]b4_token_table_if([[#if ]b4_api_PREFIX[DEBUG]])[
     /// A type to store symbol numbers and -1.
     typedef ]b4_int_type_for([b4_rhs])[ rhs_number_type;
     /// A `-1'-separated list of the rules' RHS.
@@ -241,6 +224,7 @@ b4_user_stype
 
     /// \brief Reclaim the memory associated to a symbol.
     /// \param yymsg        Why this token is reclaimed.
+    ///                     If null, do not display the symbol, just free it.
     /// \param yytype       The symbol type.
     /// \param yyvaluep     Its semantic value.
     /// \param yylocationp  Its location.
@@ -271,18 +255,20 @@ b4_user_stype
 ]b4_percent_define_flag_if([[global_tokens_and_yystype]],
 [b4_token_defines(b4_tokens)
 
-#ifndef YYSTYPE
+#ifndef ]b4_api_PREFIX[STYPE
  /* Redirection for backward compatibility.  */
-# define YYSTYPE b4_namespace_ref::b4_parser_class_name::semantic_type
+# define ]b4_api_PREFIX[STYPE b4_namespace_ref::b4_parser_class_name::semantic_type
 #endif
+])[
+]b4_percent_code_get([[provides]])[
+]b4_cpp_guard_close([b4_spec_defines_file])
+b4_output_end()
 ])
-b4_percent_code_get([[provides]])[]dnl
 
-[#endif /* ! defined PARSER_HEADER_H */]
-])dnl
-@output(b4_parser_file_name@)@
+
+b4_output_begin([b4_parser_file_name])
 b4_copyright([Skeleton implementation for Bison LALR(1) parsers in C++],
-             [2002-2011])
+             [2002-2012])
 b4_percent_code_get([[top]])[]dnl
 m4_if(b4_prefix, [yy], [],
 [
@@ -290,16 +276,18 @@ m4_if(b4_prefix, [yy], [],
 #define yylex   b4_prefix[]lex])[
 
 /* First part of user declarations.  */
-]b4_user_pre_prologue
+]b4_user_pre_prologue[
 
-b4_defines_if([[
+]b4_defines_if([[
 #include "@basename(]b4_spec_defines_file[@)"]])[
 
 /* User implementation prologue.  */
-]b4_user_post_prologue
-b4_percent_code_get[]dnl
+]b4_user_post_prologue[
+]b4_percent_code_get[
 
-[#ifndef YY_
+]b4_null_define[
+
+#ifndef YY_
 # if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* FIXME: INFRINGES ON USER NAME SPACE */
@@ -311,31 +299,14 @@ b4_percent_code_get[]dnl
 # endif
 #endif
 
-/* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
-   If N is 0, then set CURRENT to the empty location which ends
-   the previous symbol: RHS[0] (always defined).  */
-
 #define YYRHSLOC(Rhs, K) ((Rhs)[K])
-#ifndef YYLLOC_DEFAULT
-# define YYLLOC_DEFAULT(Current, Rhs, N)                               \
- do                                                                    \
-   if (N)                                                              \
-     {                                                                 \
-       (Current).begin = YYRHSLOC (Rhs, 1).begin;                      \
-       (Current).end   = YYRHSLOC (Rhs, N).end;                        \
-     }                                                                 \
-   else                                                                \
-     {                                                                 \
-       (Current).begin = (Current).end = YYRHSLOC (Rhs, 0).end;        \
-     }                                                                 \
- while (false)
-#endif
+]b4_yylloc_default_define[
 
 /* Suppress unused-variable warnings by "using" E.  */
 #define YYUSE(e) ((void) (e))
 
 /* Enable debugging if requested.  */
-#if YYDEBUG
+#if ]b4_api_PREFIX[DEBUG
 
 /* A pseudo ostream that takes yydebug_ into account.  */
 # define YYCDEBUG if (yydebug_) (*yycdebug_)
@@ -362,14 +333,14 @@ do {					\
     yystack_print_ ();			\
 } while (false)
 
-#else /* !YYDEBUG */
+#else /* !]b4_api_PREFIX[DEBUG */
 
 # define YYCDEBUG if (false) std::cerr
-# define YY_SYMBOL_PRINT(Title, Type, Value, Location)
-# define YY_REDUCE_PRINT(Rule)
-# define YY_STACK_PRINT()
+# define YY_SYMBOL_PRINT(Title, Type, Value, Location) YYUSE(Type)
+# define YY_REDUCE_PRINT(Rule)        static_cast<void>(0)
+# define YY_STACK_PRINT()             static_cast<void>(0)
 
-#endif /* !YYDEBUG */
+#endif /* !]b4_api_PREFIX[DEBUG */
 
 #define yyerrok		(yyerrstatus_ = 0)
 #define yyclearin	(yychar = yyempty_)
@@ -422,7 +393,7 @@ do {					\
   /// Build a parser object.
   ]b4_parser_class_name::b4_parser_class_name[ (]b4_parse_param_decl[)]m4_ifset([b4_parse_param], [
     :])[
-#if YYDEBUG
+#if ]b4_api_PREFIX[DEBUG
     ]m4_ifset([b4_parse_param], [  ], [ :])[yydebug_ (false),
       yycdebug_ (&std::cerr)]m4_ifset([b4_parse_param], [,])[
 #endif]b4_parse_param_cons[
@@ -433,7 +404,7 @@ do {					\
   {
   }
 
-#if YYDEBUG
+#if ]b4_api_PREFIX[DEBUG
   /*--------------------------------.
   | Print this symbol on YYOUTPUT.  |
   `--------------------------------*/
@@ -444,6 +415,9 @@ do {					\
   {
     YYUSE (yylocationp);
     YYUSE (yyvaluep);
+    std::ostream& yyo = debug_stream ();
+    std::ostream& yyoutput = yyo;
+    YYUSE (yyoutput);
     switch (yytype)
       {
   ]m4_map([b4_symbol_actions], m4_defn([b4_symbol_printers]))dnl
@@ -473,7 +447,8 @@ do {					\
     YYUSE (yymsg);
     YYUSE (yyvaluep);
 
-    YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
+    if (yymsg)
+      YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
 
     switch (yytype)
       {
@@ -491,7 +466,7 @@ do {					\
     yylocation_stack_.pop (n);
   }
 
-#if YYDEBUG
+#if ]b4_api_PREFIX[DEBUG
   std::ostream&
   ]b4_parser_class_name[::debug_stream () const
   {
@@ -537,17 +512,18 @@ do {					\
     int yychar = yyempty_;
     int yytoken = 0;
 
-    /* State.  */
+    // State.
     int yyn;
     int yylen = 0;
     int yystate = 0;
 
-    /* Error handling.  */
+    // Error handling.
     int yynerrs_ = 0;
     int yyerrstatus_ = 0;
 
     /// Semantic value of the lookahead.
-    semantic_type yylval;
+    static semantic_type yyval_default;
+    semantic_type yylval = yyval_default;
     /// Location of the lookahead.
     location_type yylloc;
     /// The locations where the error started and ended.
@@ -560,15 +536,17 @@ do {					\
 
     int yyresult;
 
+    // FIXME: This shoud be completely indented.  It is not yet to
+    // avoid gratuitous conflicts when merging into the master branch.
+    try
+      {
     YYCDEBUG << "Starting parse" << std::endl;
 
 ]m4_ifdef([b4_initial_action], [
-m4_pushdef([b4_at_dollar],     [yylloc])dnl
-m4_pushdef([b4_dollar_dollar], [yylval])dnl
-    /* User initialization code.  */
-    b4_user_initial_action
-m4_popdef([b4_dollar_dollar])dnl
-m4_popdef([b4_at_dollar])])dnl
+b4_dollar_pushdef([yylval], [], [yylloc])dnl
+/* User initialization code.  */
+b4_user_initial_action
+b4_dollar_popdef])[]dnl
 
   [  /* Initialize the stacks.  The initial state will be pushed in
        yynewstate, since the latter expects the semantical and the
@@ -602,13 +580,12 @@ m4_popdef([b4_at_dollar])])dnl
     /* Read a lookahead token.  */
     if (yychar == yyempty_)
       {
-	YYCDEBUG << "Reading a token: ";
-	yychar = ]b4_c_function_call([yylex], [int],
-				     [[YYSTYPE*], [&yylval]][]dnl
+        YYCDEBUG << "Reading a token: ";
+        yychar = ]b4_c_function_call([yylex], [int],
+                                     [b4_api_PREFIX[STYPE*], [&yylval]][]dnl
 b4_locations_if([, [[location*], [&yylloc]]])dnl
 m4_ifdef([b4_lex_param], [, ]b4_lex_param))[;
       }
-
 
     /* Convert token to internal form.  */
     if (yychar <= yyeof_)
@@ -680,17 +657,21 @@ m4_ifdef([b4_lex_param], [, ]b4_lex_param))[;
     else
       yyval = yysemantic_stack_[0];
 
+    // Compute the default @@$.
     {
       slice<location_type, location_stack_type> slice (yylocation_stack_, yylen);
       YYLLOC_DEFAULT (yyloc, slice, yylen);
     }
+
+    // Perform the reduction.
     YY_REDUCE_PRINT (yyn);
     switch (yyn)
       {
-	]b4_user_actions[
-	default:
-          break;
+        ]b4_user_actions[
+      default:
+        break;
       }
+
     /* User semantic actions sometimes alter yychar, and that requires
        that yytoken be updated with the new translation.  We take the
        approach of translating immediately before every use of yytoken.
@@ -741,20 +722,19 @@ m4_ifdef([b4_lex_param], [, ]b4_lex_param))[;
     yyerror_range[1] = yylloc;
     if (yyerrstatus_ == 3)
       {
-	/* If just tried and failed to reuse lookahead token after an
-	 error, discard it.  */
-
-	if (yychar <= yyeof_)
-	  {
-	  /* Return failure if at end of input.  */
-	  if (yychar == yyeof_)
-	    YYABORT;
-	  }
-	else
-	  {
-	    yydestruct_ ("Error: discarding", yytoken, &yylval, &yylloc);
-	    yychar = yyempty_;
-	  }
+        /* If just tried and failed to reuse lookahead token after an
+           error, discard it.  */
+        if (yychar <= yyeof_)
+          {
+            /* Return failure if at end of input.  */
+            if (yychar == yyeof_)
+              YYABORT;
+          }
+        else
+          {
+            yydestruct_ ("Error: discarding", yytoken, &yylval, &yylloc);
+            yychar = yyempty_;
+          }
       }
 
     /* Else will try to reuse lookahead token after shifting the error
@@ -803,7 +783,7 @@ m4_ifdef([b4_lex_param], [, ]b4_lex_param))[;
 
 	/* Pop the current state because it cannot handle the error token.  */
 	if (yystate_stack_.height () == 1)
-	YYABORT;
+	  YYABORT;
 
 	yyerror_range[1] = yylocation_stack_[0];
 	yydestruct_ ("Error: popping",
@@ -851,16 +831,42 @@ m4_ifdef([b4_lex_param], [, ]b4_lex_param))[;
     /* Do not reclaim the symbols of the rule which action triggered
        this YYABORT or YYACCEPT.  */
     yypop_ (yylen);
-    while (yystate_stack_.height () != 1)
+    while (1 < yystate_stack_.height ())
       {
-	yydestruct_ ("Cleanup: popping",
-		   yystos_[yystate_stack_[0]],
-		   &yysemantic_stack_[0],
-		   &yylocation_stack_[0]);
-	yypop_ ();
+        yydestruct_ ("Cleanup: popping",
+                     yystos_[yystate_stack_[0]],
+                     &yysemantic_stack_[0],
+                     &yylocation_stack_[0]);
+        yypop_ ();
       }
 
     return yyresult;
+    }
+    catch (...)
+      {
+        YYCDEBUG << "Exception caught: cleaning lookahead and stack"
+                 << std::endl;
+        // Do not try to display the values of the reclaimed symbols,
+        // as their printer might throw an exception.
+        if (yychar != yyempty_)
+          {
+            /* Make sure we have latest lookahead translation.  See
+               comments at user semantic actions for why this is
+               necessary.  */
+            yytoken = yytranslate_ (yychar);
+            yydestruct_ (YY_NULL, yytoken, &yylval, &yylloc);
+          }
+
+        while (1 < yystate_stack_.height ())
+          {
+            yydestruct_ (YY_NULL,
+                         yystos_[yystate_stack_[0]],
+                         &yysemantic_stack_[0],
+                         &yylocation_stack_[0]);
+            yypop_ ();
+          }
+        throw;
+      }
   }
 
   // Generate an error message.
@@ -931,7 +937,7 @@ b4_error_verbose_if([int yystate, int yytoken],
           }
       }
 
-    char const* yyformat = 0;
+    char const* yyformat = YY_NULL;
     switch (yycount)
       {
 #define YYCASE_(N, S)                         \
@@ -1019,7 +1025,7 @@ b4_error_verbose_if([int yystate, int yytoken],
     ]b4_stos[
   };
 
-#if YYDEBUG
+#if ]b4_api_PREFIX[DEBUG
   /* TOKEN_NUMBER_[YYLEX-NUM] -- Internal symbol number corresponding
      to YYLEX-NUM.  */
   const ]b4_int_type_for([b4_toknum])[
@@ -1043,7 +1049,7 @@ b4_error_verbose_if([int yystate, int yytoken],
     ]b4_r2[
   };
 
-#if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
+]b4_token_table_if([], [[#if ]b4_api_PREFIX[DEBUG]])[
   /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
      First, the terminals, then, starting at \a yyntokens_, nonterminals.  */
   const char*
@@ -1051,9 +1057,8 @@ b4_error_verbose_if([int yystate, int yytoken],
   {
     ]b4_tname[
   };
-#endif
 
-#if YYDEBUG
+]b4_token_table_if([[#if ]b4_api_PREFIX[DEBUG]])[
   /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
   const ]b4_parser_class_name[::rhs_number_type
   ]b4_parser_class_name[::yyrhs_[] =
@@ -1103,7 +1108,7 @@ b4_error_verbose_if([int yystate, int yytoken],
 		       &]b4_rhs_value(yynrhs, yyi + 1)[,
 		       &]b4_rhs_location(yynrhs, yyi + 1)[);
   }
-#endif // YYDEBUG
+#endif // ]b4_api_PREFIX[DEBUG
 
   /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
   ]b4_parser_class_name[::token_number_type
@@ -1134,106 +1139,5 @@ b4_error_verbose_if([int yystate, int yytoken],
   const ]b4_parser_class_name[::token_number_type ]b4_parser_class_name[::yyundef_token_ = ]b4_undef_token_number[;
 
 ]b4_namespace_close[
-
-]b4_epilogue
-dnl
-@output(b4_dir_prefix[]stack.hh@)@
-b4_copyright([Stack handling for Bison parsers in C++],
-             [2002-2011])[
-
-#ifndef BISON_STACK_HH
-# define BISON_STACK_HH
-
-#include <deque>
-
-]b4_namespace_open[
-  template <class T, class S = std::deque<T> >
-  class stack
-  {
-  public:
-
-    // Hide our reversed order.
-    typedef typename S::reverse_iterator iterator;
-    typedef typename S::const_reverse_iterator const_iterator;
-
-    stack () : seq_ ()
-    {
-    }
-
-    stack (unsigned int n) : seq_ (n)
-    {
-    }
-
-    inline
-    T&
-    operator [] (unsigned int i)
-    {
-      return seq_[i];
-    }
-
-    inline
-    const T&
-    operator [] (unsigned int i) const
-    {
-      return seq_[i];
-    }
-
-    inline
-    void
-    push (const T& t)
-    {
-      seq_.push_front (t);
-    }
-
-    inline
-    void
-    pop (unsigned int n = 1)
-    {
-      for (; n; --n)
-	seq_.pop_front ();
-    }
-
-    inline
-    unsigned int
-    height () const
-    {
-      return seq_.size ();
-    }
-
-    inline const_iterator begin () const { return seq_.rbegin (); }
-    inline const_iterator end () const { return seq_.rend (); }
-
-  private:
-
-    S seq_;
-  };
-
-  /// Present a slice of the top of a stack.
-  template <class T, class S = stack<T> >
-  class slice
-  {
-  public:
-
-    slice (const S& stack,
-	   unsigned int range) : stack_ (stack),
-				 range_ (range)
-    {
-    }
-
-    inline
-    const T&
-    operator [] (unsigned int i) const
-    {
-      return stack_[range_ - i];
-    }
-
-  private:
-
-    const S& stack_;
-    unsigned int range_;
-  };
-]b4_namespace_close[
-
-#endif // not BISON_STACK_HH[]dnl
-]
-m4_divert_pop(0)
+]b4_epilogue[]dnl
+b4_output_end()

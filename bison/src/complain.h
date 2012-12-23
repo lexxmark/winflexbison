@@ -1,6 +1,6 @@
 /* Declaration for error-reporting function for Bison.
 
-   Copyright (C) 2000-2002, 2006, 2009-2011 Free Software Foundation,
+   Copyright (C) 2000-2002, 2006, 2009-2012 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,9 @@
 # ifdef	__cplusplus
 extern "C" {
 # endif
+
+/* Sub-messages indent. */
+#define SUB_INDENT (4)
 
 /** Record that a warning is about to be issued, and treat it as an
     error if <tt>warnings_flag & warnings_error</tt>.  This is exported

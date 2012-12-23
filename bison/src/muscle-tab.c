@@ -1,6 +1,6 @@
 /* Muscle table manager for Bison.
 
-   Copyright (C) 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2012 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -21,12 +21,12 @@
 #include "system.h"
 
 #include <hash.h>
-#include <quotearg.h>
 
 #include "complain.h"
 #include "files.h"
-#include "muscle-tab.h"
 #include "getargs.h"
+#include "muscle-tab.h"
+#include "quote.h"
 
 /* A key-value pair, along with storage that can be reclaimed when
    this pair is no longer needed.  */
@@ -177,10 +177,10 @@ static void
 muscle_syncline_grow (char const *key, location loc)
 {
   char *extension = NULL;
-  obstack_fgrow1 (&muscle_obstack, "]b4_syncline(%d, [[", loc.start.line);
-  MUSCLE_OBSTACK_SGROW (&muscle_obstack,
-			quotearg_style (c_quoting_style, loc.start.file));
-  obstack_sgrow (&muscle_obstack, "]])[");
+  obstack_printf (&muscle_obstack, "]b4_syncline(%d, ", loc.start.line);
+  obstack_quote (&muscle_obstack,
+                 quotearg_style (c_quoting_style, loc.start.file));
+  obstack_sgrow (&muscle_obstack, ")[");
   obstack_1grow (&muscle_obstack, 0);
   extension = obstack_finish (&muscle_obstack);
   muscle_grow (key, extension, "");
@@ -205,11 +205,11 @@ void muscle_pair_list_grow (const char *muscle,
 			    const char *a1, const char *a2)
 {
   char *pair;
-  obstack_sgrow (&muscle_obstack, "[[[");
-  MUSCLE_OBSTACK_SGROW (&muscle_obstack, a1);
-  obstack_sgrow (&muscle_obstack, "]], [[");
-  MUSCLE_OBSTACK_SGROW (&muscle_obstack, a2);
-  obstack_sgrow (&muscle_obstack, "]]]");
+  obstack_sgrow (&muscle_obstack, "[");
+  obstack_quote (&muscle_obstack, a1);
+  obstack_sgrow (&muscle_obstack, ", ");
+  obstack_quote (&muscle_obstack, a2);
+  obstack_sgrow (&muscle_obstack, "]");
   obstack_1grow (&muscle_obstack, 0);
   pair = obstack_finish (&muscle_obstack);
   muscle_grow (muscle, pair, ",\n");
@@ -259,53 +259,61 @@ muscle_find (char const *key)
 }
 
 
-void
+/* In the format `file_name:line.column', append BOUND to MUSCLE.  Use
+   digraphs for special characters in the file name.  */
+
+static void
 muscle_boundary_grow (char const *key, boundary bound)
 {
   char *extension;
-  MUSCLE_OBSTACK_SGROW (&muscle_obstack, bound.file);
-  obstack_1grow (&muscle_obstack, ':');
-  obstack_fgrow1 (&muscle_obstack, "%d", bound.line);
-  obstack_1grow (&muscle_obstack, '.');
-  obstack_fgrow1 (&muscle_obstack, "%d", bound.column);
-  obstack_1grow (&muscle_obstack, '\0');
+  obstack_sgrow  (&muscle_obstack, "[[");
+  obstack_escape (&muscle_obstack, bound.file);
+  obstack_1grow  (&muscle_obstack, ':');
+  obstack_printf (&muscle_obstack, "%d", bound.line);
+  obstack_1grow  (&muscle_obstack, '.');
+  obstack_printf (&muscle_obstack, "%d", bound.column);
+  obstack_sgrow  (&muscle_obstack, "]]");
+  obstack_1grow  (&muscle_obstack, '\0');
   extension = obstack_finish (&muscle_obstack);
   muscle_grow (key, extension, "");
   obstack_free (&muscle_obstack, extension);
 }
 
-void
+
+/* In the format `[[file_name:line.column]], [[file_name:line.column]]',
+   append LOC to MUSCLE.  Use digraphs for special characters in each
+   file name.  */
+
+static void
 muscle_location_grow (char const *key, location loc)
 {
-  muscle_grow (key, "[[", "");
   muscle_boundary_grow (key, loc.start);
-  muscle_grow (key, "]], [[", "");
+  muscle_grow (key, "", ", ");
   muscle_boundary_grow (key, loc.end);
-  muscle_grow (key, "]]", "");
 }
 
-#define MUSCLE_COMMON_DECODE(Value)                                           \
-  case '$':                                                                   \
-    aver (*++(Value) == ']');                                                 \
-    aver (*++(Value) == '[');                                                 \
-    obstack_sgrow (&muscle_obstack, "$");                                     \
-    break;                                                                    \
-  case '@':                                                                   \
-    switch (*++(Value))                                                       \
-      {                                                                       \
-        case '@': obstack_sgrow (&muscle_obstack, "@" ); break;               \
-        case '{': obstack_sgrow (&muscle_obstack, "[" ); break;               \
-        case '}': obstack_sgrow (&muscle_obstack, "]" ); break;               \
-        default: aver (false); break;                                         \
-      }                                                                       \
-    break;                                                                    \
-  default:                                                                    \
-    obstack_1grow (&muscle_obstack, *(Value));                                \
+#define COMMON_DECODE(Value)                                    \
+  case '$':                                                     \
+    aver (*++(Value) == ']');                                   \
+    aver (*++(Value) == '[');                                   \
+    obstack_sgrow (&muscle_obstack, "$");                       \
+    break;                                                      \
+  case '@':                                                     \
+    switch (*++(Value))                                         \
+      {                                                         \
+        case '@': obstack_sgrow (&muscle_obstack, "@" ); break; \
+        case '{': obstack_sgrow (&muscle_obstack, "[" ); break; \
+        case '}': obstack_sgrow (&muscle_obstack, "]" ); break; \
+        default: aver (false); break;                           \
+      }                                                         \
+    break;                                                      \
+  default:                                                      \
+    obstack_1grow (&muscle_obstack, *(Value));                  \
     break;
 
-/* Reverse of MUSCLE_OBSTACK_SGROW.  */
+/* Reverse of obstack_escape.  */
 static char *
-muscle_string_decode (char const *key)
+string_decode (char const *key)
 {
   char const *value;
   char *value_decoded;
@@ -317,7 +325,7 @@ muscle_string_decode (char const *key)
   do {
     switch (*value)
       {
-        MUSCLE_COMMON_DECODE (value)
+        COMMON_DECODE (value)
         case '[':
         case ']':
           aver (false);
@@ -332,7 +340,7 @@ muscle_string_decode (char const *key)
 
 /* Reverse of muscle_location_grow.  */
 static location
-muscle_location_decode (char const *key)
+location_decode (char const *key)
 {
   location loc;
   char const *value = muscle_find_const (key);
@@ -342,7 +350,7 @@ muscle_location_decode (char const *key)
   while (*++value)
     switch (*value)
       {
-        MUSCLE_COMMON_DECODE (value)
+        COMMON_DECODE (value)
         case '[':
           aver (false);
           break;
@@ -388,47 +396,64 @@ muscle_user_name_list_grow (char const *key, char const *user_name,
   muscle_grow (key, "]]", "");
 }
 
+# define ARRAY_CARDINALITY(Array) (sizeof (Array) / sizeof *(Array))
+#define STREQ(s1, s2) ((strcmp (s1, s2) == 0))
+
+/** If the \a variable name is obsolete, return the name to use,
+ * otherwise \a variable. */
+static
+char const *
+muscle_percent_variable_update (char const *variable)
+{
+  typedef struct
+  {
+    const char *obsolete;
+    const char *updated;
+  } conversion_type;
+  const conversion_type conversion[] =
+    {
+      { "api.push_pull", "api.push-pull", },
+      { "location_type", "api.location.type", },
+      { "lr.keep_unreachable_states", "lr.keep-unreachable-states", },
+    };
+  char const *res = variable;
+  int i;
+  for (i = 0; i < ARRAY_CARDINALITY (conversion); ++i)
+    if (STREQ (conversion[i].obsolete, variable))
+      {
+        res = conversion[i].updated;
+        break;
+      }
+  return res;
+}
+
 void
-muscle_percent_define_insert (char const *variable, location variable_loc,
+muscle_percent_define_insert (char const *var, location variable_loc,
                               char const *value,
                               muscle_percent_define_how how)
 {
-  char *variable_tr = NULL;
-  char const *name;
-  char const *loc_name;
-  char const *syncline_name;
-  char const *how_name;
-
-  /* Permit certain names with underscores for backward compatibility.  */
-  if (0 == strcmp (variable, "api.push_pull")
-      || 0 == strcmp (variable, "lr.keep_unreachable_states"))
-    {
-      variable_tr = _strdup (variable);
-      tr (variable_tr, '_', '-');
-      variable = variable_tr;
-    }
-
-  name = UNIQSTR_CONCAT ("percent_define(", variable, ")");
-  loc_name = UNIQSTR_CONCAT ("percent_define_loc(", variable, ")");
-  syncline_name =
+  /* Backward compatibility.  */
+  char const *variable = muscle_percent_variable_update (var);
+  char const *name = UNIQSTR_CONCAT ("percent_define(", variable, ")");
+  char const *loc_name = UNIQSTR_CONCAT ("percent_define_loc(", variable, ")");
+  char const *syncline_name =
     UNIQSTR_CONCAT ("percent_define_syncline(", variable, ")");
-  how_name = UNIQSTR_CONCAT ("percent_define_how(", variable, ")");
+  char const *how_name = UNIQSTR_CONCAT ("percent_define_how(", variable, ")");
 
   /* Command-line options are processed before the grammar file.  */
   if (how == MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE
       && muscle_find_const (name))
     {
+      unsigned i = 0;
       muscle_percent_define_how how_old =
         atoi (muscle_find_const (how_name));
       if (how_old == MUSCLE_PERCENT_DEFINE_F)
-        {
-          free (variable_tr);
-          return;
-        }
-      complain_at (variable_loc, _("%%define variable `%s' redefined"),
-                   variable);
-      complain_at (muscle_percent_define_get_loc (variable),
-                   _("previous definition"));
+        return;
+      complain_at_indent (variable_loc, &i,
+                          _("%%define variable %s redefined"), quote (variable));
+      i += SUB_INDENT;
+      complain_at_indent (muscle_percent_define_get_loc (variable), &i,
+                          _("previous definition"));
     }
 
   MUSCLE_INSERT_STRING (name, value);
@@ -439,8 +464,6 @@ muscle_percent_define_insert (char const *variable, location variable_loc,
   muscle_user_name_list_grow ("percent_define_user_variables", variable,
                               variable_loc);
   MUSCLE_INSERT_INT (how_name, how);
-
-  free (variable_tr);
 }
 
 char *
@@ -455,7 +478,7 @@ muscle_percent_define_get (char const *variable)
                                variable, ")");
 
   muscle_insert (usage_name, "");
-  value = muscle_string_decode (name);
+  value = string_decode (name);
   if (!value)
     value = xstrdup ("");
   return value;
@@ -467,9 +490,9 @@ muscle_percent_define_get_loc (char const *variable)
   char const *loc_name;
   loc_name = UNIQSTR_CONCAT ("percent_define_loc(", variable, ")");
   if (!muscle_find_const (loc_name))
-    fatal(_("undefined %%define variable `%s' passed to"
-            " muscle_percent_define_get_loc"), variable);
-  return muscle_location_decode (loc_name);
+    fatal(_("%s: undefined %%define variable %s"),
+          "muscle_percent_define_get_loc", quote (variable));
+  return location_decode (loc_name);
 }
 
 char const *
@@ -481,8 +504,8 @@ muscle_percent_define_get_syncline (char const *variable)
     UNIQSTR_CONCAT ("percent_define_syncline(", variable, ")");
   syncline = muscle_find_const (syncline_name);
   if (!syncline)
-    fatal(_("undefined %%define variable `%s' passed to"
-            " muscle_percent_define_get_syncline"), variable);
+    fatal(_("%s: undefined %%define variable %s"),
+          "muscle_percent_define_get_syncline", quote (variable));
   return syncline;
 }
 
@@ -527,14 +550,14 @@ muscle_percent_define_flag_if (char const *variable)
         {
           muscle_insert (invalid_boolean_name, "");
           complain_at(muscle_percent_define_get_loc (variable),
-                      _("invalid value for %%define Boolean variable `%s'"),
-                      variable);
+                      _("invalid value for %%define Boolean variable %s"),
+                      quote (variable));
         }
       free (value);
     }
   else
-    fatal(_("undefined %%define variable `%s' passed to muscle_percent_define_flag_if"),
-          variable);
+    fatal(_("%s: undefined %%define variable %s"),
+          "muscle_percent_define_flag", quote (variable));
 
   return result;
 }
@@ -573,7 +596,7 @@ muscle_percent_define_check_values (char const * const *values)
 
       name = UNIQSTR_CONCAT ("percent_define(", *variablep, ")");
 
-      value = muscle_string_decode (name);
+      value = string_decode (name);
       if (value)
         {
           for (++values; *values; ++values)
@@ -583,12 +606,15 @@ muscle_percent_define_check_values (char const * const *values)
             }
           if (!*values)
             {
+              unsigned i = 0;
               location loc = muscle_percent_define_get_loc (*variablep);
-              complain_at(loc,
-                          _("invalid value for %%define variable `%s': `%s'"),
-                          *variablep, value);
+              complain_at_indent (loc, &i,
+                                _("invalid value for %%define variable %s: %s"),
+                                  quote (*variablep), quote_n (1, value));
+              i += SUB_INDENT;
               for (values = variablep + 1; *values; ++values)
-                complain_at (loc, _("accepted value: `%s'"), *values);
+                complain_at_indent (loc, &i, _("accepted value: %s"),
+                                    quote (*values));
             }
           else
             {
@@ -598,9 +624,8 @@ muscle_percent_define_check_values (char const * const *values)
           free (value);
         }
       else
-        fatal(_("undefined %%define variable `%s' passed to"
-                " muscle_percent_define_check_values"),
-              *variablep);
+        fatal (_("%s: undefined %%define variable %s"),
+               "muscle_percent_define_check_values", quote (*variablep));
     }
 }
 

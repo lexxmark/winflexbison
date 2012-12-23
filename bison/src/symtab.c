@@ -1,6 +1,6 @@
 /* Symbol table manager for Bison.
 
-   Copyright (C) 1984, 1989, 2000-2002, 2004-2011 Free Software
+   Copyright (C) 1984, 1989, 2000-2002, 2004-2012 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -20,9 +20,9 @@
 
 #include <config.h>
 #include "system.h"
+#include <mbstring.h>
 
 #include <hash.h>
-#include <quotearg.h>
 
 #include "complain.h"
 #include "gram.h"
@@ -151,16 +151,20 @@ static void
 symbol_redeclaration (symbol *s, const char *what, location first,
                       location second)
 {
-  complain_at (second, _("%s redeclaration for %s"), what, s->tag);
-  complain_at (first, _("previous declaration"));
+  unsigned i = 0;
+  complain_at_indent (second, &i, _("%s redeclaration for %s"), what, s->tag);
+  i += SUB_INDENT;
+  complain_at_indent (first, &i, _("previous declaration"));
 }
 
 static void
 semantic_type_redeclaration (semantic_type *s, const char *what, location first,
                              location second)
 {
-  complain_at (second, _("%s redeclaration for <%s>"), what, s->tag);
-  complain_at (first, _("previous declaration"));
+  unsigned i = 0;
+  complain_at_indent (second, &i, _("%s redeclaration for <%s>"), what, s->tag);
+  i += SUB_INDENT;
+  complain_at_indent (first, &i, _("previous declaration"));
 }
 
 
@@ -382,7 +386,7 @@ symbol_user_token_number_set (symbol *sym, int user_token_number, location loc)
 | nonterminal.                                              |
 `----------------------------------------------------------*/
 
-static  bool
+static bool
 symbol_check_defined (symbol *sym)
 {
   if (sym->class == unknown_sym)
@@ -409,11 +413,11 @@ void
 symbol_make_alias (symbol *sym, symbol *str, location loc)
 {
   if (str->alias)
-    warn_at (loc, _("symbol `%s' used more than once as a literal string"),
-	     str->tag);
+    warn_at (loc, _("symbol %s used more than once as a literal string"),
+             str->tag);
   else if (sym->alias)
-    warn_at (loc, _("symbol `%s' given more than one literal string"),
-	     sym->tag);
+    warn_at (loc, _("symbol %s given more than one literal string"),
+             sym->tag);
   else
     {
       str->class = token_sym;
@@ -516,6 +520,7 @@ symbol_pack_processor (void *this, void *null ATTRIBUTE_UNUSED)
 static void
 user_token_number_redeclaration (int num, symbol *first, symbol *second)
 {
+  unsigned i = 0;
   /* User token numbers are not assigned during the parsing, but in a
      second step, via a traversal of the symbol table sorted on tag.
 
@@ -527,11 +532,13 @@ user_token_number_redeclaration (int num, symbol *first, symbol *second)
       first = second;
       second = tmp;
     }
-  complain_at (second->location,
-               _("user token number %d redeclaration for %s"),
-               num, second->tag);
-  complain_at (first->location, _("previous declaration for %s"),
-               first->tag);
+  complain_at_indent (second->location, &i,
+                      _("user token number %d redeclaration for %s"),
+                      num, second->tag);
+  i += SUB_INDENT;
+  complain_at_indent (first->location, &i,
+                      _("previous declaration for %s"),
+                      first->tag);
 }
 
 /*--------------------------------------------------.
@@ -924,10 +931,12 @@ default_tagged_destructor_set (code_props const *destructor)
 {
   if (default_tagged_destructor.code)
     {
-      complain_at (destructor->location,
-                   _("redeclaration for default tagged %%destructor"));
-      complain_at (default_tagged_destructor.location,
-		   _("previous declaration"));
+      unsigned i = 0;
+      complain_at_indent (destructor->location, &i,
+                          _("redeclaration for default tagged %%destructor"));
+      i += SUB_INDENT;
+      complain_at_indent (default_tagged_destructor.location, &i,
+		          _("previous declaration"));
     }
   default_tagged_destructor = *destructor;
 }
@@ -937,10 +946,12 @@ default_tagless_destructor_set (code_props const *destructor)
 {
   if (default_tagless_destructor.code)
     {
-      complain_at (destructor->location,
-                   _("redeclaration for default tagless %%destructor"));
-      complain_at (default_tagless_destructor.location,
-		   _("previous declaration"));
+      unsigned i = 0;
+      complain_at_indent (destructor->location, &i,
+                          _("redeclaration for default tagless %%destructor"));
+      i += SUB_INDENT;
+      complain_at_indent (default_tagless_destructor.location, &i,
+                          _("previous declaration"));
     }
   default_tagless_destructor = *destructor;
 }
@@ -950,10 +961,12 @@ default_tagged_printer_set (code_props const *printer)
 {
   if (default_tagged_printer.code)
     {
-      complain_at (printer->location,
-                   _("redeclaration for default tagged %%printer"));
-      complain_at (default_tagged_printer.location,
-		   _("previous declaration"));
+      unsigned i = 0;
+      complain_at_indent (printer->location, &i,
+                          _("redeclaration for default tagged %%printer"));
+      i += SUB_INDENT;
+      complain_at_indent (default_tagged_printer.location, &i,
+		          _("previous declaration"));
     }
   default_tagged_printer = *printer;
 }
@@ -963,10 +976,12 @@ default_tagless_printer_set (code_props const *printer)
 {
   if (default_tagless_printer.code)
     {
-      complain_at (printer->location,
-                   _("redeclaration for default tagless %%printer"));
-      complain_at (default_tagless_printer.location,
-		   _("previous declaration"));
+      unsigned i = 0;
+      complain_at_indent (printer->location, &i,
+                          _("redeclaration for default tagless %%printer"));
+      i += SUB_INDENT;
+      complain_at_indent (default_tagless_printer.location, &i,
+		          _("previous declaration"));
     }
   default_tagless_printer = *printer;
 }

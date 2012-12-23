@@ -151,7 +151,7 @@ void m4_error_at_line (int, int, const char *, int,
 
 /* File: debug.c  --- debugging and tracing function.  */
 
-extern FILE *debug;
+extern FILE *_debug;
 
 /* The value of debug_level is a bitmask of the following.  */
 
@@ -184,27 +184,27 @@ extern FILE *debug;
 #define DEBUG_PRINT1(Fmt, Arg1) \
   do                                                            \
     {                                                           \
-      if (debug != NULL)                                        \
-        xfprintf (debug, Fmt, Arg1);                            \
+      if (_debug != NULL)                                        \
+        xfprintf (_debug, Fmt, Arg1);                            \
     }                                                           \
   while (0)
 
 #define DEBUG_PRINT3(Fmt, Arg1, Arg2, Arg3) \
   do                                                            \
     {                                                           \
-      if (debug != NULL)                                        \
-        xfprintf (debug, Fmt, Arg1, Arg2, Arg3);                \
+      if (_debug != NULL)                                        \
+        xfprintf (_debug, Fmt, Arg1, Arg2, Arg3);                \
     }                                                           \
   while (0)
 
 #define DEBUG_MESSAGE(Fmt) \
   do                                                            \
     {                                                           \
-      if (debug != NULL)                                        \
+      if (_debug != NULL)                                        \
         {                                                       \
           debug_message_prefix ();                              \
-          xfprintf (debug, Fmt);                                \
-          putc ('\n', debug);                                   \
+          xfprintf (_debug, Fmt);                                \
+          putc ('\n', _debug);                                   \
         }                                                       \
     }                                                           \
   while (0)
@@ -212,11 +212,11 @@ extern FILE *debug;
 #define DEBUG_MESSAGE1(Fmt, Arg1) \
   do                                                            \
     {                                                           \
-      if (debug != NULL)                                        \
+      if (_debug != NULL)                                        \
         {                                                       \
           debug_message_prefix ();                              \
-          xfprintf (debug, Fmt, Arg1);                          \
-          putc ('\n', debug);                                   \
+          xfprintf (_debug, Fmt, Arg1);                          \
+          putc ('\n', _debug);                                   \
         }                                                       \
     }                                                           \
   while (0)
@@ -224,11 +224,11 @@ extern FILE *debug;
 #define DEBUG_MESSAGE2(Fmt, Arg1, Arg2) \
   do                                                            \
     {                                                           \
-      if (debug != NULL)                                        \
+      if (_debug != NULL)                                        \
         {                                                       \
           debug_message_prefix ();                              \
-          xfprintf (debug, Fmt, Arg1, Arg2);                    \
-          putc ('\n', debug);                                   \
+          xfprintf (_debug, Fmt, Arg1, Arg2);                    \
+          putc ('\n', _debug);                                   \
         }                                                       \
     }                                                           \
   while (0)

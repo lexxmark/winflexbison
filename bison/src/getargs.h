@@ -1,6 +1,6 @@
 /* Parse command line arguments for bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2011 Free Software
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2012 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -23,7 +23,6 @@
 
 #include "location.h"
 
-extern char *program_name;
 enum { command_line_prio, grammar_prio, default_prio };
 
 /* flags set by % directives */
@@ -35,7 +34,7 @@ extern int skeleton_prio;
 /* for -I */
 extern char const *include;
 
-extern bool debug_flag;			/* for -t */
+extern bool debug;			/* for -t */
 extern bool defines_flag;		/* for -d */
 extern bool graph_flag;			/* for -g */
 extern bool xml_flag;			/* for -x */
@@ -131,6 +130,18 @@ enum warnings
 /** What warnings are issued.  */
 extern int warnings_flag;
 
+/*-------------.
+| --features.  |
+`-------------*/
+
+enum feature
+  {
+    feature_none  = 0,         /**< No additional feature.  */
+    feature_caret = 1 << 0,    /**< Enhance the output of errors with carets.  */
+    feature_all   = ~0         /**< All above features.  */
+  };
+/** What additional features to use.  */
+extern int feature_flag;
 
 /** Process the command line arguments.
  *

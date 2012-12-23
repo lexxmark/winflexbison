@@ -30,6 +30,9 @@
 #include "regex.h"
 //#include "spawn-pipe.h"
 //#include "wait-process.h"
+#include <process.h>
+
+#define SYSCMD_SHELL "cmd.exe"
 
 #define ARG(i) (argc > (i) ? TOKEN_DATA_TEXT (argv[i]) : "")
 
@@ -941,6 +944,14 @@ builtin `%s' requested by frozen file is not supported", arg));
 | "esyscmd" and "sysval".  "esyscmd" is GNU specific.           |
 `--------------------------------------------------------------*/
 
+extern int
+execute (const char *progname,
+         const char *prog_path, char **prog_argv,
+         bool ignore_sigpipe,
+         bool null_stdin, bool null_stdout, bool null_stderr,
+         bool slave_process, bool exit_on_error,
+         int *termsigp);
+
 /* Exit code from last "syscmd" command.  */
 static int sysval;
 
@@ -948,7 +959,6 @@ static void
 m4_syscmd (struct obstack *obs M4_GNUC_UNUSED, int argc, token_data **argv)
 {
   M4ERROR ((warning_status, errno, "m4_syscmd is not implemented"));
-
 #if 0
   const char *cmd = ARG (1);
   int status;
@@ -1460,7 +1470,7 @@ m4_maketemp (struct obstack *obs, int argc, token_data **argv)
         if (str[i - 1] != 'X')
           break;
       obstack_grow (obs, str, i);
-      str = ntoa ((int32_t) 342/*getpid ()*/, 10);
+      str = ntoa ((int32_t) _getpid (), 10);
       len2 = strlen (str);
       if (len2 > len - i)
         obstack_grow0 (obs, str + len2 - (len - i), len - i);

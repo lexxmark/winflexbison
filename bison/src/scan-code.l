@@ -1,6 +1,6 @@
 /* Bison Action Scanner                             -*- C -*-
 
-   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2012 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -45,6 +45,9 @@
 YY_DECL;
 
 #define YY_USER_ACTION  location_compute (loc, &loc->end, yytext, yyleng);
+
+static char *fetch_type_name (char *cp, char const **type_name,
+                              location dollar_loc);
 
 static void handle_action_dollar (symbol_list *rule, char *cp,
 				  location dollar_loc);
@@ -95,11 +98,15 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
   int braces_level = 0;
 
   /* Whether a semicolon is probably needed.
-     The heuristic is that a semicolon is not needed after `{', `}', `;',
-     or a C preprocessor directive, and that whitespaces and comments
-     do not affect this flag.
-     Note that `{' does not need a semicolon because of `{}'.
-     A semicolon may be needed before a cpp direcive, but don't bother.  */
+
+     The heuristic is that a semicolon is not needed after '{', '}',
+     ';', or a C preprocessor directive, and that whitespaces and
+     comments do not affect this flag.  Note that '{' does not need a
+     semicolon because of '{}'.  A semicolon may be needed before a
+     cpp directive, but don't bother.
+
+     While it is maintained in several start-conditions (factoring
+     opportunities), it is meaningful only for SC_RULE_ACTION. */
   bool need_semicolon = false;
 
   /* Whether in a C preprocessor directive.  Don't use a start condition
@@ -117,7 +124,7 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
 %}
 
   /*------------------------------------------------------------.
-  | Scanning a C comment.  The initial `/ *' is already eaten.  |
+  | Scanning a C comment.  The initial '/ *' is already eaten.  |
   `------------------------------------------------------------*/
 
 <SC_COMMENT>
@@ -127,7 +134,7 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
 
 
   /*--------------------------------------------------------------.
-  | Scanning a line comment.  The initial `//' is already eaten.  |
+  | Scanning a line comment.  The initial '//' is already eaten.  |
   `--------------------------------------------------------------*/
 
 <SC_LINE_COMMENT>
@@ -157,7 +164,8 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
 }
 
 
-<SC_RULE_ACTION,SC_SYMBOL_ACTION>{
+<SC_RULE_ACTION,SC_SYMBOL_ACTION>
+{
   "'" {
     STRING_GROW;
     BEGIN SC_CHARACTER;
@@ -176,42 +184,31 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
     STRING_GROW;
     BEGIN SC_LINE_COMMENT;
   }
+  [$@]  {
+    warn_at (*loc, _("stray '%s'"), yytext);
+    obstack_escape (&obstack_for_string, yytext);
+    need_semicolon = true;
+  }
+  [\[\]]  {
+    obstack_escape (&obstack_for_string, yytext);
+    need_semicolon = true;
+  }
 }
 
 <SC_RULE_ACTION>
 {
   "$"("<"{tag}">")?{ref}  {
-    ref_tail_fields = 0;
+    ref_tail_fields = NULL;
     handle_action_dollar (self->rule, yytext, *loc);
-    if (ref_tail_fields) {
+    if (ref_tail_fields)
       obstack_sgrow (&obstack_for_string, ref_tail_fields);
-    }
     need_semicolon = true;
   }
   "@"{ref} {
-    ref_tail_fields = 0;
+    ref_tail_fields = NULL;
     handle_action_at (self->rule, yytext, *loc);
-    if (ref_tail_fields) {
+    if (ref_tail_fields)
       obstack_sgrow (&obstack_for_string, ref_tail_fields);
-    }
-    need_semicolon = true;
-  }
-  "$"  {
-    warn_at (*loc, _("stray `$'"));
-    obstack_sgrow (&obstack_for_string, "$][");
-    need_semicolon = true;
-  }
-  "@"  {
-    warn_at (*loc, _("stray `@'"));
-    obstack_sgrow (&obstack_for_string, "@@");
-    need_semicolon = true;
-  }
-  "["  {
-    obstack_sgrow (&obstack_for_string, "@{");
-    need_semicolon = true;
-  }
-  "]"  {
-    obstack_sgrow (&obstack_for_string, "@}");
     need_semicolon = true;
   }
 
@@ -220,16 +217,20 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
   "}"  {
     bool outer_brace = --braces_level == 0;
 
-    /* As an undocumented Bison extension, append `;' before the last
+    /* As an undocumented Bison extension, append ';' before the last
        brace in braced code, so that the user code can omit trailing
-       `;'.  But do not append `;' if emulating Yacc, since Yacc does
-       not append one.  */
+       ';'.  But do not append ';' if emulating Yacc, since Yacc does
+       not append one.  This is deprecated since release 2.4.1.  */
     if (outer_brace && !yacc_flag && language_prio == default_prio
         && skeleton_prio == default_prio && need_semicolon && ! in_cpp)
       {
-	warn_at (*loc, _("a `;' might be needed at the end of action code"));
-	warn_at (*loc, _("future versions of Bison will not add the `;'"));
-	obstack_1grow (&obstack_for_string, ';');
+        unsigned int indent = 0;
+        warn_at_indent (*loc, &indent,
+                       _("a ';' might be needed at the end of action code"));
+        indent += SUB_INDENT;
+        warn_at_indent (*loc, &indent,
+                       _("future versions of Bison will not add the ';'"));
+        obstack_1grow (&obstack_for_string, ';');
       }
 
     STRING_GROW;
@@ -238,12 +239,12 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
 
   /* Preprocessing directives should only be recognized at the beginning
      of lines, allowing whitespace including comments, but in C/C++,
-     `#' can only be the start of preprocessor directives or within
-     `#define' directives anyway, so don't bother with begin of line.  */
+     '#' can only be the start of preprocessor directives or within
+     '#define' directives anyway, so don't bother with begin of line.  */
   "#"       STRING_GROW; in_cpp = true;
 
   {splice}  STRING_GROW;
-  [\n\r]    STRING_GROW; if (in_cpp) in_cpp = need_semicolon = false; 
+  [\n\r]    STRING_GROW; if (in_cpp) in_cpp = need_semicolon = false;
   [ \t\f]   STRING_GROW;
 
   /* YYFAIL is undocumented and was formally deprecated in Bison
@@ -263,8 +264,12 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
 
 <SC_SYMBOL_ACTION>
 {
-  "$$" {
-    obstack_sgrow (&obstack_for_string, "]b4_dollar_dollar[");
+  "$"("<"{tag}">")?"$" {
+    const char *type_name = NULL;
+    fetch_type_name (yytext + 1, &type_name, *loc)[-1] = 0;
+    obstack_sgrow (&obstack_for_string, "]b4_dollar_dollar(");
+    obstack_quote (&obstack_for_string, type_name);
+    obstack_sgrow (&obstack_for_string, ")[");
     self->is_value_used = true;
   }
   "@$" {
@@ -274,39 +279,27 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
 }
 
 
-  /*-----------------------------------------.
-  | Escape M4 quoting characters in C code.  |
-  `-----------------------------------------*/
-
 <*>
 {
-  \$	obstack_sgrow (&obstack_for_string, "$][");
-  \@	obstack_sgrow (&obstack_for_string, "@@");
-  \[	obstack_sgrow (&obstack_for_string, "@{");
-  \]	obstack_sgrow (&obstack_for_string, "@}");
+  /* Escape M4 quoting characters in C code.  */
+  [$@\[\]]    obstack_escape (&obstack_for_string, yytext);
+
+  /* By default, grow the string obstack with the input.  */
+  .|\n        STRING_GROW;
+
+  /* End of processing. */
+  <<EOF>>     STRING_FINISH; return last_string;
 }
-
-  /*-----------------------------------------------------.
-  | By default, grow the string obstack with the input.  |
-  `-----------------------------------------------------*/
-
-<*>.|\n	STRING_GROW;
-
- /* End of processing. */
-<*><<EOF>>	 {
-                   STRING_FINISH;
-                   return last_string;
-                 }
 
 %%
 
-static  bool
+static inline bool
 is_dot_or_dash (char ch)
 {
   return ch == '.' || ch == '-';
 }
 
-static  bool
+static inline bool
 contains_dot_or_dash (const char* p)
 {
   for (; *p; ++p)
@@ -345,7 +338,7 @@ typedef struct
    not visible from current midrule. */
 #define VARIANT_NOT_VISIBLE_FROM_MIDRULE (1 << 2)
 
-static variant *variant_table = 0;
+static variant *variant_table = NULL;
 static unsigned variant_table_size = 0;
 static unsigned variant_count = 0;
 
@@ -367,7 +360,7 @@ static void
 variant_table_free (void)
 {
   free (variant_table);
-  variant_table = 0;
+  variant_table = NULL;
   variant_table_size = variant_count = 0;
 }
 
@@ -410,7 +403,7 @@ variant_add (uniqstr id, location id_loc, unsigned symbol_index,
 }
 
 static const char *
-get_at_spec(unsigned symbol_index)
+get_at_spec (unsigned symbol_index)
 {
   static char at_buf[20];
   if (symbol_index == 0)
@@ -454,30 +447,30 @@ show_sub_messages (const char* cp, bool explicit_bracketing,
 	  /* Create the explanation message. */
 	  obstack_init (&msg_buf);
 
-	  obstack_fgrow1 (&msg_buf, _("possibly meant: %c"), dollar_or_at);
+	  obstack_printf (&msg_buf, _("possibly meant: %c"), dollar_or_at);
 	  if (contains_dot_or_dash (id))
-	    obstack_fgrow1 (&msg_buf, "[%s]", id);
+	    obstack_printf (&msg_buf, "[%s]", id);
 	  else
 	    obstack_sgrow (&msg_buf, id);
 	  obstack_sgrow (&msg_buf, tail);
 
 	  if (var->err & VARIANT_HIDDEN)
 	    {
-	      obstack_fgrow1 (&msg_buf, _(", hiding %c"), dollar_or_at);
+	      obstack_printf (&msg_buf, _(", hiding %c"), dollar_or_at);
 	      if (contains_dot_or_dash (var->id))
-		obstack_fgrow1 (&msg_buf, "[%s]", var->id);
+		obstack_printf (&msg_buf, "[%s]", var->id);
 	      else
 		obstack_sgrow (&msg_buf, var->id);
 	      obstack_sgrow (&msg_buf, tail);
 	    }
 
-	  obstack_fgrow1 (&msg_buf, _(" at %s"), at_spec);
+	  obstack_printf (&msg_buf, _(" at %s"), at_spec);
 
 	  if (var->err & VARIANT_NOT_VISIBLE_FROM_MIDRULE)
             {
               const char *format =
                 _(", cannot be accessed from mid-rule action at $%d");
-              obstack_fgrow1 (&msg_buf, format, midrule_rhs_index);
+              obstack_printf (&msg_buf, format, midrule_rhs_index);
             }
 
 	  obstack_1grow (&msg_buf, '\0');
@@ -499,9 +492,6 @@ show_sub_messages (const char* cp, bool explicit_bracketing,
 /* Returned from "parse_ref" when the reference
    points to LHS ($$) of the current rule or midrule. */
 #define LHS_REF (INT_MIN + 1)
-
-/* Sub-messages indent. */
-#define SUB_INDENT (4)
 
 /* Parse named or positional reference. In case of positional
    references, can return negative values for $-n "deep" stack
@@ -626,8 +616,8 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
             sym_loc.start.column += 1;
             sym_loc.end = sym_loc.start;
             const char *format =
-              _("syntax error after `%c', expecting integer, letter,"
-                " `_', `[', or `$'");
+              _("syntax error after '%c', expecting integer, letter,"
+                " '_', '[', or '$'");
             complain_at_indent (sym_loc, &indent, format, dollar_or_at);
           }
         else if (midrule_rhs_index)
@@ -688,8 +678,33 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
 int max_left_semantic_context = 0;
 
 
+/* If CP points to a typename (i.e., <.*?>), set TYPE_NAME to its
+   beginning (i.e., after the opening "<", and return the pointer
+   immediately after it.  */
+
+static
+char *
+fetch_type_name (char *cp, char const **type_name,
+                 location dollar_loc)
+{
+  if (*cp == '<')
+    {
+      *type_name = ++cp;
+      while (*cp != '>')
+	++cp;
+
+      /* The '>' symbol will be later replaced by '\0'. Original
+	 'text' is needed for error messages. */
+      ++cp;
+      if (untyped_var_seen)
+	complain_at (dollar_loc, _("explicit type given in untyped grammar"));
+      tag_seen = true;
+    }
+  return cp;
+}
+
 /*------------------------------------------------------------------.
-| TEXT is pointing to a wannabee semantic value (i.e., a `$').      |
+| TEXT is pointing to a wannabee semantic value (i.e., a '$').      |
 |                                                                   |
 | Possible inputs: $[<TYPENAME>]($|integer)                         |
 |                                                                   |
@@ -701,7 +716,6 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
 {
   char const *type_name = NULL;
   char *cp = text + 1;
-  char *gt_ptr = 0;
   symbol_list *effective_rule;
   int effective_rule_length;
   int n;
@@ -718,26 +732,14 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
     }
 
   /* Get the type name if explicit. */
-  if (*cp == '<')
-    {
-      type_name = ++cp;
-      while (*cp != '>')
-	++cp;
-
-      /* The '>' symbol will be later replaced by '\0'. Original
-	 'text' is needed for error messages. */
-      gt_ptr = cp;
-      ++cp;
-      if (untyped_var_seen)
-	complain_at (dollar_loc, _("explicit type given in untyped grammar"));
-      tag_seen = true;
-    }
+  cp = fetch_type_name (cp, &type_name, dollar_loc);
 
   n = parse_ref (cp, effective_rule, effective_rule_length,
 		 rule->midrule_parent_rhs_index, text, dollar_loc, '$');
 
-  if (gt_ptr)
-    *gt_ptr = '\0';
+  /* End type_name. */
+  if (type_name)
+    cp[-1] = '\0';
 
   switch (n)
     {
@@ -749,26 +751,26 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
 	type_name = symbol_list_n_type_name_get (rule, dollar_loc, 0);
 
       if (!type_name)
-	{
-	  if (union_seen | tag_seen)
-	    {
-	      if (rule->midrule_parent_rule)
-		complain_at (dollar_loc,
-			     _("$$ for the midrule at $%d of `%s'"
-			       " has no declared type"),
-			     rule->midrule_parent_rhs_index,
-			     effective_rule->content.sym->tag);
-	      else
-		complain_at (dollar_loc, _("$$ of `%s' has no declared type"),
-			     rule->content.sym->tag);
-	    }
-	  else
-	    untyped_var_seen = true;
-	  type_name = "";
-	}
+        {
+          if (union_seen | tag_seen)
+            {
+              if (rule->midrule_parent_rule)
+                complain_at (dollar_loc,
+                             _("$$ for the midrule at $%d of %s"
+                               " has no declared type"),
+                             rule->midrule_parent_rhs_index,
+                             quote (effective_rule->content.sym->tag));
+              else
+                complain_at (dollar_loc, _("$$ of %s has no declared type"),
+                             quote (rule->content.sym->tag));
+            }
+          else
+            untyped_var_seen = true;
+        }
 
-      obstack_fgrow1 (&obstack_for_string,
-		      "]b4_lhs_value([%s])[", type_name);
+      obstack_sgrow (&obstack_for_string, "]b4_lhs_value(");
+      obstack_quote (&obstack_for_string, type_name);
+      obstack_sgrow (&obstack_for_string, ")[");
       rule->action_props.is_value_used = true;
       break;
 
@@ -779,18 +781,18 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
 	type_name =
 	  symbol_list_n_type_name_get (effective_rule, dollar_loc, n);
       if (!type_name)
-	{
-	  if (union_seen | tag_seen)
-	    complain_at (dollar_loc, _("$%s of `%s' has no declared type"),
-			 cp, effective_rule->content.sym->tag);
-	  else
-	    untyped_var_seen = true;
-	  type_name = "";
-	}
+        {
+          if (union_seen | tag_seen)
+            complain_at (dollar_loc, _("$%s of %s has no declared type"),
+                         cp, quote (effective_rule->content.sym->tag));
+          else
+            untyped_var_seen = true;
+        }
 
-      obstack_fgrow3 (&obstack_for_string,
-		      "]b4_rhs_value(%d, %d, [%s])[",
-		      effective_rule_length, n, type_name);
+      obstack_printf (&obstack_for_string,
+		      "]b4_rhs_value(%d, %d, ", effective_rule_length, n);
+      obstack_quote (&obstack_for_string, type_name);
+      obstack_sgrow (&obstack_for_string, ")[");
       if (n > 0)
 	symbol_list_n_get (effective_rule, n)->action_props.is_value_used =
 	  true;
@@ -800,7 +802,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
 
 
 /*------------------------------------------------------.
-| TEXT is a location token (i.e., a `@...').  Output to |
+| TEXT is a location token (i.e., a '@...').  Output to |
 | OBSTACK_FOR_STRING a reference to this location.      |
 `------------------------------------------------------*/
 
@@ -826,7 +828,7 @@ handle_action_at (symbol_list *rule, char *text, location at_loc)
   locations_flag = true;
 
   n = parse_ref (cp, effective_rule, effective_rule_length,
-		       rule->midrule_parent_rhs_index, text, at_loc, '@');
+                 rule->midrule_parent_rhs_index, text, at_loc, '@');
   switch (n)
     {
     case INVALID_REF:
@@ -837,7 +839,7 @@ handle_action_at (symbol_list *rule, char *text, location at_loc)
       break;
 
     default:
-      obstack_fgrow2 (&obstack_for_string, "]b4_rhs_location(%d, %d)[",
+      obstack_printf (&obstack_for_string, "]b4_rhs_location(%d, %d)[",
 		      effective_rule_length, n);
       break;
     }

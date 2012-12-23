@@ -74,6 +74,8 @@ struct Buf *buf_prints (struct Buf *buf, const char *fmt, const char *s)
         size_t tsz;
 
 	t = flex_alloc (tsz = strlen (fmt) + strlen (s) + 1);
+	if (!t)
+	    flexfatal (_("Allocation of buffer to print string failed"));
 	snprintf (t, tsz, fmt, s);
 	buf = buf_strappend (buf, t);
 	flex_free (t);
@@ -88,34 +90,20 @@ struct Buf *buf_prints (struct Buf *buf, const char *fmt, const char *s)
  */
 struct Buf *buf_linedir (struct Buf *buf, const char* filename, int lineno)
 {
-    char   *t, *fmt = "#line %d \"%s\"\n";
-    size_t tsz;
+    char *dst, *src, *t;
 
-	const char *s1;
-	char *s2;
-	char _filename[MAXLINE];
-
-	// escape file name special chars
-	{
-		s1 = filename;
-		s2 = _filename;
-
-		while ((s2 - _filename) < (MAXLINE - 1) && *s1) {
-			/* Escape the backslash */
-			if (*s1 == '\\')
-				*s2++ = '\\';
-			/* Escape the double quote */
-			if (*s1 == '\"')
-				*s2++ = '\\';
-			/* Copy the character as usual */
-			*s2++ = *s1++;
-		}
-
-		*s2 = '\0';
-	}
-    
-    t = flex_alloc (tsz = strlen (fmt) + strlen (_filename) + (int)(1 + log10(lineno>=0?lineno:-lineno)) + 1);
-    snprintf (t, tsz, fmt, lineno, _filename);
+    t = flex_alloc (strlen ("#line \"\"\n")          +   /* constant parts */
+                    2 * strlen (filename)            +   /* filename with possibly all backslashes escaped */
+                    (int) (1 + log10 (abs (lineno))) +   /* line number */
+                    1);                                  /* NUL */
+    if (!t)
+      flexfatal (_("Allocation of buffer for line directive failed"));
+    for (dst = t + sprintf (t, "#line %d \"", lineno), src = filename; *src; *dst++ = *src++)
+      if (*src == '\\')   /* escape backslashes */
+        *dst++ = '\\';
+    *dst++ = '"';
+    *dst++ = '\n';
+    *dst   = '\0';
     buf = buf_strappend (buf, t);
     flex_free (t);
     return buf;
@@ -185,6 +173,8 @@ struct Buf *buf_m4_define (struct Buf *buf, const char* def, const char* val)
 
     val = val?val:"";
     str = (char*)flex_alloc(strsz = strlen(fmt) + strlen(def) + strlen(val) + 2);
+    if (!str)
+        flexfatal (_("Allocation of buffer for m4 def failed"));
 
     snprintf(str, strsz, fmt, def, val);
     buf_append(buf, &str, 1);
@@ -203,6 +193,8 @@ struct Buf *buf_m4_undefine (struct Buf *buf, const char* def)
     size_t strsz;
 
     str = (char*)flex_alloc(strsz = strlen(fmt) + strlen(def) + 2);
+    if (!str)
+        flexfatal (_("Allocation of buffer for m4 undef failed"));
 
     snprintf(str, strsz, fmt, def);
     buf_append(buf, &str, 1);

@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2011 Free Software Foundation,
+   Copyright (C) 2002, 2005-2007, 2009-2012 Free Software Foundation,
    Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -119,11 +119,11 @@ uniqstr symbol_list_n_type_name_get (symbol_list *l, location loc, int n);
 bool symbol_list_null (symbol_list *node);
 
 /** Set the \c \%destructor for \c node as \c code at \c loc.  */
-void symbol_list_destructor_set (symbol_list *node, char const *code,
-                                 location loc);
+void symbol_list_destructor_set (symbol_list *node,
+                                 code_props const *destructor);
 
 /** Set the \c \%printer for \c node as \c code at \c loc.  */
-void symbol_list_printer_set (symbol_list *node, char const *code,
-                              location loc);
+void symbol_list_printer_set (symbol_list *node,
+                              code_props const *printer);
 
 #endif /* !SYMLIST_H_ */

@@ -1,3 +1,7 @@
+version 2.0
+--------------
+upgrade win_bison to version 2.7 and win_flex to version 2.5.37
+
 version 1.2
 --------------
 fixed win_flex.exe #line directives (some #line directives in output file were with unescaped backslashes)

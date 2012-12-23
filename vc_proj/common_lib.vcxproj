@@ -11,10 +11,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\m4\builtin.c" />
+    <ClCompile Include="..\common\m4\debug.c" />
+    <ClCompile Include="..\common\m4\eval.c" />
+    <ClCompile Include="..\common\m4\format.c" />
+    <ClCompile Include="..\common\m4\freeze.c" />
+    <ClCompile Include="..\common\m4\input.c" />
     <ClCompile Include="..\common\m4\lib\clean-temp.c" />
+    <ClCompile Include="..\common\m4\lib\cloexec.c" />
     <ClCompile Include="..\common\m4\lib\close-stream.c" />
     <ClCompile Include="..\common\m4\lib\closein.c" />
     <ClCompile Include="..\common\m4\lib\closeout.c" />
+    <ClCompile Include="..\common\m4\lib\execute.c" />
     <ClCompile Include="..\common\m4\lib\fd-safer.c" />
     <ClCompile Include="..\common\m4\lib\filenamecat-lgpl.c" />
     <ClCompile Include="..\common\m4\lib\gl_avltree_oset.c" />
@@ -40,16 +48,10 @@
     <ClCompile Include="..\common\m4\lib\xprintf.c" />
     <ClCompile Include="..\common\m4\lib\xvasprintf.c" />
     <ClCompile Include="..\common\m4\m4.c" />
-    <ClCompile Include="..\common\m4\m4_builtin.c" />
-    <ClCompile Include="..\common\m4\m4_debug.c" />
-    <ClCompile Include="..\common\m4\m4_eval.c" />
-    <ClCompile Include="..\common\m4\m4_format.c" />
-    <ClCompile Include="..\common\m4\m4_freeze.c" />
-    <ClCompile Include="..\common\m4\m4_input.c" />
-    <ClCompile Include="..\common\m4\m4_output.c" />
-    <ClCompile Include="..\common\m4\m4_path.c" />
-    <ClCompile Include="..\common\m4\m4_symtab.c" />
     <ClCompile Include="..\common\m4\macro.c" />
+    <ClCompile Include="..\common\m4\output.c" />
+    <ClCompile Include="..\common\m4\path.c" />
+    <ClCompile Include="..\common\m4\symtab.c" />
     <ClCompile Include="..\common\misc\abitset.c" />
     <ClCompile Include="..\common\misc\argmatch.c" />
     <ClCompile Include="..\common\misc\basename-lgpl.c" />
@@ -66,6 +68,8 @@
     <ClCompile Include="..\common\misc\error.c" />
     <ClCompile Include="..\common\misc\exitfail.c" />
     <ClCompile Include="..\common\misc\get-errno.c" />
+    <ClCompile Include="..\common\misc\getdelim.c" />
+    <ClCompile Include="..\common\misc\getline.c" />
     <ClCompile Include="..\common\misc\getopt.c" />
     <ClCompile Include="..\common\misc\getopt1.c" />
     <ClCompile Include="..\common\misc\hash.c" />
@@ -73,14 +77,17 @@
     <ClCompile Include="..\common\misc\localcharset.c" />
     <ClCompile Include="..\common\misc\mbswidth.c" />
     <ClCompile Include="..\common\misc\obstack.c" />
-    <ClCompile Include="..\common\misc\quote.c" />
+    <ClCompile Include="..\common\misc\obstack_printf.c" />
+    <ClCompile Include="..\common\misc\progname.c" />
     <ClCompile Include="..\common\misc\quotearg.c" />
+    <ClCompile Include="..\common\misc\strverscmp.c" />
     <ClCompile Include="..\common\misc\timevar.c" />
     <ClCompile Include="..\common\misc\vbitset.c" />
     <ClCompile Include="..\common\misc\wcwidth.c" />
     <ClCompile Include="..\common\misc\width.c" />
     <ClCompile Include="..\common\misc\xalloc-die.c" />
     <ClCompile Include="..\common\misc\xmalloc.c" />
+    <ClCompile Include="..\common\misc\xmemdup0.c" />
     <ClCompile Include="..\common\misc\xstrndup.c" />
   </ItemGroup>
   <ItemGroup>
@@ -91,6 +98,7 @@
     <ClInclude Include="..\common\m4\lib\close-stream.h" />
     <ClInclude Include="..\common\m4\lib\closein.h" />
     <ClInclude Include="..\common\m4\lib\closeout.h" />
+    <ClInclude Include="..\common\m4\lib\execute.h" />
     <ClInclude Include="..\common\m4\lib\filenamecat.h" />
     <ClInclude Include="..\common\m4\lib\fpending.h" />
     <ClInclude Include="..\common\m4\lib\freadahead.h" />
@@ -124,6 +132,7 @@
     <ClInclude Include="..\common\m4\lib\vasnprintf.h" />
     <ClInclude Include="..\common\m4\lib\verror.h" />
     <ClInclude Include="..\common\m4\lib\version-etc.h" />
+    <ClInclude Include="..\common\m4\lib\w32spawn.h" />
     <ClInclude Include="..\common\m4\lib\xmalloca.h" />
     <ClInclude Include="..\common\m4\lib\xprintf.h" />
     <ClInclude Include="..\common\m4\lib\xsize.h" />
@@ -155,6 +164,7 @@
     <ClInclude Include="..\common\misc\localcharset.h" />
     <ClInclude Include="..\common\misc\mbswidth.h" />
     <ClInclude Include="..\common\misc\obstack.h" />
+    <ClInclude Include="..\common\misc\progname.h" />
     <ClInclude Include="..\common\misc\quote.h" />
     <ClInclude Include="..\common\misc\quotearg.h" />
     <ClInclude Include="..\common\misc\stdbool.h" />
@@ -167,6 +177,7 @@
     <ClInclude Include="..\common\misc\vbitset.h" />
     <ClInclude Include="..\common\misc\verify.h" />
     <ClInclude Include="..\common\misc\xalloc.h" />
+    <ClInclude Include="..\common\misc\xmemdup0.h" />
     <ClInclude Include="..\common\misc\xstrndup.h" />
   </ItemGroup>
   <ItemGroup>

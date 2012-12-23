@@ -42,9 +42,6 @@
     <ClCompile Include="..\flex\src\regex.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\flex\src\regex1.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\flex\src\scan.c">
       <Filter>src</Filter>
     </ClCompile>

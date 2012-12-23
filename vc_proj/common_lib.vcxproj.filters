@@ -12,38 +12,98 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\m4\m4.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\abitset.c">
+      <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\m4\m4_builtin.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\argmatch.c">
+      <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\m4\m4_debug.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\basename-lgpl.c">
+      <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\m4\m4_eval.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\bitset.c">
+      <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\m4\m4_format.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\bitset_stats.c">
+      <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\m4\m4_freeze.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\bitsetv.c">
+      <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\m4\m4_input.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\bitsetv-print.c">
+      <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\m4\m4_output.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\c-ctype.c">
+      <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\m4\m4_path.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\c-strcasecmp.c">
+      <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\m4\m4_symtab.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\c-strncasecmp.c">
+      <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\m4\macro.c">
-      <Filter>m4</Filter>
+    <ClCompile Include="..\common\misc\dirname.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\dirname-lgpl.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\ebitset.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\error.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\exitfail.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\get-errno.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\getopt.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\getopt1.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\hash.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\lbitset.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\localcharset.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\mbswidth.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\obstack.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\quotearg.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\timevar.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\vbitset.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\wcwidth.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\width.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\xalloc-die.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\xmalloc.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\xstrndup.c">
+      <Filter>misc</Filter>
     </ClCompile>
     <ClCompile Include="..\common\m4\lib\clean-temp.c">
       <Filter>m4\lib</Filter>
@@ -129,106 +189,181 @@
     <ClCompile Include="..\common\m4\lib\xvasprintf.c">
       <Filter>m4\lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\misc\abitset.c">
+    <ClCompile Include="..\common\m4\builtin.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\m4\debug.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\m4\eval.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\m4\format.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\m4\freeze.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\m4\input.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\m4\m4.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\m4\macro.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\m4\output.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\m4\path.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\m4\symtab.c">
+      <Filter>m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\xmemdup0.c">
       <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\misc\argmatch.c">
+    <ClCompile Include="..\common\misc\strverscmp.c">
       <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\misc\basename-lgpl.c">
+    <ClCompile Include="..\common\misc\obstack_printf.c">
       <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\misc\bitset.c">
+    <ClCompile Include="..\common\misc\getline.c">
       <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\misc\bitset_stats.c">
+    <ClCompile Include="..\common\misc\getdelim.c">
       <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\misc\bitsetv.c">
+    <ClCompile Include="..\common\misc\progname.c">
       <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\misc\bitsetv-print.c">
-      <Filter>misc</Filter>
+    <ClCompile Include="..\common\m4\lib\execute.c">
+      <Filter>m4\lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\misc\c-ctype.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\c-strcasecmp.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\c-strncasecmp.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\dirname.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\dirname-lgpl.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\ebitset.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\error.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\exitfail.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\get-errno.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\getopt.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\getopt1.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\hash.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\lbitset.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\localcharset.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\mbswidth.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\obstack.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\quote.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\quotearg.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\timevar.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\vbitset.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\wcwidth.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\width.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\xalloc-die.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\xmalloc.c">
-      <Filter>misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\misc\xstrndup.c">
-      <Filter>misc</Filter>
+    <ClCompile Include="..\common\m4\lib\cloexec.c">
+      <Filter>m4\lib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\m4\m4.h">
-      <Filter>m4</Filter>
+    <ClInclude Include="..\common\misc\abitset.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\argmatch.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\bbitset.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\bitrotate.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\bitset.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\bitset_stats.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\bitsetv.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\bitsetv-print.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\c-ctype.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\cjk.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\c-strcase.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\dirname.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\dosname.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\ebitset.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\error.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\exitfail.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\get-errno.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\getopt.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\getopt_int.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\gettext.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\hash.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\lbitset.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\localcharset.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\mbswidth.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\obstack.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\quote.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\quotearg.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\stdbool.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\stdio-safer.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\streq.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\timevar.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\unitypes.in.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\uniwidth.in.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\vbitset.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\verify.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\xalloc.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\xstrndup.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\config.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\system.h">
+      <Filter>misc</Filter>
     </ClInclude>
     <ClInclude Include="..\common\m4\lib\binary-io.h">
       <Filter>m4\lib</Filter>
@@ -362,122 +497,20 @@
     <ClInclude Include="..\common\m4\lib\xvasprintf.h">
       <Filter>m4\lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\misc\abitset.h">
+    <ClInclude Include="..\common\m4\m4.h">
+      <Filter>m4</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\xmemdup0.h">
       <Filter>misc</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\misc\argmatch.h">
+    <ClInclude Include="..\common\misc\progname.h">
       <Filter>misc</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\misc\bbitset.h">
-      <Filter>misc</Filter>
+    <ClInclude Include="..\common\m4\lib\execute.h">
+      <Filter>m4\lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\misc\bitrotate.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\bitset.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\bitset_stats.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\bitsetv.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\bitsetv-print.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\c-ctype.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\cjk.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\c-strcase.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\dirname.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\dosname.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\ebitset.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\error.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\exitfail.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\get-errno.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\getopt.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\getopt_int.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\gettext.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\hash.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\lbitset.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\localcharset.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\mbswidth.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\obstack.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\quote.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\quotearg.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\stdbool.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\stdio-safer.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\streq.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\timevar.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\unitypes.in.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\uniwidth.in.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\vbitset.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\verify.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\xalloc.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\xstrndup.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\config.h">
-      <Filter>misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\system.h">
-      <Filter>misc</Filter>
+    <ClInclude Include="..\common\m4\lib\w32spawn.h">
+      <Filter>m4\lib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,7 @@
 <!--
     xml2dot.xsl - transform Bison XML Report into DOT.
 
-    Copyright (C) 2007-2011 Free Software Foundation, Inc.
+    Copyright (C) 2007-2012 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -55,7 +55,11 @@
   <xsl:call-template name="escape">
     <xsl:with-param name="subject" select="$filename"/>
   </xsl:call-template>
-  <xsl:text>"&#10;{&#10;</xsl:text>
+  <xsl:text>"&#10;{
+  node [fontname = courier, shape = box, colorscheme = paired6]
+  edge [fontname = courier]
+
+</xsl:text>
   <xsl:apply-templates select="state"/>
   <xsl:text>}&#10;</xsl:text>
 </xsl:template>
@@ -64,11 +68,87 @@
   <xsl:call-template name="output-node">
     <xsl:with-param name="number" select="@number"/>
     <xsl:with-param name="label">
-      <xsl:value-of select="@number"/>
       <xsl:apply-templates select="itemset/item"/>
     </xsl:with-param>
   </xsl:call-template>
   <xsl:apply-templates select="actions/transitions"/>
+  <xsl:apply-templates select="actions/reductions">
+    <xsl:with-param name="staten">
+      <xsl:value-of select="@number"/>
+    </xsl:with-param>
+  </xsl:apply-templates>
+</xsl:template>
+
+<xsl:template match="actions/reductions">
+  <xsl:param name="staten"/>
+  <xsl:for-each select='reduction'>
+    <!-- These variables are needed because the current context can't be
+         refered to directly in XPath expressions. -->
+    <xsl:variable name="rul">
+      <xsl:value-of select="@rule"/>
+    </xsl:variable>
+    <xsl:variable name="ena">
+      <xsl:value-of select="@enabled"/>
+    </xsl:variable>
+    <!-- The foreach's body is protected by this, so that we are actually
+         going to iterate once per reduction rule, and not per lookahead. -->
+    <xsl:if test='not(preceding-sibling::*[@rule=$rul and @enabled=$ena])'>
+      <xsl:variable name="rule">
+        <xsl:choose>
+          <!-- The acceptation state is refered to as 'accept' in the XML, but
+               just as '0' in the DOT. -->
+          <xsl:when test="@rule='accept'">
+            <xsl:text>0</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="@rule"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+
+      <!-- The edge's beginning -->
+      <xsl:call-template name="reduction-edge-start">
+        <xsl:with-param name="state" select="$staten"/>
+        <xsl:with-param name="rule" select="$rule"/>
+        <xsl:with-param name="enabled" select="@enabled"/>
+      </xsl:call-template>
+
+      <!-- The edge's tokens -->
+      <!-- Don't show labels for the default action. In other cases, there will
+           always be at least one token, so 'label="[]"' will not occur. -->
+      <xsl:if test='$rule!=0 and not(../reduction[@enabled=$ena and @rule=$rule and @symbol="$default"])'>
+        <xsl:text>label="[</xsl:text>
+        <xsl:for-each select='../reduction[@enabled=$ena and @rule=$rule]'>
+          <xsl:call-template name="escape">
+            <xsl:with-param name="subject" select="@symbol"/>
+          </xsl:call-template>
+          <xsl:if test="position() != last ()">
+            <xsl:text>, </xsl:text>
+          </xsl:if>
+        </xsl:for-each>
+        <xsl:text>]", </xsl:text>
+      </xsl:if>
+
+      <!-- The edge's end -->
+      <xsl:text>style=solid]&#10;</xsl:text>
+
+      <!-- The diamond representing the reduction -->
+      <xsl:call-template name="reduction-node">
+        <xsl:with-param name="state" select="$staten"/>
+        <xsl:with-param name="rule" select="$rule"/>
+        <xsl:with-param name="color">
+          <xsl:choose>
+            <xsl:when test='@enabled="true"'>
+              <xsl:text>3</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>5</xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:with-param>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:for-each>
 </xsl:template>
 
 <xsl:template match="actions/transitions">
@@ -76,17 +156,48 @@
 </xsl:template>
 
 <xsl:template match="item">
+  <xsl:param name="prev-rule-number"
+    select="preceding-sibling::item[1]/@rule-number"/>
   <xsl:apply-templates select="key('bison:ruleByNumber', @rule-number)">
     <xsl:with-param name="point" select="@point"/>
+    <xsl:with-param name="num" select="@rule-number"/>
+    <xsl:with-param name="prev-lhs"
+      select="key('bison:ruleByNumber', $prev-rule-number)/lhs[text()]"
+   />
   </xsl:apply-templates>
   <xsl:apply-templates select="lookaheads"/>
 </xsl:template>
 
 <xsl:template match="rule">
   <xsl:param name="point"/>
+  <xsl:param name="num"/>
+  <xsl:param name="prev-lhs"/>
   <xsl:text>&#10;</xsl:text>
-  <xsl:value-of select="lhs"/>
-  <xsl:text> -&gt;</xsl:text>
+  <xsl:choose>
+    <xsl:when test="$num &lt; 10">
+      <xsl:text>  </xsl:text>
+    </xsl:when>
+    <xsl:when test="$num &lt; 100">
+      <xsl:text> </xsl:text>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:text></xsl:text>
+    </xsl:otherwise>
+  </xsl:choose>
+  <xsl:value-of select="$num"/>
+  <xsl:text> </xsl:text>
+  <xsl:choose>
+  <xsl:when test="$prev-lhs = lhs[text()]">
+      <xsl:call-template name="lpad">
+        <xsl:with-param name="str" select="'|'"/>
+        <xsl:with-param name="pad" select="number(string-length(lhs[text()])) + 1"/>
+      </xsl:call-template>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="lhs"/>
+      <xsl:text>:</xsl:text>
+    </xsl:otherwise>
+  </xsl:choose>
   <xsl:if test="$point = 0">
     <xsl:text> .</xsl:text>
   </xsl:if>
@@ -106,7 +217,7 @@
 <xsl:template match="empty"/>
 
 <xsl:template match="lookaheads">
-  <xsl:text>[</xsl:text>
+  <xsl:text>  [</xsl:text>
   <xsl:apply-templates select="symbol"/>
   <xsl:text>]</xsl:text>
 </xsl:template>
@@ -116,6 +227,50 @@
   <xsl:if test="position() != last()">
     <xsl:text>, </xsl:text>
   </xsl:if>
+</xsl:template>
+
+<xsl:template name="reduction-edge-start">
+  <xsl:param name="state"/>
+  <xsl:param name="rule"/>
+  <xsl:param name="enabled"/>
+
+  <xsl:text>  </xsl:text>
+  <xsl:value-of select="$state"/>
+  <xsl:text> -> "</xsl:text>
+  <xsl:value-of select="$state"/>
+  <xsl:text>R</xsl:text>
+  <xsl:value-of select="$rule"/>
+  <xsl:if test='$enabled = "false"'>
+    <xsl:text>d</xsl:text>
+  </xsl:if>
+  <xsl:text>" [</xsl:text>
+</xsl:template>
+
+<xsl:template name="reduction-node">
+  <xsl:param name="state"/>
+  <xsl:param name="rule"/>
+  <xsl:param name="color"/>
+
+  <xsl:text> "</xsl:text>
+  <xsl:value-of select="$state"/>
+  <xsl:text>R</xsl:text>
+  <xsl:value-of select="$rule"/>
+  <xsl:if test="$color = 5">
+    <xsl:text>d</xsl:text>
+  </xsl:if>
+  <xsl:text>" [label="</xsl:text>
+  <xsl:choose>
+  <xsl:when test="$rule = 0">
+    <xsl:text>Acc", fillcolor=1</xsl:text>
+  </xsl:when>
+  <xsl:otherwise>
+    <xsl:text>R</xsl:text>
+    <xsl:value-of select="$rule"/>
+    <xsl:text>", fillcolor=</xsl:text>
+    <xsl:value-of select="$color"/>
+  </xsl:otherwise>
+  </xsl:choose>
+  <xsl:text>, shape=diamond, style=filled]&#10;</xsl:text>
 </xsl:template>
 
 <xsl:template match="transition">
@@ -149,10 +304,13 @@
   <xsl:text>  </xsl:text>
   <xsl:value-of select="$number"/>
   <xsl:text> [label="</xsl:text>
+  <xsl:text>State </xsl:text>
+  <xsl:value-of select="$number"/>
+  <xsl:text>\n</xsl:text>
   <xsl:call-template name="escape">
     <xsl:with-param name="subject" select="$label"/>
   </xsl:call-template>
-  <xsl:text>"]&#10;</xsl:text>
+  <xsl:text>\l"]&#10;</xsl:text>
 </xsl:template>
 
 <xsl:template name="output-edge">
@@ -193,7 +351,7 @@
       </xsl:call-template>
     </xsl:with-param>
     <xsl:with-param name="search" select="'&#10;'"/>
-    <xsl:with-param name="replace" select="'\n'"/>
+    <xsl:with-param name="replace" select="'\l'"/>
   </xsl:call-template>
 </xsl:template>
 
@@ -215,6 +373,23 @@
     </xsl:when>
     <xsl:otherwise>
       <xsl:value-of select="$subject"/>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
+<xsl:template name="lpad">
+  <xsl:param name="str" select="''"/>
+  <xsl:param name="pad" select="0"/>
+  <xsl:variable name="diff" select="$pad - string-length($str)" />
+  <xsl:choose>
+    <xsl:when test="$diff &lt; 0">
+      <xsl:value-of select="$str"/>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:call-template name="space">
+        <xsl:with-param name="repeat" select="$diff"/>
+      </xsl:call-template>
+      <xsl:value-of select="$str"/>
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>

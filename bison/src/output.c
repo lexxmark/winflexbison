@@ -1,6 +1,6 @@
 /* Output the generated parsing program for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2011 Free Software
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2012 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -20,6 +20,7 @@
 
 #include <config.h>
 #include "system.h"
+#include <mbstring.h>
 
 //#include <configmake.h>
 #include <error.h>
@@ -70,7 +71,7 @@ Name (char const *name,							\
   int i;								\
   int j = 1;								\
 									\
-  obstack_fgrow1 (&format_obstack, "%6d", first);			\
+  obstack_printf (&format_obstack, "%6d", first);			\
   for (i = begin; i < end; ++i)						\
     {									\
       obstack_1grow (&format_obstack, ',');				\
@@ -81,7 +82,7 @@ Name (char const *name,							\
 	}								\
       else								\
 	++j;								\
-      obstack_fgrow1 (&format_obstack, "%6d", table_data[i]);		\
+      obstack_printf (&format_obstack, "%6d", table_data[i]);		\
       if (table_data[i] < min)						\
 	min = table_data[i];						\
       if (max < table_data[i])						\
@@ -93,10 +94,10 @@ Name (char const *name,							\
   lmin = min;								\
   lmax = max;								\
   /* Build `NAME_min' and `NAME_max' in the obstack. */			\
-  obstack_fgrow1 (&format_obstack, "%s_min", name);			\
+  obstack_printf (&format_obstack, "%s_min", name);			\
   obstack_1grow (&format_obstack, 0);					\
   MUSCLE_INSERT_LONG_INT (obstack_finish (&format_obstack), lmin);	\
-  obstack_fgrow1 (&format_obstack, "%s_max", name);			\
+  obstack_printf (&format_obstack, "%s_max", name);			\
   obstack_1grow (&format_obstack, 0);					\
   MUSCLE_INSERT_LONG_INT (obstack_finish (&format_obstack), lmax);	\
 }
@@ -110,27 +111,37 @@ GENERATE_MUSCLE_INSERT_TABLE(muscle_insert_item_number_table, item_number)
 GENERATE_MUSCLE_INSERT_TABLE(muscle_insert_state_number_table, state_number)
 
 
-/*--------------------------------------------------------------------.
-| Print to OUT a representation of STRING escaped both for C and M4.  |
-`--------------------------------------------------------------------*/
+/*----------------------------------------------------------------.
+| Print to OUT a representation of CP quoted and escaped for M4.  |
+`----------------------------------------------------------------*/
 
 static void
-escaped_output (FILE *out, char const *string)
+quoted_output (FILE *out, char const *cp)
 {
-  char const *p;
   fprintf (out, "[[");
 
-  for (p = quotearg_style (c_quoting_style, string); *p; p++)
-    switch (*p)
+  for (; *cp; cp++)
+    switch (*cp)
       {
       case '$': fputs ("$][", out); break;
       case '@': fputs ("@@",  out); break;
       case '[': fputs ("@{",  out); break;
       case ']': fputs ("@}",  out); break;
-      default: fputc (*p, out); break;
+      default:  fputc (*cp,   out); break;
       }
 
   fprintf (out, "]]");
+}
+
+/*----------------------------------------------------------------.
+| Print to OUT a representation of STRING quoted and escaped both |
+| for C and M4.                                                   |
+`----------------------------------------------------------------*/
+
+static void
+string_output (FILE *out, char const *string)
+{
+  quoted_output (out, quotearg_style (c_quoting_style, string));
 }
 
 
@@ -142,7 +153,6 @@ escaped_output (FILE *out, char const *string)
 static void
 prepare_symbols (void)
 {
-  MUSCLE_INSERT_BOOL ("token_table", token_table_flag);
   MUSCLE_INSERT_INT ("tokens_number", ntokens);
   MUSCLE_INSERT_INT ("nterms_number", nvars);
   MUSCLE_INSERT_INT ("undef_token_number", undeftoken->number);
@@ -176,7 +186,7 @@ prepare_symbols (void)
 
 	if (i)
 	  obstack_1grow (&format_obstack, ' ');
-	MUSCLE_OBSTACK_SGROW (&format_obstack, cp);
+	obstack_escape (&format_obstack, cp);
         free (cp);
 	obstack_1grow (&format_obstack, ',');
 	j += width;
@@ -300,7 +310,7 @@ user_actions_output (FILE *out)
       {
 	fprintf (out, "b4_case(%d, [b4_syncline(%d, ", r + 1,
 		 rules[r].action_location.start.line);
-	escaped_output (out, rules[r].action_location.start.file);
+	string_output (out, rules[r].action_location.start.file);
 	fprintf (out, ")\n[    %s]])\n\n", rules[r].action);
       }
   fputs ("])\n\n", out);
@@ -406,12 +416,15 @@ symbol_code_props_output (FILE *out, char const *what,
              code, optional typename.  */
           fprintf (out, "%s[", sep);
           sep = ",\n";
-          escaped_output (out, loc.start.file);
+          string_output (out, loc.start.file);
           fprintf (out, ", %d, ", loc.start.line);
-          escaped_output (out, sym->tag);
+          quoted_output (out, sym->tag);
           fprintf (out, ", %d, [[%s]]", sym->number, code);
           if (sym->type_name)
-            fprintf (out, ", [[%s]]", sym->type_name);
+            {
+              fputs (", ", out);
+              quoted_output (out, sym->type_name);
+            }
           fputc (']', out);
         }
     }
@@ -500,6 +513,7 @@ output_skeleton (void)
 //  FILE *in;
 //  int filter_fd[2];
   char const *argv[10];
+//  pid_t pid;
 
   /* Compute the names of the package data dir and skeleton files.  */
   char const m4sugar[] = "m4sugar/m4sugar.m4";
@@ -648,7 +662,7 @@ prepare (void)
     use_push_for_pull_flag = true;
 
   /* Flags. */
-  MUSCLE_INSERT_BOOL ("debug_flag", debug_flag);
+  MUSCLE_INSERT_BOOL ("debug_flag", debug);
   MUSCLE_INSERT_BOOL ("defines_flag", defines_flag);
   MUSCLE_INSERT_BOOL ("error_verbose_flag", error_verbose);
   MUSCLE_INSERT_BOOL ("glr_flag", glr_parser);
@@ -656,6 +670,7 @@ prepare (void)
   MUSCLE_INSERT_BOOL ("nondeterministic_flag", nondeterministic_parser);
   MUSCLE_INSERT_BOOL ("synclines_flag", !no_lines_flag);
   MUSCLE_INSERT_BOOL ("tag_seen_flag", tag_seen);
+  MUSCLE_INSERT_BOOL ("token_table_flag", token_table_flag);
   MUSCLE_INSERT_BOOL ("use_push_for_pull_flag", use_push_for_pull_flag);
   MUSCLE_INSERT_BOOL ("yacc_flag", yacc_flag);
 
