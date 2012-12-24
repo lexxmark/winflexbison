@@ -97,7 +97,7 @@ char* get_local_pkgdatadir()
 	}
 
 	if (!last_divider)
-		return 0;
+		return PKGDATADIR;
 
 	++last_divider;
 

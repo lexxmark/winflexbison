@@ -1,3 +1,7 @@
+version 2.1
+--------------
+fixed crash when execute win_bison.exe under WindowsXP (argv[0] don't have full application path)
+
 version 2.0
 --------------
 upgrade win_bison to version 2.7 and win_flex to version 2.5.37
