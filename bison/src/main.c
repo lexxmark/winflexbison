@@ -76,13 +76,18 @@ static char *basename2 (path, strip_ext)
 	return b;
 }
 
-char* get_local_pkgdatadir(const char* program_path)
+extern const char* get_app_path();
+
+char* get_local_pkgdatadir()
 {
-	const char* dir = program_path;
+	const char* program_path = 0;
+	const char* dir = 0;
 	const char* last_divider = 0;
 	char* local_pkgdatadir = NULL;
 	size_t dir_len = 0;
 	size_t local_pkgdatadir_len = 0;
+
+	program_path = dir = get_app_path();
 
 	while (*dir)
 	{
@@ -101,6 +106,7 @@ char* get_local_pkgdatadir(const char* program_path)
 	local_pkgdatadir = (char*)malloc((local_pkgdatadir_len+1)*sizeof(char));
 	strncpy(local_pkgdatadir, program_path, dir_len);
 	strcpy(&local_pkgdatadir[dir_len], PKGDATADIR);
+
 	return local_pkgdatadir;
 }
 
@@ -111,7 +117,7 @@ main (int argc, char *argv[])
 {
   set_program_name (argv[0]);
   program_name = basename2 (argv[0], 1);
-  local_pkgdatadir = get_local_pkgdatadir(argv[0]);
+  local_pkgdatadir = get_local_pkgdatadir();
 
   setlocale (LC_ALL, "");
   (void) bindtextdomain (PACKAGE, LOCALEDIR);

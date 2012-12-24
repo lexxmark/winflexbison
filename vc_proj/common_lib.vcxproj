@@ -53,6 +53,7 @@
     <ClCompile Include="..\common\m4\path.c" />
     <ClCompile Include="..\common\m4\symtab.c" />
     <ClCompile Include="..\common\misc\abitset.c" />
+    <ClCompile Include="..\common\misc\app_path.c" />
     <ClCompile Include="..\common\misc\argmatch.c" />
     <ClCompile Include="..\common\misc\basename-lgpl.c" />
     <ClCompile Include="..\common\misc\bitset.c" />

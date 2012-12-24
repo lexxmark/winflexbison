@@ -246,6 +246,9 @@
     <ClCompile Include="..\common\m4\lib\cloexec.c">
       <Filter>m4\lib</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\misc\app_path.c">
+      <Filter>misc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\misc\abitset.h">
