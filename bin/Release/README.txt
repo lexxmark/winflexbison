@@ -1,6 +1,7 @@
 version 2.1
 --------------
 fixed crash when execute win_bison.exe under WindowsXP (argv[0] don't have full application path)
+added win_flex_bison-latest.zip package to freeze download link
 
 version 2.0
 --------------
