@@ -1026,6 +1026,10 @@ void flexinit (argc, argv)
             buf_m4_define( &m4defs_buf, "M4_YY_NO_UNISTD_H",0);
 			break;
 
+		case OPT_WIN_COMPAT:
+            buf_m4_define( &m4defs_buf, "M4_YY_WIN_COMPAT",0);
+			break;
+
 		case OPT_TABLES_FILE:
 			tablesext = true;
 			tablesfilename = arg;
@@ -1711,6 +1715,7 @@ void usage ()
           "       --noansi-definitions old-style function definitions\n"
           "       --noansi-prototypes  empty parameter list in prototypes\n"
 		  "       --nounistd          do not include <unistd.h>\n"
+		  "       --wincompat         windows compatibility (uses <io.h> instead of <unistd.h> and _isatty, _fileno functions)\n"
 		  "       --noFUNCTION        do not generate a particular FUNCTION\n"
 		  "\n" "Miscellaneous:\n"
 		  "  -c                      do-nothing POSIX option\n"

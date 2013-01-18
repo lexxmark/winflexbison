@@ -193,10 +193,12 @@ optspec_t flexopts[] = {
 	,			/* Flex should run in trace mode. */
 	{"--tables-file[=FILE]", OPT_TABLES_FILE, 0}
 	,			/* Save tables to FILE */
-        {"--tables-verify", OPT_TABLES_VERIFY, 0}
-        ,                       /* Tables integrity check */
+    {"--tables-verify", OPT_TABLES_VERIFY, 0}
+    ,                       /* Tables integrity check */
 	{"--nounistd", OPT_NO_UNISTD_H, 0}
 	,			/* Do not include unistd.h */
+	{"--wincompat", OPT_WIN_COMPAT, 0}
+	,			/* windows compatibility */
 	{"-v", OPT_VERBOSE, 0}
 	,
 	{"--verbose", OPT_VERBOSE, 0}
