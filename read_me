@@ -1,4 +1,4 @@
-win_flex is a port of flex 2.5.37 tool to windows platform.
+ win_flex is a port of flex 2.5.37 tool to windows platform.
 win_flex requires only windows system dll (kernel32.dll).
 If win_flex used to generate C++ output it requires FlexLexer.h header file.
 
