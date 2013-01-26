@@ -653,6 +653,14 @@ m4_define([b4_yy_location_print_define],
    This macro was not mandated originally: define only if we know
    we won't break user code: when these are the locations we know.  */
 
+#ifndef __attribute__
+/* This feature is available in gcc versions 2.5 and later.  */
+# if (! defined __GNUC__ || __GNUC__ < 2 \
+      || (__GNUC__ == 2 && __GNUC_MINOR__ < 5))
+#  define __attribute__(Spec) /* empty */
+# endif
+#endif
+
 #ifndef YY_LOCATION_PRINT
 # if defined ]b4_api_PREFIX[LTYPE_IS_TRIVIAL && ]b4_api_PREFIX[LTYPE_IS_TRIVIAL
 

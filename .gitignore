@@ -1,0 +1,7 @@
+/tmp/
+*.pdb
+*.suo
+*.user
+*.ipch
+*.opensdf
+*.sdf
