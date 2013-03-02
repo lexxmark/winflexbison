@@ -1,3 +1,8 @@
+
+version 2.3
+--------------
+hide __attribute__ construction for non GCC compilers
+
 version 2.2
 --------------
 added --wincompat option to win_flex (this option changes <unistd.h> unix include with <io.h> windows analog
