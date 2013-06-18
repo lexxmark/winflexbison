@@ -49,3 +49,16 @@ vasprintf (char **resultp, const char *format, va_list args)
   /* Return the number of resulting bytes, excluding the trailing NUL.  */
   return length;
 }
+
+char * asnprintf (char *resultbuf, size_t *lengthp, const char *format, ...)
+{
+	char *result = NULL;
+	va_list args;
+	va_start(args, format);
+	
+	result = vasnprintf (resultbuf, lengthp, format, args);
+
+	va_end(args);
+
+	return result;
+}

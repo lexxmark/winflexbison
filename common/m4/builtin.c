@@ -955,9 +955,32 @@ execute (const char *progname,
 /* Exit code from last "syscmd" command.  */
 static int sysval;
 
+#include "vasnprintf.h"
+/* cat content */
+char *cat_string = NULL;
+
 static void
 m4_syscmd (struct obstack *obs M4_GNUC_UNUSED, int argc, token_data **argv)
 {
+  const char *cmd = ARG (1);
+  char *old_cat_string = cat_string;
+  size_t len = 0;
+
+  /* special case only used in bison - "cat" some text to output */
+  if (strncmp (cmd, "cat <<", 6) == 0)
+  {
+	  if (cat_string)
+		cat_string = asnprintf (NULL, &len, "%s%s", cat_string, &cmd[6]);
+	  else
+		  cat_string = asnprintf (NULL, &len, "%s", &cmd[6]);
+
+	  if (old_cat_string != cat_string)
+		  free(old_cat_string);
+
+	  sysval = 0;
+	  return;
+  }
+
   M4ERROR ((warning_status, errno, "m4_syscmd is not implemented"));
 #if 0
   const char *cmd = ARG (1);
@@ -1000,7 +1023,26 @@ m4_syscmd (struct obstack *obs M4_GNUC_UNUSED, int argc, token_data **argv)
 static void
 m4_esyscmd (struct obstack *obs, int argc, token_data **argv)
 {
-  M4ERROR ((warning_status, errno, "m4_syscmd is not implemented"));
+  const char *cmd = ARG (1);
+  char *old_cat_string = cat_string;
+  size_t len = 0;
+
+  /* special case only used in bison - "cat" some text to output */
+  if (strncmp (cmd, "cat <<", 6) == 0)
+  {
+	  if (cat_string)
+		cat_string = asnprintf (NULL, &len, "%s%s", cat_string, &cmd[6]);
+	  else
+		cat_string = asnprintf (NULL, &len, "%s", &cmd[6]);
+
+	  if (old_cat_string != cat_string)
+		  free(old_cat_string);
+
+	  sysval = 0;
+	  return;
+  }
+
+  M4ERROR ((warning_status, errno, "m4_esyscmd is not implemented"));
 #if 0
   const char *cmd = ARG (1);
   const char *prog_args[4] = { "sh", "-c" };
