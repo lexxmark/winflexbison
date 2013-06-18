@@ -1,3 +1,7 @@
+version 2.4
+--------------
+fix problem with "m4_syscmd is not implemented" message problem. Now win_bison should output correct 
+diagnostic and error messages.
 
 version 2.3
 --------------
