@@ -1,7 +1,6 @@
 version 2.5
 --------------
-upgrade win_bison to version 3.0 and make temporary win_bison's files process unique
-(so parallel invocations of win_bison are possible)
+upgrade win_bison to version 3.0 and make temporary win_bison's files process unique (so parallel invocations of win_bison are possible)
 
 NOTE: There are several deprecated features were removed in bison 3.0 so this version can break your projects.
 Please see http://savannah.gnu.org/forum/forum.php?forum_id=7663
