@@ -3,7 +3,7 @@
 <!--
     bison.xsl - common templates for Bison XSLT.
 
-    Copyright (C) 2007-2012 Free Software Foundation, Inc.
+    Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 

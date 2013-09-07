@@ -1,7 +1,7 @@
 /* Input parser for Bison
 
    Copyright (C) 1984, 1986, 1989, 1992, 1998, 2000-2003, 2005-2007,
-   2009-2012 Free Software Foundation, Inc.
+   2009-2013 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -59,7 +59,7 @@ void
 grammar_start_symbol_set (symbol *sym, location loc)
 {
   if (start_flag)
-    complain_at (loc, _("multiple %s declarations"), "%start");
+    complain (&loc, complaint, _("multiple %s declarations"), "%start");
   else
     {
       start_flag = true;
@@ -94,7 +94,7 @@ get_merge_function (uniqstr name)
       syms->next = xmalloc (sizeof syms->next[0]);
       syms->next->name = uniqstr_new (name);
       /* After all symbol type declarations have been parsed, packgram invokes
-	 record_merge_function_type to set the type.  */
+         record_merge_function_type to set the type.  */
       syms->next->type = NULL;
       syms->next->next = NULL;
       merge_functions = head.next;
@@ -129,21 +129,22 @@ record_merge_function_type (int merger, uniqstr type, location declaration_loc)
   if (merge_function->type != NULL && !UNIQSTR_EQ (merge_function->type, type))
     {
       unsigned indent = 0;
-      complain_at_indent (declaration_loc, &indent,
-                          _("result type clash on merge function %s: "
-                            "<%s> != <%s>"),
-                          quote (merge_function->name), type,
-                          merge_function->type);
+      complain_indent (&declaration_loc, complaint, &indent,
+                       _("result type clash on merge function %s: "
+                         "<%s> != <%s>"),
+                       quote (merge_function->name), type,
+                       merge_function->type);
       indent += SUB_INDENT;
-      complain_at_indent (merge_function->type_declaration_location, &indent,
-                          _("previous declaration"));
-   }
+      complain_indent (&merge_function->type_declaration_location, complaint,
+                       &indent,
+                       _("previous declaration"));
+    }
   merge_function->type = uniqstr_new (type);
   merge_function->type_declaration_location = declaration_loc;
 }
 
 /*--------------------------------------.
-| Free all merge-function definitions.	|
+| Free all merge-function definitions.  |
 `--------------------------------------*/
 
 void
@@ -201,9 +202,9 @@ assign_named_ref (symbol_list *p, named_ref *name)
 
   if (name->id == sym->tag)
     {
-      warn_at (name->loc,
-	       _("duplicated symbol name for %s ignored"),
-	       quote (sym->tag));
+      complain (&name->loc, Wother,
+                _("duplicated symbol name for %s ignored"),
+                quote (sym->tag));
       named_ref_free (name);
     }
   else
@@ -224,7 +225,7 @@ static symbol_list *previous_rule_end = NULL;
 
 void
 grammar_current_rule_begin (symbol *lhs, location loc,
-			    named_ref *lhs_name)
+                            named_ref *lhs_name)
 {
   symbol_list* p;
 
@@ -246,7 +247,8 @@ grammar_current_rule_begin (symbol *lhs, location loc,
       ++nvars;
     }
   else if (lhs->class == token_sym)
-    complain_at (loc, _("rule given for %s, which is a token"), lhs->tag);
+    complain (&loc, complaint, _("rule given for %s, which is a token"),
+              lhs->tag);
 }
 
 
@@ -261,13 +263,13 @@ grammar_current_rule_begin (symbol *lhs, location loc,
 static bool
 symbol_should_be_used (symbol_list const *s, bool *midrule_warning)
 {
-  if (symbol_destructor_get (s->content.sym)->code)
+  if (symbol_code_props_get (s->content.sym, destructor)->code)
     return true;
   if ((s->midrule && s->midrule->action_props.is_value_used)
       || (s->midrule_parent_rule
-          && symbol_list_n_get (s->midrule_parent_rule,
-                                s->midrule_parent_rhs_index)
-               ->action_props.is_value_used))
+          && (symbol_list_n_get (s->midrule_parent_rule,
+                                 s->midrule_parent_rhs_index)
+              ->action_props.is_value_used)))
     {
       *midrule_warning = true;
       return true;
@@ -295,19 +297,19 @@ grammar_rule_check (const symbol_list *r)
       symbol *first_rhs = r->next->content.sym;
       /* If $$ is being set in default way, report if any type mismatch.  */
       if (first_rhs)
-	{
-	  char const *lhs_type = r->content.sym->type_name;
-	  const char *rhs_type =
-	    first_rhs->type_name ? first_rhs->type_name : "";
-	  if (!UNIQSTR_EQ (lhs_type, rhs_type))
-	    warn_at (r->location,
-		     _("type clash on default action: <%s> != <%s>"),
-		     lhs_type, rhs_type);
-	}
+        {
+          char const *lhs_type = r->content.sym->type_name;
+          const char *rhs_type =
+            first_rhs->type_name ? first_rhs->type_name : "";
+          if (!UNIQSTR_EQ (lhs_type, rhs_type))
+            complain (&r->location, Wother,
+                      _("type clash on default action: <%s> != <%s>"),
+                      lhs_type, rhs_type);
+        }
       /* Warn if there is no default for $$ but we need one.  */
       else
-	warn_at (r->location,
-		 _("empty rule for typed nonterminal, and no action"));
+        complain (&r->location, Wother,
+                  _("empty rule for typed nonterminal, and no action"));
     }
 
   /* Check that symbol values that should be used are in fact used.  */
@@ -319,27 +321,38 @@ grammar_rule_check (const symbol_list *r)
         bool midrule_warning = false;
         if (!l->action_props.is_value_used
             && symbol_should_be_used (l, &midrule_warning)
-            /* The default action, $$ = $1, `uses' both.  */
+            /* The default action, $$ = $1, 'uses' both.  */
             && (r->action_props.code || (n != 0 && n != 1)))
           {
-            void (*warn_at_ptr)(location, char const*, ...) =
-              midrule_warning ? midrule_value_at : warn_at;
+            warnings warn_flag = midrule_warning ? Wmidrule_values : Wother;
             if (n)
-              warn_at_ptr (l->location, _("unused value: $%d"), n);
+              complain (&l->location, warn_flag, _("unused value: $%d"), n);
             else
-              warn_at_ptr (l->location, _("unset value: $$"));
+              complain (&l->location, warn_flag, _("unset value: $$"));
           }
       }
   }
+
+  /* Check that %empty => empty rule.  */
+  if (r->percent_empty_loc.start.file
+      && r->next && r->next->content.sym)
+    complain (&r->percent_empty_loc, complaint,
+              _("%%empty on non-empty rule"));
+
+  /* Check that empty rule => %empty.  */
+  if (!(r->next && r->next->content.sym)
+      && !r->midrule_parent_rule
+      && !r->percent_empty_loc.start.file)
+    complain (&r->location, Wempty_rule, _("empty rule without %%empty"));
 
   /* See comments in grammar_current_rule_prec_set for how POSIX
      mandates this complaint.  It's only for identifiers, so skip
      it for char literals and strings, which are always tokens.  */
   if (r->ruleprec
       && r->ruleprec->tag[0] != '\'' && r->ruleprec->tag[0] != '"'
-      && !r->ruleprec->declared && !r->ruleprec->prec)
-    warn_at (r->location, _("token for %%prec is not defined: %s"),
-             r->ruleprec->tag);
+      && r->ruleprec->status != declared && !r->ruleprec->prec)
+    complain (&r->location, Wother,
+              _("token for %%prec is not defined: %s"), r->ruleprec->tag);
 }
 
 
@@ -388,7 +401,8 @@ grammar_midrule_action (void)
   code_props_rule_action_init (&midrule->action_props,
                                current_rule->action_props.code,
                                current_rule->action_props.location,
-                               midrule, 0);
+                               midrule, 0,
+                               current_rule->action_props.is_predicate);
   code_props_none_init (&current_rule->action_props);
 
   if (previous_rule_end)
@@ -428,8 +442,26 @@ grammar_current_rule_prec_set (symbol *precsym, location loc)
      token.  */
   symbol_class_set (precsym, token_sym, loc, false);
   if (current_rule->ruleprec)
-    complain_at (loc, _("only one %s allowed per rule"), "%prec");
-  current_rule->ruleprec = precsym;
+    duplicate_directive ("%prec",
+                         current_rule->ruleprec->location, loc);
+  else
+    current_rule->ruleprec = precsym;
+}
+
+/* Set %empty for the current rule. */
+
+void
+grammar_current_rule_empty_set (location loc)
+{
+  /* If %empty is used and -Wno-empty-rule is not, then enable
+     -Wempty-rule.  */
+  if (warning_is_unset (Wempty_rule))
+    warning_argmatch ("empty-rule", 0, 0);
+  if (current_rule->percent_empty_loc.start.file)
+    duplicate_directive ("%empty",
+                         current_rule->percent_empty_loc, loc);
+  else
+    current_rule->percent_empty_loc = loc;
 }
 
 /* Attach dynamic precedence DPREC to the current rule. */
@@ -438,12 +470,19 @@ void
 grammar_current_rule_dprec_set (int dprec, location loc)
 {
   if (! glr_parser)
-    warn_at (loc, _("%s affects only GLR parsers"), "%dprec");
+    complain (&loc, Wother, _("%s affects only GLR parsers"),
+              "%dprec");
   if (dprec <= 0)
-    complain_at (loc, _("%s must be followed by positive number"), "%dprec");
+    complain (&loc, complaint, _("%s must be followed by positive number"),
+              "%dprec");
   else if (current_rule->dprec != 0)
-    complain_at (loc, _("only one %s allowed per rule"), "%dprec");
-  current_rule->dprec = dprec;
+    duplicate_directive ("%dprec",
+                         current_rule->dprec_location, loc);
+  else
+    {
+      current_rule->dprec = dprec;
+      current_rule->dprec_location = loc;
+    }
 }
 
 /* Attach a merge function NAME with argument type TYPE to current
@@ -453,11 +492,16 @@ void
 grammar_current_rule_merge_set (uniqstr name, location loc)
 {
   if (! glr_parser)
-    warn_at (loc, _("%s affects only GLR parsers"), "%merge");
+    complain (&loc, Wother, _("%s affects only GLR parsers"),
+              "%merge");
   if (current_rule->merger != 0)
-    complain_at (loc, _("only one %s allowed per rule"), "%merge");
-  current_rule->merger = get_merge_function (name);
-  current_rule->merger_declaration_location = loc;
+    duplicate_directive ("%merge",
+                         current_rule->merger_declaration_location, loc);
+  else
+    {
+      current_rule->merger = get_merge_function (name);
+      current_rule->merger_declaration_location = loc;
+    }
 }
 
 /* Attach SYM to the current rule.  If needed, move the previous
@@ -465,28 +509,30 @@ grammar_current_rule_merge_set (uniqstr name, location loc)
 
 void
 grammar_current_rule_symbol_append (symbol *sym, location loc,
-				    named_ref *name)
+                                    named_ref *name)
 {
   symbol_list *p;
   if (current_rule->action_props.code)
     grammar_midrule_action ();
   p = grammar_symbol_append (sym, loc);
   if (name)
-    assign_named_ref(p, name);
+    assign_named_ref (p, name);
+  if (sym->status == undeclared || sym->status == used)
+    sym->status = needed;
 }
 
 /* Attach an ACTION to the current rule.  */
 
 void
 grammar_current_rule_action_append (const char *action, location loc,
-				    named_ref *name)
+                                    named_ref *name, bool is_predicate)
 {
   if (current_rule->action_props.code)
     grammar_midrule_action ();
   /* After all symbol declarations have been parsed, packgram invokes
      code_props_translate_code.  */
   code_props_rule_action_init (&current_rule->action_props, action, loc,
-                               current_rule, name);
+                               current_rule, name, is_predicate);
 }
 
 
@@ -500,7 +546,7 @@ packgram (void)
 {
   unsigned int itemno = 0;
   rule_number ruleno = 0;
-  symbol_list *p = grammar;
+  symbol_list *p;
 
   ritem = xnmalloc (nritems + 1, sizeof *ritem);
 
@@ -509,12 +555,11 @@ packgram (void)
 
   rules = xnmalloc (nrules, sizeof *rules);
 
-  while (p)
+  for (p = grammar; p; p = p->next)
     {
-      int rule_length = 0;
       symbol *ruleprec = p->ruleprec;
       record_merge_function_type (p->merger, p->content.sym->type_name,
-				  p->merger_declaration_location);
+                                  p->merger_declaration_location);
       rules[ruleno].user_number = ruleno;
       rules[ruleno].number = ruleno;
       rules[ruleno].lhs = p->content.sym;
@@ -527,57 +572,58 @@ packgram (void)
       rules[ruleno].useful = true;
       rules[ruleno].action = p->action_props.code;
       rules[ruleno].action_location = p->action_props.location;
+      rules[ruleno].is_predicate = p->action_props.is_predicate;
 
-      /* If the midrule's $$ is set or its $n is used, remove the `$' from the
-	 symbol name so that it's a user-defined symbol so that the default
-	 %destructor and %printer apply.  */
+      /* If the midrule's $$ is set or its $n is used, remove the '$' from the
+         symbol name so that it's a user-defined symbol so that the default
+         %destructor and %printer apply.  */
       if (p->midrule_parent_rule
           && (p->action_props.is_value_used
-	      || symbol_list_n_get (p->midrule_parent_rule,
-				    p->midrule_parent_rhs_index)
-                   ->action_props.is_value_used))
-	p->content.sym->tag += 1;
+              || (symbol_list_n_get (p->midrule_parent_rule,
+                                     p->midrule_parent_rhs_index)
+                  ->action_props.is_value_used)))
+        p->content.sym->tag += 1;
 
       /* Don't check the generated rule 0.  It has no action, so some rhs
-	 symbols may appear unused, but the parsing algorithm ensures that
-	 %destructor's are invoked appropriately.  */
+         symbols may appear unused, but the parsing algorithm ensures that
+         %destructor's are invoked appropriately.  */
       if (p != grammar)
-	grammar_rule_check (p);
+        grammar_rule_check (p);
 
-      for (p = p->next; p && p->content.sym; p = p->next)
-	{
-	  ++rule_length;
+      {
+        size_t rule_length = 0;
+        for (p = p->next; p->content.sym; p = p->next)
+          {
+            ++rule_length;
 
-	  /* Don't allow rule_length == INT_MAX, since that might
-	     cause confusion with strtol if INT_MAX == LONG_MAX.  */
-	  if (rule_length == INT_MAX)
-	      fatal_at (rules[ruleno].location, _("rule is too long"));
+            /* Don't allow rule_length == INT_MAX, since that might
+               cause confusion with strtol if INT_MAX == LONG_MAX.  */
+            if (rule_length == INT_MAX)
+              complain (&rules[ruleno].location, fatal, _("rule is too long"));
 
-	  /* item_number = symbol_number.
-	     But the former needs to contain more: negative rule numbers. */
-	  ritem[itemno++] =
-            symbol_number_as_item_number (p->content.sym->number);
-	  /* A rule gets by default the precedence and associativity
-	     of its last token.  */
-	  if (p->content.sym->class == token_sym && default_prec)
-	    rules[ruleno].prec = p->content.sym;
-	}
+            /* item_number = symbol_number.
+               But the former needs to contain more: negative rule numbers. */
+            ritem[itemno++] =
+              symbol_number_as_item_number (p->content.sym->number);
+            /* A rule gets by default the precedence and associativity
+               of its last token.  */
+            if (p->content.sym->class == token_sym && default_prec)
+              rules[ruleno].prec = p->content.sym;
+          }
+      }
 
       /* If this rule has a %prec,
          the specified symbol's precedence replaces the default.  */
       if (ruleprec)
-	{
-	  rules[ruleno].precsym = ruleprec;
-	  rules[ruleno].prec = ruleprec;
-	}
+        {
+          rules[ruleno].precsym = ruleprec;
+          rules[ruleno].prec = ruleprec;
+        }
       /* An item ends by the rule number (negated).  */
       ritem[itemno++] = rule_number_as_item_number (ruleno);
       aver (itemno < ITEM_NUMBER_MAX);
       ++ruleno;
       aver (ruleno < RULE_NUMBER_MAX);
-
-      if (p)
-	p = p->next;
     }
 
   aver (itemno == nritems);
@@ -623,7 +669,7 @@ reader (void)
   gram_parse ();
   prepare_percent_define_front_end_variables ();
 
-  if (! complaint_issued)
+  if (complaint_status  < status_complaint)
     check_and_convert_grammar ();
 
   xfclose (gram_in);
@@ -633,17 +679,17 @@ static void
 prepare_percent_define_front_end_variables (void)
 {
   /* Set %define front-end variable defaults.  */
-  muscle_percent_define_default ("lr.keep-unreachable-states", "false");
+  muscle_percent_define_default ("lr.keep-unreachable-state", "false");
   {
     char *lr_type;
     /* IELR would be a better default, but LALR is historically the
        default.  */
     muscle_percent_define_default ("lr.type", "lalr");
     lr_type = muscle_percent_define_get ("lr.type");
-    if (0 != strcmp (lr_type, "canonical-lr"))
-      muscle_percent_define_default ("lr.default-reductions", "most");
+    if (STRNEQ (lr_type, "canonical-lr"))
+      muscle_percent_define_default ("lr.default-reduction", "most");
     else
-      muscle_percent_define_default ("lr.default-reductions", "accepting");
+      muscle_percent_define_default ("lr.default-reduction", "accepting");
     free (lr_type);
   }
 
@@ -651,7 +697,7 @@ prepare_percent_define_front_end_variables (void)
   {
     static char const * const values[] = {
       "lr.type", "lalr", "ielr", "canonical-lr", NULL,
-      "lr.default-reductions", "most", "consistent", "accepting", NULL,
+      "lr.default-reduction", "most", "consistent", "accepting", NULL,
       NULL
     };
     muscle_percent_define_check_values (values);
@@ -661,7 +707,7 @@ prepare_percent_define_front_end_variables (void)
 
 /*-------------------------------------------------------------.
 | Check the grammar that has just been read, and convert it to |
-| internal form.					       |
+| internal form.                                               |
 `-------------------------------------------------------------*/
 
 static void
@@ -669,7 +715,7 @@ check_and_convert_grammar (void)
 {
   /* Grammar has been read.  Do some checking.  */
   if (nrules == 0)
-    fatal (_("no rules in the input grammar"));
+    complain (NULL, fatal, _("no rules in the input grammar"));
 
   /* If the user did not define her ENDTOKEN, do it now. */
   if (!endtoken)
@@ -705,7 +751,7 @@ check_and_convert_grammar (void)
   /* Insert the initial rule, whose line is that of the first rule
      (not that of the start symbol):
 
-     accept: %start EOF.  */
+     $accept: %start $end.  */
   {
     symbol_list *p = symbol_list_sym_new (accept, empty_location);
     p->location = grammar->location;
@@ -718,7 +764,8 @@ check_and_convert_grammar (void)
     grammar = p;
   }
 
-  aver (nsyms <= SYMBOL_NUMBER_MAXIMUM && nsyms == ntokens + nvars);
+  aver (nsyms <= SYMBOL_NUMBER_MAXIMUM);
+  aver (nsyms == ntokens + nvars);
 
   /* Assign the symbols their symbol numbers.  Write #defines for the
      token symbols into FDEFINES if requested.  */
@@ -729,11 +776,11 @@ check_and_convert_grammar (void)
      action type checking.
 
      Before invoking grammar_rule_check (in packgram below) on any rule, make
-     sure all actions have already been scanned in order to set `used' flags.
+     sure all actions have already been scanned in order to set 'used' flags.
      Otherwise, checking that a midrule's $$ should be set will not always work
      properly because the check must forward-reference the midrule's parent
-     rule.  For the same reason, all the `used' flags must be set before
-     checking whether to remove `$' from any midrule symbol name (also in
+     rule.  For the same reason, all the 'used' flags must be set before
+     checking whether to remove '$' from any midrule symbol name (also in
      packgram).  */
   {
     symbol_list *sym;

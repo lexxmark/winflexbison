@@ -1,6 +1,6 @@
 /* Subroutines for bison
 
-   Copyright (C) 1984, 1989, 2000-2002, 2007, 2009-2012 Free Software
+   Copyright (C) 1984, 1989, 2000-2002, 2007, 2009-2013 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -44,7 +44,7 @@ void new_closure (unsigned int n);
    significant).  CLOSURE places there the indices of all items which
    represent units of input that could arrive next.  */
 
-void closure (item_number *items, size_t n);
+void closure (item_number const *items, size_t n);
 
 
 /* Frees ITEMSET, RULESET and internal data.  */

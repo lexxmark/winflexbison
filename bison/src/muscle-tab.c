@@ -1,6 +1,6 @@
 /* Muscle table manager for Bison.
 
-   Copyright (C) 2001-2012 Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -28,6 +28,31 @@
 #include "muscle-tab.h"
 #include "quote.h"
 
+muscle_kind
+muscle_kind_new (char const *k)
+{
+  if (STREQ (k, "code"))
+    return muscle_code;
+  else if (STREQ (k, "keyword"))
+    return muscle_keyword;
+  else if (STREQ (k, "string"))
+    return muscle_string;
+  aver (0);
+}
+
+char const *
+muscle_kind_string (muscle_kind k)
+{
+  switch (k)
+    {
+    case muscle_code:    return "code";
+    case muscle_keyword: return "keyword";
+    case muscle_string:  return "string";
+    }
+  aver (0);
+}
+
+
 /* A key-value pair, along with storage that can be reclaimed when
    this pair is no longer needed.  */
 typedef struct
@@ -35,7 +60,20 @@ typedef struct
   char const *key;
   char const *value;
   char *storage;
+  muscle_kind kind;
 } muscle_entry;
+
+
+/* The name of muscle for the %define variable VAR (corresponding to
+   FIELD, if defined).  */
+static uniqstr
+muscle_name (char const *var, char const *field)
+{
+  if (field)
+    return UNIQSTR_CONCAT ("percent_define_", field, "(", var, ")");
+  else
+    return UNIQSTR_CONCAT ("percent_define(", var, ")");
+}
 
 /* An obstack used to create some entries.  */
 struct obstack muscle_obstack;
@@ -50,7 +88,7 @@ hash_compare_muscles (void const *x, void const *y)
 {
   muscle_entry const *m1 = x;
   muscle_entry const *m2 = y;
-  return strcmp (m1->key, m2->key) == 0;
+  return STREQ (m1->key, m2->key);
 }
 
 static size_t
@@ -60,10 +98,18 @@ hash_muscle (const void *x, size_t tablesize)
   return hash_string (m->key, tablesize);
 }
 
-/*-----------------------------------------------------------------.
-| Create the MUSCLE_TABLE, and initialize it with default values.  |
-| Also set up the MUSCLE_OBSTACK.                                  |
-`-----------------------------------------------------------------*/
+/* Create a fresh muscle name KEY, and insert in the hash table.  */
+static void *
+muscle_entry_new (char const *key)
+{
+  muscle_entry *res = xmalloc (sizeof *res);
+  res->key = key;
+  res->value = NULL;
+  res->storage = NULL;
+  if (!hash_insert (muscle_table, res))
+    xalloc_die ();
+  return res;
+}
 
 static void
 muscle_entry_free (void *entry)
@@ -80,16 +126,12 @@ muscle_init (void)
   obstack_init (&muscle_obstack);
 
   muscle_table = hash_initialize (HT_INITIAL_CAPACITY, NULL, hash_muscle,
-				  hash_compare_muscles, muscle_entry_free);
+                                  hash_compare_muscles, muscle_entry_free);
 
   /* Version and input file.  */
   MUSCLE_INSERT_STRING ("version", VERSION);
 }
 
-
-/*------------------------------------------------------------.
-| Free all the memory consumed by the muscle machinery only.  |
-`------------------------------------------------------------*/
 
 void
 muscle_free (void)
@@ -98,74 +140,64 @@ muscle_free (void)
   obstack_free (&muscle_obstack, NULL);
 }
 
+/* Look for the muscle named KEY.  Return NULL if does not exist.  */
+static
+muscle_entry *
+muscle_lookup (char const *key)
+{
+  muscle_entry probe;
+  probe.key = key;
+  return hash_lookup (muscle_table, &probe);
+}
 
-
-/*------------------------------------------------------------.
-| Insert (KEY, VALUE).  If KEY already existed, overwrite the |
-| previous value.                                             |
-`------------------------------------------------------------*/
 
 void
 muscle_insert (char const *key, char const *value)
 {
-  muscle_entry probe;
-  muscle_entry *entry;
-
-  probe.key = key;
-  entry = hash_lookup (muscle_table, &probe);
-
-  if (!entry)
-    {
-      /* First insertion in the hash. */
-      entry = xmalloc (sizeof *entry);
-      entry->key = key;
-      if (!hash_insert (muscle_table, entry))
-        xalloc_die ();
-    }
-  else
+  muscle_entry *entry = muscle_lookup (key);
+  if (entry)
     free (entry->storage);
+  else
+    /* First insertion in the hash. */
+    entry = muscle_entry_new (key);
   entry->value = value;
   entry->storage = NULL;
 }
 
 
-/*-------------------------------------------------------------------.
-| Append VALUE to the current value of KEY.  If KEY did not already  |
-| exist, create it.  Use MUSCLE_OBSTACK.  De-allocate the previously |
-| associated value.  Copy VALUE and SEPARATOR.                       |
-`-------------------------------------------------------------------*/
+/* Append VALUE to the current value of KEY.  If KEY did not already
+   exist, create it.  Use MUSCLE_OBSTACK.  De-allocate the previously
+   associated value.  Copy VALUE and SEPARATOR.  If VALUE does not end
+   with TERMINATOR, append one.  */
 
-void
-muscle_grow (const char *key, const char *val, const char *separator)
+static void
+muscle_grow (const char *key, const char *val,
+             const char *separator, const char *terminator)
 {
-  muscle_entry probe;
-  muscle_entry *entry = NULL;
+  muscle_entry *entry = muscle_lookup (key);
+  size_t vals = strlen (val);
+  size_t terms = strlen (terminator);
 
-  probe.key = key;
-  entry = hash_lookup (muscle_table, &probe);
-
-  if (!entry)
+  if (entry)
     {
-      /* First insertion in the hash. */
-      entry = xmalloc (sizeof *entry);
-      entry->key = key;
-      if (!hash_insert (muscle_table, entry))
-        xalloc_die ();
-      entry->value = entry->storage = xstrdup (val);
+      obstack_sgrow (&muscle_obstack, entry->value);
+      obstack_sgrow (&muscle_obstack, separator);
+      free (entry->storage);
     }
   else
-    {
-      /* Grow the current value. */
-      char *new_val;
-      obstack_sgrow (&muscle_obstack, entry->value);
-      free (entry->storage);
-      obstack_sgrow (&muscle_obstack, separator);
-      obstack_sgrow (&muscle_obstack, val);
-      obstack_1grow (&muscle_obstack, 0);
-      new_val = obstack_finish (&muscle_obstack);
-      entry->value = entry->storage = xstrdup (new_val);
-      obstack_free (&muscle_obstack, new_val);
-    }
+    entry = muscle_entry_new (key);
+
+  obstack_sgrow (&muscle_obstack, val);
+
+  if (terms <= vals
+      && STRNEQ (val + vals - terms, terminator))
+    obstack_sgrow (&muscle_obstack, terminator);
+
+  {
+    char *new_val = obstack_finish0 (&muscle_obstack);
+    entry->value = entry->storage = xstrdup (new_val);
+    obstack_free (&muscle_obstack, new_val);
+  }
 }
 
 /*------------------------------------------------------------------.
@@ -181,9 +213,8 @@ muscle_syncline_grow (char const *key, location loc)
   obstack_quote (&muscle_obstack,
                  quotearg_style (c_quoting_style, loc.start.file));
   obstack_sgrow (&muscle_obstack, ")[");
-  obstack_1grow (&muscle_obstack, 0);
-  extension = obstack_finish (&muscle_obstack);
-  muscle_grow (key, extension, "");
+  extension = obstack_finish0 (&muscle_obstack);
+  muscle_grow (key, extension, "", "");
   obstack_free (&muscle_obstack, extension);
 }
 
@@ -197,12 +228,13 @@ void
 muscle_code_grow (const char *key, const char *val, location loc)
 {
   muscle_syncline_grow (key, loc);
-  muscle_grow (key, val, "\n");
+  muscle_grow (key, val, "\n", "\n");
 }
 
 
-void muscle_pair_list_grow (const char *muscle,
-			    const char *a1, const char *a2)
+void
+muscle_pair_list_grow (const char *muscle,
+                       const char *a1, const char *a2)
 {
   char *pair;
   obstack_sgrow (&muscle_obstack, "[");
@@ -210,56 +242,34 @@ void muscle_pair_list_grow (const char *muscle,
   obstack_sgrow (&muscle_obstack, ", ");
   obstack_quote (&muscle_obstack, a2);
   obstack_sgrow (&muscle_obstack, "]");
-  obstack_1grow (&muscle_obstack, 0);
-  pair = obstack_finish (&muscle_obstack);
-  muscle_grow (muscle, pair, ",\n");
+  pair = obstack_finish0 (&muscle_obstack);
+  muscle_grow (muscle, pair, ",\n", "");
   obstack_free (&muscle_obstack, pair);
 }
 
 
-/*----------------------------------------------------------------------------.
-| Find the value of muscle KEY.  Unlike MUSCLE_FIND, this is always reliable  |
-| to determine whether KEY has a value.                                       |
-`----------------------------------------------------------------------------*/
-
 char const *
 muscle_find_const (char const *key)
 {
-  muscle_entry probe;
-  muscle_entry *result = NULL;
-
-  probe.key = key;
-  result = hash_lookup (muscle_table, &probe);
-  if (result)
-    return result->value;
-  return NULL;
+  muscle_entry *entry = muscle_lookup (key);
+  return entry ? entry->value : NULL;
 }
 
-
-/*----------------------------------------------------------------------------.
-| Find the value of muscle KEY.  Abort if muscle_insert was invoked more      |
-| recently than muscle_grow for KEY since muscle_find can't return a          |
-| char const *.                                                               |
-`----------------------------------------------------------------------------*/
 
 char *
 muscle_find (char const *key)
 {
-  muscle_entry probe;
-  muscle_entry *result = NULL;
-
-  probe.key = key;
-  result = hash_lookup (muscle_table, &probe);
-  if (result)
+  muscle_entry *entry = muscle_lookup (key);
+  if (entry)
     {
-      aver (result->value == result->storage);
-      return result->storage;
+      aver (entry->value == entry->storage);
+      return entry->storage;
     }
   return NULL;
 }
 
 
-/* In the format `file_name:line.column', append BOUND to MUSCLE.  Use
+/* In the format 'file_name:line.column', append BOUND to MUSCLE.  Use
    digraphs for special characters in the file name.  */
 
 static void
@@ -268,19 +278,14 @@ muscle_boundary_grow (char const *key, boundary bound)
   char *extension;
   obstack_sgrow  (&muscle_obstack, "[[");
   obstack_escape (&muscle_obstack, bound.file);
-  obstack_1grow  (&muscle_obstack, ':');
-  obstack_printf (&muscle_obstack, "%d", bound.line);
-  obstack_1grow  (&muscle_obstack, '.');
-  obstack_printf (&muscle_obstack, "%d", bound.column);
-  obstack_sgrow  (&muscle_obstack, "]]");
-  obstack_1grow  (&muscle_obstack, '\0');
-  extension = obstack_finish (&muscle_obstack);
-  muscle_grow (key, extension, "");
+  obstack_printf (&muscle_obstack, ":%d.%d]]", bound.line, bound.column);
+  extension = obstack_finish0 (&muscle_obstack);
+  muscle_grow (key, extension, "", "");
   obstack_free (&muscle_obstack, extension);
 }
 
 
-/* In the format `[[file_name:line.column]], [[file_name:line.column]]',
+/* In the format '[[file_name:line.column]], [[file_name:line.column]]',
    append LOC to MUSCLE.  Use digraphs for special characters in each
    file name.  */
 
@@ -288,7 +293,7 @@ static void
 muscle_location_grow (char const *key, location loc)
 {
   muscle_boundary_grow (key, loc.start);
-  muscle_grow (key, "", ", ");
+  muscle_grow (key, "", ", ", "");
   muscle_boundary_grow (key, loc.end);
 }
 
@@ -315,11 +320,10 @@ muscle_location_grow (char const *key, location loc)
 static char *
 string_decode (char const *key)
 {
-  char const *value;
+  char const *value = muscle_find_const (key);
   char *value_decoded;
   char *result;
 
-  value = muscle_find_const (key);
   if (!value)
     return NULL;
   do {
@@ -340,10 +344,9 @@ string_decode (char const *key)
 
 /* Reverse of muscle_location_grow.  */
 static location
-location_decode (char const *key)
+location_decode (char const *value)
 {
   location loc;
-  char const *value = muscle_find_const (key);
   aver (value);
   aver (*value == '[');
   aver (*++value == '[');
@@ -358,8 +361,7 @@ location_decode (char const *key)
           {
             char *boundary_str;
             aver (*++value == ']');
-            obstack_1grow (&muscle_obstack, '\0');
-            boundary_str = obstack_finish (&muscle_obstack);
+            boundary_str = obstack_finish0 (&muscle_obstack);
             switch (*++value)
               {
                 case ',':
@@ -389,21 +391,52 @@ void
 muscle_user_name_list_grow (char const *key, char const *user_name,
                             location loc)
 {
-  muscle_grow (key, "[[[[", ",");
-  muscle_grow (key, user_name, "");
-  muscle_grow (key, "]], ", "");
+  muscle_grow (key, "[[[[", ",", "");
+  muscle_grow (key, user_name, "", "");
+  muscle_grow (key, "]], ", "", "");
   muscle_location_grow (key, loc);
-  muscle_grow (key, "]]", "");
+  muscle_grow (key, "]]", "", "");
 }
 
-# define ARRAY_CARDINALITY(Array) (sizeof (Array) / sizeof *(Array))
-#define STREQ(s1, s2) ((strcmp (s1, s2) == 0))
+
+/** Return an allocated string that represents the %define directive
+    that performs the assignment.
+
+    @param assignment "VAR", or "VAR=VAL".
+    @param value      default value if VAL \a assignment has no '='.
+
+    For instance:
+    "foo", NULL      => "%define foo"
+    "foo", "baz"     => "%define foo baz"
+    "foo=bar", NULL  => "%define foo bar"
+    "foo=bar", "baz" => "%define foo bar"
+    "foo=", NULL     => "%define foo"
+    "foo=", "baz"    => "%define foo"
+ */
+
+static
+char *
+define_directive (char const *assignment, char const *value)
+{
+  char *eq = strchr (assignment, '=');
+  char const *fmt = !eq && value && *value ? "%%define %s %s" : "%%define %s";
+  char *res = xmalloc (strlen (fmt) + strlen (assignment)
+                       + (value ? strlen (value) : 0));
+  sprintf (res, fmt, assignment, value);
+  eq = strchr (res, '=');
+  if (eq)
+    *eq = eq[1] ? ' ' : '\0';
+  return res;
+}
 
 /** If the \a variable name is obsolete, return the name to use,
- * otherwise \a variable. */
+ * otherwise \a variable.  If the \a value is obsolete, update it too.
+ *
+ * Allocates the returned value.  */
 static
-char const *
-muscle_percent_variable_update (char const *variable)
+char *
+muscle_percent_variable_update (char const *variable, location variable_loc,
+                                char const **value)
 {
   typedef struct
   {
@@ -413,47 +446,77 @@ muscle_percent_variable_update (char const *variable)
   const conversion_type conversion[] =
     {
       { "api.push_pull", "api.push-pull", },
+      { "api.tokens.prefix", "api.token.prefix", },
+      { "lex_symbol", "api.token.constructor", },
       { "location_type", "api.location.type", },
-      { "lr.keep_unreachable_states", "lr.keep-unreachable-states", },
+      { "lr.default-reductions", "lr.default-reduction", },
+      { "lr.keep-unreachable-states", "lr.keep-unreachable-state", },
+      { "lr.keep_unreachable_states", "lr.keep-unreachable-state", },
+      { "namespace", "api.namespace", },
+      { "stype", "api.value.type", },
+      { "variant=",     "api.value.type=variant", },
+      { "variant=true", "api.value.type=variant", },
+      { NULL, NULL, }
     };
-  char const *res = variable;
-  int i;
-  for (i = 0; i < ARRAY_CARDINALITY (conversion); ++i)
-    if (STREQ (conversion[i].obsolete, variable))
-      {
-        res = conversion[i].updated;
-        break;
-      }
-  return res;
+  conversion_type const *c;
+  for (c = conversion; c->obsolete; ++c)
+    {
+      char const *eq = strchr (c->obsolete, '=');
+      if (eq
+          ? (!strncmp (c->obsolete, variable, eq - c->obsolete)
+             && STREQ (eq + 1, *value))
+          : STREQ (c->obsolete, variable))
+        {
+          char *res = NULL;
+          char *old = define_directive (c->obsolete, *value);
+          char *upd = define_directive (c->updated, *value);
+          deprecated_directive (&variable_loc, old, upd);
+          free (old);
+          free (upd);
+          res = xstrdup (c->updated);
+          {
+            char *eq2 = strchr (res, '=');
+            if (eq2)
+              {
+                *eq2 = '\0';
+                *value = eq2 + 1;
+              }
+          }
+          return res;
+        }
+    }
+  return xstrdup (variable);
 }
 
 void
 muscle_percent_define_insert (char const *var, location variable_loc,
+                              muscle_kind kind,
                               char const *value,
                               muscle_percent_define_how how)
 {
   /* Backward compatibility.  */
-  char const *variable = muscle_percent_variable_update (var);
-  char const *name = UNIQSTR_CONCAT ("percent_define(", variable, ")");
-  char const *loc_name = UNIQSTR_CONCAT ("percent_define_loc(", variable, ")");
-  char const *syncline_name =
-    UNIQSTR_CONCAT ("percent_define_syncline(", variable, ")");
-  char const *how_name = UNIQSTR_CONCAT ("percent_define_how(", variable, ")");
+  char *variable = muscle_percent_variable_update (var, variable_loc, &value);
+  uniqstr name = muscle_name (variable, NULL);
+  uniqstr loc_name = muscle_name (variable, "loc");
+  uniqstr syncline_name = muscle_name (variable, "syncline");
+  uniqstr how_name = muscle_name (variable, "how");
+  uniqstr kind_name = muscle_name (variable, "kind");
 
   /* Command-line options are processed before the grammar file.  */
   if (how == MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE
       && muscle_find_const (name))
     {
+      location loc;
+      muscle_percent_define_how how_old = atoi (muscle_find_const (how_name));
       unsigned i = 0;
-      muscle_percent_define_how how_old =
-        atoi (muscle_find_const (how_name));
       if (how_old == MUSCLE_PERCENT_DEFINE_F)
-        return;
-      complain_at_indent (variable_loc, &i,
-                          _("%%define variable %s redefined"), quote (variable));
+        goto end;
+      complain_indent (&variable_loc, complaint, &i,
+                       _("%%define variable %s redefined"),
+                       quote (variable));
       i += SUB_INDENT;
-      complain_at_indent (muscle_percent_define_get_loc (variable), &i,
-                          _("previous definition"));
+      loc = muscle_percent_define_get_loc (variable);
+      complain_indent (&loc, complaint, &i, _("previous definition"));
     }
 
   MUSCLE_INSERT_STRING (name, value);
@@ -464,100 +527,149 @@ muscle_percent_define_insert (char const *var, location variable_loc,
   muscle_user_name_list_grow ("percent_define_user_variables", variable,
                               variable_loc);
   MUSCLE_INSERT_INT (how_name, how);
+  MUSCLE_INSERT_STRING (kind_name, muscle_kind_string (kind));
+ end:
+  free (variable);
+}
+
+/* This is used for backward compatibility, e.g., "%define api.pure"
+   supersedes "%pure-parser".  */
+void
+muscle_percent_define_ensure (char const *variable, location loc,
+                              bool value)
+{
+  uniqstr name = muscle_name (variable, NULL);
+  char const *val = value ? "" : "false";
+
+  /* Don't complain is VARIABLE is already defined, but be sure to set
+     its value to VAL.  */
+  if (!muscle_find_const (name)
+      || muscle_percent_define_flag_if (variable) != value)
+    muscle_percent_define_insert (variable, loc, muscle_keyword, val,
+                                  MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE);
+}
+
+/* Mark %define VARIABLE as used.  */
+static void
+muscle_percent_define_use (char const *variable)
+{
+  muscle_insert (muscle_name (variable, "bison_variables"), "");
+}
+
+/* The value of %define variable VARIABLE (corresponding to FIELD, if
+   defined).  Do not register as used, but diagnose unset variables.  */
+
+static
+char const *
+muscle_percent_define_get_raw (char const *variable, char const *field)
+{
+  uniqstr name = muscle_name (variable, field);
+  char const *res = muscle_find_const (name);
+  if (!res)
+    complain (NULL, fatal, _("%s: undefined %%define variable %s"),
+              "muscle_percent_define_get_raw", quote (variable));
+  return res;
 }
 
 char *
 muscle_percent_define_get (char const *variable)
 {
-  char const *name;
-  char const *usage_name;
-  char *value;
-
-  name = UNIQSTR_CONCAT ("percent_define(", variable, ")");
-  usage_name = UNIQSTR_CONCAT ("percent_define_bison_variables(",
-                               variable, ")");
-
-  muscle_insert (usage_name, "");
-  value = string_decode (name);
+  uniqstr name = muscle_name (variable, NULL);
+  char *value = string_decode (name);
   if (!value)
     value = xstrdup ("");
+  muscle_percent_define_use (variable);
   return value;
 }
+
+/* The kind of VARIABLE.  An error if undefined.  */
+static muscle_kind
+muscle_percent_define_get_kind (char const *variable)
+{
+  return muscle_kind_new (muscle_percent_define_get_raw (variable, "kind"));
+}
+
+/* Check the kind of VARIABLE.  An error if undefined.  */
+static void
+muscle_percent_define_check_kind (char const *variable, muscle_kind kind)
+{
+  if (muscle_percent_define_get_kind (variable) != kind)
+    {
+      location loc = muscle_percent_define_get_loc (variable);
+      switch (kind)
+        {
+        case muscle_code:
+          complain (&loc, Wdeprecated,
+                    "%%define variable '%s' requires '{...}' values",
+                    variable);
+          break;
+        case muscle_keyword:
+          complain (&loc, Wdeprecated,
+                    "%%define variable '%s' requires keyword values",
+                    variable);
+          break;
+        case muscle_string:
+          complain (&loc, Wdeprecated,
+                    "%%define variable '%s' requires '\"...\"' values",
+                    variable);
+          break;
+        }
+    }
+}
+
 
 location
 muscle_percent_define_get_loc (char const *variable)
 {
-  char const *loc_name;
-  loc_name = UNIQSTR_CONCAT ("percent_define_loc(", variable, ")");
-  if (!muscle_find_const (loc_name))
-    fatal(_("%s: undefined %%define variable %s"),
-          "muscle_percent_define_get_loc", quote (variable));
-  return location_decode (loc_name);
+  return location_decode (muscle_percent_define_get_raw (variable, "loc"));
 }
 
 char const *
 muscle_percent_define_get_syncline (char const *variable)
 {
-  char const *syncline_name;
-  char const *syncline;
-  syncline_name =
-    UNIQSTR_CONCAT ("percent_define_syncline(", variable, ")");
-  syncline = muscle_find_const (syncline_name);
-  if (!syncline)
-    fatal(_("%s: undefined %%define variable %s"),
-          "muscle_percent_define_get_syncline", quote (variable));
-  return syncline;
+  return muscle_percent_define_get_raw (variable, "syncline");
 }
 
 bool
 muscle_percent_define_ifdef (char const *variable)
 {
-  char const *name;
-  char const *usage_name;
-  char const *value;
-
-  name = UNIQSTR_CONCAT ("percent_define(", variable, ")");
-  usage_name =
-    UNIQSTR_CONCAT ("percent_define_bison_variables(", variable, ")");
-
-  value = muscle_find_const (name);
-  if (value)
+  if (muscle_find_const (muscle_name (variable, NULL)))
     {
-      muscle_insert (usage_name, "");
+      muscle_percent_define_use (variable);
       return true;
     }
-
-  return false;
+  else
+    return false;
 }
 
 bool
 muscle_percent_define_flag_if (char const *variable)
 {
-  char const *invalid_boolean_name;
+  uniqstr invalid_boolean_name = muscle_name (variable, "invalid_boolean");
   bool result = false;
-
-  invalid_boolean_name =
-    UNIQSTR_CONCAT ("percent_define_invalid_boolean(", variable, ")");
 
   if (muscle_percent_define_ifdef (variable))
     {
+      location loc;
       char *value = muscle_percent_define_get (variable);
-      if (value[0] == '\0' || 0 == strcmp (value, "true"))
+      muscle_percent_define_check_kind (variable, muscle_keyword);
+      if (value[0] == '\0' || STREQ (value, "true"))
         result = true;
-      else if (0 == strcmp (value, "false"))
+      else if (STREQ (value, "false"))
         result = false;
       else if (!muscle_find_const (invalid_boolean_name))
         {
           muscle_insert (invalid_boolean_name, "");
-          complain_at(muscle_percent_define_get_loc (variable),
-                      _("invalid value for %%define Boolean variable %s"),
-                      quote (variable));
+          loc = muscle_percent_define_get_loc (variable);
+          complain (&loc, complaint,
+                    _("invalid value for %%define Boolean variable %s"),
+                    quote (variable));
         }
       free (value);
     }
   else
-    fatal(_("%s: undefined %%define variable %s"),
-          "muscle_percent_define_flag", quote (variable));
+    complain (NULL, fatal, _("%s: undefined %%define variable %s"),
+              "muscle_percent_define_flag", quote (variable));
 
   return result;
 }
@@ -565,23 +677,21 @@ muscle_percent_define_flag_if (char const *variable)
 void
 muscle_percent_define_default (char const *variable, char const *value)
 {
-  char const *name;
-  char const *loc_name;
-  char const *syncline_name;
-  name = UNIQSTR_CONCAT ("percent_define(", variable, ")");
-  loc_name = UNIQSTR_CONCAT ("percent_define_loc(", variable, ")");
-  syncline_name =
-    UNIQSTR_CONCAT ("percent_define_syncline(", variable, ")");
+  uniqstr name = muscle_name (variable, NULL);
   if (!muscle_find_const (name))
     {
-      location loc;
       MUSCLE_INSERT_STRING (name, value);
-      loc.start.file = loc.end.file = "<default value>";
-      loc.start.line = loc.end.line = -1;
-      loc.start.column = loc.end.column = -1;
-      muscle_insert (loc_name, "");
-      muscle_location_grow (loc_name, loc);
-      muscle_insert (syncline_name, "");
+      MUSCLE_INSERT_STRING (muscle_name (variable, "kind"), "keyword");
+      {
+        uniqstr loc_name = muscle_name (variable, "loc");
+        location loc;
+        loc.start.file = loc.end.file = "<default value>";
+        loc.start.line = loc.end.line = -1;
+        loc.start.column = loc.end.column = -1;
+        muscle_insert (loc_name, "");
+        muscle_location_grow (loc_name, loc);
+      }
+      muscle_insert (muscle_name (variable, "syncline"), "");
     }
 }
 
@@ -591,30 +701,27 @@ muscle_percent_define_check_values (char const * const *values)
   for (; *values; ++values)
     {
       char const * const *variablep = values;
-      char const *name;
-      char *value;
-
-      name = UNIQSTR_CONCAT ("percent_define(", *variablep, ")");
-
-      value = string_decode (name);
+      uniqstr name = muscle_name (*variablep, NULL);
+      char *value = string_decode (name);
+      muscle_percent_define_check_kind (*variablep, muscle_keyword);
       if (value)
         {
           for (++values; *values; ++values)
             {
-              if (0 == strcmp (value, *values))
+              if (STREQ (value, *values))
                 break;
             }
           if (!*values)
             {
               unsigned i = 0;
               location loc = muscle_percent_define_get_loc (*variablep);
-              complain_at_indent (loc, &i,
-                                _("invalid value for %%define variable %s: %s"),
-                                  quote (*variablep), quote_n (1, value));
+              complain_indent (&loc, complaint, &i,
+                               _("invalid value for %%define variable %s: %s"),
+                               quote (*variablep), quote_n (1, value));
               i += SUB_INDENT;
               for (values = variablep + 1; *values; ++values)
-                complain_at_indent (loc, &i, _("accepted value: %s"),
-                                    quote (*values));
+                complain_indent (&loc, complaint | no_caret | silent, &i,
+                                 _("accepted value: %s"), quote (*values));
             }
           else
             {
@@ -624,8 +731,8 @@ muscle_percent_define_check_values (char const * const *values)
           free (value);
         }
       else
-        fatal (_("%s: undefined %%define variable %s"),
-               "muscle_percent_define_check_values", quote (*variablep));
+        complain (NULL, fatal, _("%s: undefined %%define variable %s"),
+                  "muscle_percent_define_check_values", quote (*variablep));
     }
 }
 
@@ -633,8 +740,7 @@ void
 muscle_percent_code_grow (char const *qualifier, location qualifier_loc,
                           char const *code, location code_loc)
 {
-  char const *name;
-  name = UNIQSTR_CONCAT ("percent_code(", qualifier, ")");
+  char const *name = UNIQSTR_CONCAT ("percent_code(", qualifier, ")");
   muscle_code_grow (name, code, code_loc);
   muscle_user_name_list_grow ("percent_code_user_qualifiers", qualifier,
                                qualifier_loc);
@@ -645,11 +751,12 @@ muscle_percent_code_grow (char const *qualifier, location qualifier_loc,
 | Output the definition of ENTRY as a m4_define.  |
 `------------------------------------------------*/
 
-static  bool
+static inline bool
 muscle_m4_output (muscle_entry *entry, FILE *out)
 {
-  fprintf (out, "m4_define([b4_%s],\n", entry->key);
-  fprintf (out, "[[%s]])\n\n\n", entry->value);
+  fprintf (out,
+           "m4_define([b4_%s],\n"
+           "[[%s]])\n\n\n", entry->key, entry->value);
   return true;
 }
 
@@ -659,11 +766,6 @@ muscle_m4_output_processor (void *entry, void *out)
   return muscle_m4_output (entry, out);
 }
 
-
-/*----------------------------------------------------------------.
-| Output the definition of all the current muscles into a list of |
-| m4_defines.                                                     |
-`----------------------------------------------------------------*/
 
 void
 muscles_m4_output (FILE *out)

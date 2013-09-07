@@ -1,6 +1,6 @@
 /* Type definitions for the finite state machine for Bison.
 
-   Copyright (C) 1984, 1989, 2000-2004, 2007, 2009-2012 Free Software
+   Copyright (C) 1984, 1989, 2000-2004, 2007, 2009-2013 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -95,7 +95,7 @@ typedef int state_number;
 # define STATE_NUMBER_MAXIMUM INT_MAX
 
 /* Be ready to map a state_number to an int.  */
-static  int
+static inline int
 state_number_as_int (state_number s)
 {
   return s;
@@ -119,41 +119,41 @@ typedef struct
    TRANSITIONS->states[Num]?  Can be a token (amongst which the error
    token), or non terminals in case of gotos.  */
 
-#define TRANSITION_SYMBOL(Transitions, Num) \
+# define TRANSITION_SYMBOL(Transitions, Num) \
   (Transitions->states[Num]->accessing_symbol)
 
 /* Is the TRANSITIONS->states[Num] a shift? (as opposed to gotos).  */
 
-#define TRANSITION_IS_SHIFT(Transitions, Num) \
+# define TRANSITION_IS_SHIFT(Transitions, Num) \
   (ISTOKEN (TRANSITION_SYMBOL (Transitions, Num)))
 
 /* Is the TRANSITIONS->states[Num] a goto?. */
 
-#define TRANSITION_IS_GOTO(Transitions, Num) \
+# define TRANSITION_IS_GOTO(Transitions, Num) \
   (!TRANSITION_IS_SHIFT (Transitions, Num))
 
 /* Is the TRANSITIONS->states[Num] labelled by the error token?  */
 
-#define TRANSITION_IS_ERROR(Transitions, Num) \
+# define TRANSITION_IS_ERROR(Transitions, Num) \
   (TRANSITION_SYMBOL (Transitions, Num) == errtoken->number)
 
 /* When resolving a SR conflicts, if the reduction wins, the shift is
    disabled.  */
 
-#define TRANSITION_DISABLE(Transitions, Num) \
+# define TRANSITION_DISABLE(Transitions, Num) \
   (Transitions->states[Num] = NULL)
 
-#define TRANSITION_IS_DISABLED(Transitions, Num) \
+# define TRANSITION_IS_DISABLED(Transitions, Num) \
   (Transitions->states[Num] == NULL)
 
 
 /* Iterate over each transition over a token (shifts).  */
-#define FOR_EACH_SHIFT(Transitions, Iter)			\
-  for (Iter = 0;						\
-       Iter < Transitions->num					\
-	 && (TRANSITION_IS_DISABLED (Transitions, Iter)		\
-	     || TRANSITION_IS_SHIFT (Transitions, Iter));	\
-       ++Iter)							\
+# define FOR_EACH_SHIFT(Transitions, Iter)                       \
+  for (Iter = 0;                                                \
+       Iter < Transitions->num                                  \
+         && (TRANSITION_IS_DISABLED (Transitions, Iter)         \
+             || TRANSITION_IS_SHIFT (Transitions, Iter));       \
+       ++Iter)                                                  \
     if (!TRANSITION_IS_DISABLED (Transitions, Iter))
 
 
@@ -228,7 +228,7 @@ extern state *final_state;
 
 /* Create a new state with ACCESSING_SYMBOL for those items.  */
 state *state_new (symbol_number accessing_symbol,
-		  size_t core_size, item_number *core);
+                  size_t core_size, item_number *core);
 state *state_new_isocore (state const *s);
 
 /* Set the transitions of STATE.  */
@@ -246,7 +246,7 @@ void state_errs_set (state *s, int num, symbol **errors);
    reduce R.  */
 void state_rule_lookahead_tokens_print (state *s, rule *r, FILE *out);
 void state_rule_lookahead_tokens_print_xml (state *s, rule *r,
-					    FILE *out, int level);
+                                            FILE *out, int level);
 
 /* Create/destroy the states hash table.  */
 void state_hash_new (void);

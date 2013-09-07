@@ -1,6 +1,6 @@
 /* Parse command line arguments for bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2012 Free Software
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2013 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -21,7 +21,7 @@
 #ifndef GETARGS_H_
 # define GETARGS_H_
 
-#include "location.h"
+# include "location.h"
 
 enum { command_line_prio, grammar_prio, default_prio };
 
@@ -34,16 +34,12 @@ extern int skeleton_prio;
 /* for -I */
 extern char const *include;
 
-extern bool debug;			/* for -t */
-extern bool defines_flag;		/* for -d */
-extern bool graph_flag;			/* for -g */
-extern bool xml_flag;			/* for -x */
-extern bool locations_flag;
-extern bool no_lines_flag;		/* for -l */
-extern bool token_table_flag;		/* for -k */
-extern bool yacc_flag;			/* for -y */
-
-extern bool error_verbose;
+extern bool defines_flag;               /* for -d */
+extern bool graph_flag;                 /* for -g */
+extern bool xml_flag;                   /* for -x */
+extern bool no_lines_flag;              /* for -l */
+extern bool token_table_flag;           /* for -k */
+extern bool yacc_flag;                  /* for -y */
 
 
 /* GLR_PARSER is true if the input file says to use the GLR
@@ -113,24 +109,6 @@ enum trace
 extern int trace_flag;
 
 /*-------------.
-| --warnings.  |
-`-------------*/
-
-enum warnings
-  {
-    warnings_none             = 0,      /**< Issue no warnings.  */
-    warnings_error            = 1 << 0, /**< Warnings are treated as errors.  */
-    warnings_midrule_values   = 1 << 1, /**< Unset or unused midrule values.  */
-    warnings_yacc             = 1 << 2, /**< POSIXME.  */
-    warnings_conflicts_sr     = 1 << 3, /**< S/R conflicts.  */
-    warnings_conflicts_rr     = 1 << 4, /**< R/R conflicts.  */
-    warnings_other            = 1 << 5, /**< All other warnings.  */
-    warnings_all              = ~warnings_error /**< All above warnings.  */
-  };
-/** What warnings are issued.  */
-extern int warnings_flag;
-
-/*-------------.
 | --features.  |
 `-------------*/
 
@@ -142,6 +120,7 @@ enum feature
   };
 /** What additional features to use.  */
 extern int feature_flag;
+
 
 /** Process the command line arguments.
  *

@@ -27,7 +27,7 @@ Currently, the supported skeletons are:
 These skeletons are the only ones supported by the Bison team.
 Because the interface between skeletons and the bison program is not
 finished, *we are not bound to it*.  In particular, Bison is not
-mature enough for us to consider that ``foreign skeletons'' are
+mature enough for us to consider that "foreign skeletons" are
 supported.
 
 * m4sugar
@@ -52,7 +52,7 @@ into various formats.
 
 -----
 
-Copyright (C) 2002, 2008-2012 Free Software Foundation, Inc.
+Copyright (C) 2002, 2008-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Bison.
 

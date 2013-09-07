@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2012 Free Software Foundation,
+   Copyright (C) 2002, 2005-2007, 2009-2013 Free Software Foundation,
    Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -24,7 +24,6 @@
 #include "complain.h"
 #include "symlist.h"
 
-
 /*--------------------------------------.
 | Create a list containing SYM at LOC.  |
 `--------------------------------------*/
@@ -37,18 +36,20 @@ symbol_list_sym_new (symbol *sym, location loc)
   res->content_type = SYMLIST_SYMBOL;
   res->content.sym = sym;
   res->location = res->sym_loc = loc;
+  res->named_ref = NULL;
 
   res->midrule = NULL;
   res->midrule_parent_rule = NULL;
   res->midrule_parent_rhs_index = 0;
 
-  code_props_none_init (&res->action_props);
-
+  /* Members used for LHS only.  */
   res->ruleprec = NULL;
+  res->percent_empty_loc = empty_location;
+  code_props_none_init (&res->action_props);
   res->dprec = 0;
+  res->dprec_location = empty_location;
   res->merger = 0;
-
-  res->named_ref = NULL;
+  res->merger_declaration_location = empty_location;
 
   res->next = NULL;
 
@@ -66,43 +67,11 @@ symbol_list_type_new (uniqstr type_name, location loc)
   symbol_list *res = xmalloc (sizeof *res);
 
   res->content_type = SYMLIST_TYPE;
-  res->content.type_name = type_name;
-  res->location = res->sym_loc = loc;
-  res->named_ref = NULL;
-  res->next = NULL;
+  res->content.sem_type = xmalloc (sizeof (semantic_type));
+  res->content.sem_type->tag = type_name;
+  res->content.sem_type->location = loc;
+  res->content.sem_type->status = undeclared;
 
-  return res;
-}
-
-
-/*----------------------------------------.
-| Create a list containing a <*> at LOC.  |
-`----------------------------------------*/
-
-symbol_list *
-symbol_list_default_tagged_new (location loc)
-{
-  symbol_list *res = xmalloc (sizeof *res);
-
-  res->content_type = SYMLIST_DEFAULT_TAGGED;
-  res->location = res->sym_loc = loc;
-  res->named_ref = NULL;
-  res->next = NULL;
-
-  return res;
-}
-
-
-/*---------------------------------------.
-| Create a list containing a <> at LOC.  |
-`---------------------------------------*/
-
-symbol_list *
-symbol_list_default_tagless_new (location loc)
-{
-  symbol_list *res = xmalloc (sizeof *res);
-
-  res->content_type = SYMLIST_DEFAULT_TAGLESS;
   res->location = res->sym_loc = loc;
   res->named_ref = NULL;
   res->next = NULL;
@@ -118,12 +87,17 @@ symbol_list_default_tagless_new (location loc)
 void
 symbol_list_syms_print (const symbol_list *l, FILE *f)
 {
+  char const *sep = "";
   for (/* Nothing. */; l && l->content.sym; l = l->next)
     {
+      fputs (sep, f);
+      fputs (l->content_type == SYMLIST_SYMBOL ? "symbol: "
+             : l->content_type == SYMLIST_TYPE ? "type: "
+             : "invalid content_type: ",
+             f);
       symbol_print (l->content.sym, f);
-      fprintf (stderr, l->action_props.is_value_used ? " used" : " unused");
-      if (l && l->content.sym)
-	fprintf (f, ", ");
+      fputs (l->action_props.is_value_used ? " used" : " unused", f);
+      sep = ", ";
     }
 }
 
@@ -140,6 +114,26 @@ symbol_list_prepend (symbol_list *list, symbol_list *node)
 }
 
 
+/*-------------------------.
+| Append NODE to the LIST. |
+`-------------------------*/
+
+symbol_list *
+symbol_list_append (symbol_list *list, symbol_list *node)
+{
+  symbol_list *next = list;
+
+  if (!list)
+    return node;
+
+  while (next->next)
+    next = next->next;
+  next->next = node;
+
+  return list;
+}
+
+
 /*-----------------------------------------------.
 | Free the LIST, but not the items it contains.  |
 `-----------------------------------------------*/
@@ -152,6 +146,8 @@ symbol_list_free (symbol_list *list)
     {
       next = node->next;
       named_ref_free (node->named_ref);
+      if (node->content_type == SYMLIST_TYPE)
+        free (node->content.sem_type);
       free (node);
     }
 }
@@ -190,7 +186,7 @@ symbol_list_n_get (symbol_list *l, int n)
       l = l->next;
       if (l == NULL
           || (l->content_type == SYMLIST_SYMBOL && l->content.sym == NULL))
-	return NULL;
+        return NULL;
     }
 
   return l;
@@ -208,7 +204,7 @@ symbol_list_n_type_name_get (symbol_list *l, location loc, int n)
   l = symbol_list_n_get (l, n);
   if (!l)
     {
-      complain_at (loc, _("invalid $ value: $%d"), n);
+      complain (&loc, complaint, _("invalid $ value: $%d"), n);
       return NULL;
     }
   aver (l->content_type == SYMLIST_SYMBOL);
@@ -223,43 +219,23 @@ symbol_list_null (symbol_list *node)
 }
 
 void
-symbol_list_destructor_set (symbol_list *node, code_props const *destructor)
+symbol_list_code_props_set (symbol_list *node, code_props_type kind,
+                            code_props const *cprops)
 {
   switch (node->content_type)
     {
-      case SYMLIST_SYMBOL:
-        symbol_destructor_set (node->content.sym, destructor);
-        break;
-      case SYMLIST_TYPE:
-        semantic_type_destructor_set (
-          semantic_type_get (node->content.type_name), destructor);
-        break;
-      case SYMLIST_DEFAULT_TAGGED:
-        default_tagged_destructor_set (destructor);
-        break;
-      case SYMLIST_DEFAULT_TAGLESS:
-        default_tagless_destructor_set (destructor);
-        break;
-    }
-}
-
-void
-symbol_list_printer_set (symbol_list *node, code_props const *printer)
-{
-  switch (node->content_type)
-    {
-      case SYMLIST_SYMBOL:
-        symbol_printer_set (node->content.sym, printer);
-        break;
-      case SYMLIST_TYPE:
-        semantic_type_printer_set (
-          semantic_type_get (node->content.type_name), printer);
-        break;
-      case SYMLIST_DEFAULT_TAGGED:
-        default_tagged_printer_set (printer);
-        break;
-      case SYMLIST_DEFAULT_TAGLESS:
-        default_tagless_printer_set (printer);
-        break;
+    case SYMLIST_SYMBOL:
+      symbol_code_props_set (node->content.sym, kind, cprops);
+      if (node->content.sym->status == undeclared)
+        node->content.sym->status = used;
+      break;
+    case SYMLIST_TYPE:
+      semantic_type_code_props_set
+        (semantic_type_get (node->content.sem_type->tag,
+                            &node->content.sem_type->location),
+         kind, cprops);
+      if (node->content.sem_type->status == undeclared)
+        node->content.sem_type->status = used;
+      break;
     }
 }

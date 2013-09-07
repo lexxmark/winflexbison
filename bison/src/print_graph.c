@@ -1,6 +1,6 @@
 /* Output a graph of the generated parser, for Bison.
 
-   Copyright (C) 2001-2007, 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 2001-2007, 2009-2013 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -42,34 +42,15 @@
 /* Print the lhs of a rule in such a manner that there is no vertical
    repetition, like in *.output files. */
 
-#define STREQ(s1, s2) ((strcmp (s1, s2) == 0))
-
-static void
-print_lhs (struct obstack *oout, rule *previous_rule, rule *r)
-{
-  if (previous_rule && STREQ (previous_rule->lhs->tag, r->lhs->tag))
-    {
-      int i;
-      for (i = 0; i < strlen (r->lhs->tag); ++i)
-        obstack_1grow (oout, ' ');
-      obstack_1grow (oout, '|');
-    }
-  else
-    {
-      obstack_sgrow (oout, escape (r->lhs->tag));
-      obstack_1grow (oout, ':');
-    }
-}
-
 static void
 print_core (struct obstack *oout, state *s)
 {
-  item_number *sitems = s->items;
-  rule *previous_rule = NULL;
+  item_number const *sitems = s->items;
+  symbol *previous_lhs = NULL;
   size_t i;
   size_t snritems = s->nitems;
 
-  /* Output all the items of a state, not only its kernel.  */
+  /* Output all the items of a state, not just its kernel.  */
   if (report_flag & report_itemsets)
     {
       closure (sitems, snritems);
@@ -81,25 +62,27 @@ print_core (struct obstack *oout, state *s)
   obstack_sgrow (oout, "\\n\\l");
   for (i = 0; i < snritems; i++)
     {
-      item_number *sp;
-      item_number *sp1;
-      rule_number r;
+      item_number const *sp1 = ritem + sitems[i];
+      item_number const *sp = sp1;
+      rule *r;
 
-      sp1 = sp = ritem + sitems[i];
-
-      while (*sp >= 0)
+      while (0 <= *sp)
         sp++;
 
-      r = item_number_as_rule_number (*sp);
+      r = &rules[item_number_as_rule_number (*sp)];
 
-      obstack_printf (oout, "%3d ", r);
-      print_lhs (oout, previous_rule, &rules[r]);
-      previous_rule = &rules[r];
+      obstack_printf (oout, "%3d ", r->number);
+      if (previous_lhs && UNIQSTR_EQ (previous_lhs->tag, r->lhs->tag))
+        obstack_printf (oout, "%*s| ",
+                        (int) strlen (previous_lhs->tag), "");
+      else
+        obstack_printf (oout, "%s: ", escape (r->lhs->tag));
+      previous_lhs = r->lhs;
 
-      for (sp = rules[r].rhs; sp < sp1; sp++)
-        obstack_printf (oout, " %s", escape (symbols[*sp]->tag));
+      for (sp = r->rhs; sp < sp1; sp++)
+        obstack_printf (oout, "%s ", escape (symbols[*sp]->tag));
 
-      obstack_sgrow (oout, " .");
+      obstack_1grow (oout, '.');
 
       for (/* Nothing */; *sp >= 0; ++sp)
         obstack_printf (oout, " %s", escape (symbols[*sp]->tag));
@@ -110,7 +93,7 @@ print_core (struct obstack *oout, state *s)
         {
           /* Find the reduction we are handling.  */
           reductions *reds = s->reductions;
-          int redno = state_reduction_find (s, &rules[r]);
+          int redno = state_reduction_find (s, r);
 
           /* Print them if there are.  */
           if (reds->lookahead_tokens && redno != -1)
@@ -150,21 +133,21 @@ print_actions (state const *s, FILE *fgraph)
   for (i = 0; i < trans->num; i++)
     if (!TRANSITION_IS_DISABLED (trans, i))
       {
-	state *s1 = trans->states[i];
-	symbol_number sym = s1->accessing_symbol;
+        state *s1 = trans->states[i];
+        symbol_number sym = s1->accessing_symbol;
 
-	/* Shifts are solid, gotos are dashed, and error is dotted.  */
-	char const *style =
-	  (TRANSITION_IS_ERROR (trans, i) ? "dotted"
-	   : TRANSITION_IS_SHIFT (trans, i) ? "solid"
-	   : "dashed");
+        /* Shifts are solid, gotos are dashed, and error is dotted.  */
+        char const *style =
+          (TRANSITION_IS_ERROR (trans, i) ? "dotted"
+           : TRANSITION_IS_SHIFT (trans, i) ? "solid"
+           : "dashed");
 
-	if (TRANSITION_IS_ERROR (trans, i)
-	    && strcmp (symbols[sym]->tag, "error") != 0)
-	  abort ();
-	output_edge (s->number, s1->number,
-		     TRANSITION_IS_ERROR (trans, i) ? NULL : symbols[sym]->tag,
-		     style, fgraph);
+        if (TRANSITION_IS_ERROR (trans, i)
+            && STRNEQ (symbols[sym]->tag, "error"))
+          abort ();
+        output_edge (s->number, s1->number,
+                     TRANSITION_IS_ERROR (trans, i) ? NULL : symbols[sym]->tag,
+                     style, fgraph);
       }
   /* Display reductions. */
   output_red (s, s->reductions, fgraph);
@@ -184,8 +167,7 @@ print_state (state *s, FILE *fgraph)
   /* A node's label contains its items.  */
   obstack_init (&node_obstack);
   print_core (&node_obstack, s);
-  obstack_1grow (&node_obstack, '\0');
-  output_node (s->number, obstack_finish (&node_obstack), fgraph);
+  output_node (s->number, obstack_finish0 (&node_obstack), fgraph);
   obstack_free (&node_obstack, 0);
 
   /* Output the edges.  */

@@ -1,6 +1,6 @@
 /* A simple, memory-efficient bitset implementation.
 
-   Copyright (C) 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -60,7 +60,7 @@ Sbitset__isEmpty (Sbitset self, Sbitset__Index nbits)
 }
 
 void
-Sbitset__fprint(Sbitset self, Sbitset__Index nbits, FILE *file)
+Sbitset__fprint (Sbitset self, Sbitset__Index nbits, FILE *file)
 {
   Sbitset__Index i;
   Sbitset itr;

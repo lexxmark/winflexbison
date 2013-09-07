@@ -1,6 +1,6 @@
 /* Bison code properties structure and scanner.
 
-   Copyright (C) 2006-2007, 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 2006-2007, 2009-2013 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -66,6 +66,17 @@ typedef struct code_props {
    */
   bool is_value_used;
 
+  /**
+   * \c true iff this code is an action that is not to be deferred in
+   * a non-deterministic parser.
+   */
+  bool is_predicate;
+
+  /**
+   * Whether this is actually used (i.e., not completely masked by
+   * other code props).  */
+  bool is_used;
+
   /** \c NULL iff \c code_props::kind is not \c CODE_PROPS_RULE_ACTION.  */
   struct symbol_list *rule;
 
@@ -82,11 +93,20 @@ typedef struct code_props {
 void code_props_none_init (code_props *self);
 
 /** Equivalent to \c code_props_none_init.  */
-#define CODE_PROPS_NONE_INIT \
-  {CODE_PROPS_NONE, NULL, EMPTY_LOCATION_INIT, false, NULL, NULL}
+# define CODE_PROPS_NONE_INIT                   \
+  {                                             \
+    /* .kind = */ CODE_PROPS_NONE,              \
+    /* .code = */ NULL,                         \
+    /* .location = */ EMPTY_LOCATION_INIT,      \
+    /* .is_value_used = */ false,               \
+    /* .is_predicate = */ false,                \
+    /* .is_used = */ false,                     \
+    /* .rule = */ NULL,                         \
+    /* .named_ref = */ NULL                     \
+  }
 
 /** Initialized by \c CODE_PROPS_NONE_INIT with no further modification.  */
-extern code_props const code_props_none;
+extern code_props code_props_none;
 
 /**
  * \pre
@@ -137,7 +157,7 @@ void code_props_symbol_action_init (code_props *self, char const *code,
  */
 void code_props_rule_action_init (code_props *self, char const *code,
                                   location code_loc, struct symbol_list *rule,
-                                  named_ref *name);
+                                  named_ref *name, bool is_predicate);
 
 /**
  * \pre

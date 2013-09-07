@@ -1,6 +1,6 @@
 /* Locations for Bison
 
-   Copyright (C) 2002, 2005-2012 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005-2013 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -33,7 +33,7 @@ location const empty_location = EMPTY_LOCATION_INIT;
    COLUMN.  If an overflow occurs, or might occur but is undetectable,
    return INT_MAX.  Assume COLUMN is nonnegative.  */
 
-static  int
+static inline int
 add_column_width (int column, char const *buf, size_t bufsize)
 {
   size_t width;
@@ -42,7 +42,7 @@ add_column_width (int column, char const *buf, size_t bufsize)
   if (buf)
     {
       if (INT_MAX / 2 <= bufsize)
-	return INT_MAX;
+        return INT_MAX;
       width = mbsnwidth (buf, bufsize, 0);
     }
   else
@@ -69,19 +69,19 @@ location_compute (location *loc, boundary *cur, char const *token, size_t size)
     switch (*p)
       {
       case '\n':
-	line += line < INT_MAX;
-	column = 1;
-	p0 = p + 1;
-	break;
+        line += line < INT_MAX;
+        column = 1;
+        p0 = p + 1;
+        break;
 
       case '\t':
-	column = add_column_width (column, p0, p - p0);
-	column = add_column_width (column, NULL, 8 - ((column - 1) & 7));
-	p0 = p + 1;
-	break;
+        column = add_column_width (column, p0, p - p0);
+        column = add_column_width (column, NULL, 8 - ((column - 1) & 7));
+        p0 = p + 1;
+        break;
 
       default:
-	break;
+        break;
       }
 
   cur->line = line;
@@ -90,16 +90,14 @@ location_compute (location *loc, boundary *cur, char const *token, size_t size)
   loc->end = *cur;
 
   if (line == INT_MAX && loc->start.line != INT_MAX)
-    warn_at (*loc, _("line number overflow"));
+    complain (loc, Wother, _("line number overflow"));
   if (column == INT_MAX && loc->start.column != INT_MAX)
-    warn_at (*loc, _("column number overflow"));
+    complain (loc, Wother, _("column number overflow"));
 }
 
 
-/* Output to OUT the location LOC.
-   Warning: it uses quotearg's slot 3.  */
 unsigned
-location_print (FILE *out, location loc)
+location_print (location loc, FILE *out)
 {
   unsigned res = 0;
   int end_col = 0 != loc.end.column ? loc.end.column - 1 : 0;
@@ -155,13 +153,13 @@ cleanup_caret ()
 {
   if (caret_info.source)
     fclose (caret_info.source);
+  caret_info.source = NULL;
+  caret_info.line = 1;
+  caret_info.offset = 0;
 }
 
-extern ssize_t
-getline (char **lineptr, size_t *n, FILE *stream);
-
 void
-location_caret (FILE *out, location loc)
+location_caret (location loc, FILE *out)
 {
   /* FIXME: find a way to support multifile locations, and only open once each
      file. That would make the procedure future-proof.  */
@@ -171,8 +169,8 @@ location_caret (FILE *out, location loc)
     return;
 
   /* If the line we want to quote is seekable (the same line as the previous
-     location), just seek it. If it was before, we lost track of it, so
-     return to the start of file.  */
+     location), just seek it. If it was a previous line, we lost track of it,
+     so return to the start of file.  */
   if (caret_info.line <= loc.start.line)
     fseek (caret_info.source, caret_info.offset, SEEK_SET);
   else
@@ -184,50 +182,49 @@ location_caret (FILE *out, location loc)
 
   /* Advance to the line's position, keeping track of the offset.  */
   while (caret_info.line < loc.start.line)
-    caret_info.line += fgetc (caret_info.source) == '\n';
+    caret_info.line += getc (caret_info.source) == '\n';
   caret_info.offset = ftell (caret_info.source);
 
   /* Read the actual line.  Don't update the offset, so that we keep a pointer
      to the start of the line.  */
   {
-    char *buf = NULL;
-    size_t size = 0;
-    ssize_t len = getline (&buf, &size, caret_info.source);
-    if (0 < len)
+    char c = getc (caret_info.source);
+    if (c != EOF)
       {
-        /* The caret of a multiline location ends with the first line.  */
-        int end = loc.start.line != loc.end.line ? len : loc.end.column;
-
         /* Quote the file, indent by a single column.  */
-        fputc (' ', out);
-        fwrite (buf, 1, len, out);
+        putc (' ', out);
+        do
+          putc (c, out);
+        while ((c = getc (caret_info.source)) != EOF && c != '\n');
+        putc ('\n', out);
 
-        /* Print the caret, with the same indent as above.  */
-        fprintf (out, " %*s", loc.start.column - 1, "");
         {
-          int i = loc.start.column;
-          do
-            fputc ('^', out);
-          while (++i < end);
-        }
-        fputc ('\n', out);
+          /* The caret of a multiline location ends with the first line.  */
+          size_t len = loc.start.line != loc.end.line
+            ? ftell (caret_info.source) - caret_info.offset
+            : loc.end.column;
+          int i;
+
+          /* Print the carets (at least one), with the same indent as above.*/
+          fprintf (out, " %*s", loc.start.column - 1, "");
+          for (i = loc.start.column; i == loc.start.column || i < len; ++i)
+            putc ('^', out);
+          }
+        putc ('\n', out);
       }
-    free (buf);
   }
 }
-
-#include <mbstring.h>
 
 void
 boundary_set_from_string (boundary *bound, char *loc_str)
 {
   /* Must search in reverse since the file name field may
-   * contain `.' or `:'.  */
-  char *delim = _mbsrchr (loc_str, '.');
+   * contain '.' or ':'.  */
+  char *delim = strrchr (loc_str, '.');
   aver (delim);
   *delim = '\0';
   bound->column = atoi (delim+1);
-  delim = _mbsrchr (loc_str, ':');
+  delim = strrchr (loc_str, ':');
   aver (delim);
   *delim = '\0';
   bound->line = atoi (delim+1);

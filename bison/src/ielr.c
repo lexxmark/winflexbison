@@ -1,6 +1,6 @@
 /* IELR main implementation.
 
-   Copyright (C) 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -1033,7 +1033,7 @@ ielr_split_states (bitsetv follow_kernel_items, bitsetv always_follows,
   if (!annotation_lists)
     {
       state_list *node;
-      timevar_push (TV_IELR_PHASE4);
+	  timevar_push (TV_IELR_PHASE4);
       initialize_LA ();
       for (node = first_state; node; node = node->next)
         if (!node->state->consistent)
@@ -1095,11 +1095,11 @@ ielr (void)
   /* Examine user options.  */
   {
     char *type = muscle_percent_define_get ("lr.type");
-    if (0 == strcmp (type, "lalr"))
+    if (STREQ (type, "lalr"))
       lr_type = LR_TYPE__LALR;
-    else if (0 == strcmp (type, "ielr"))
+    else if (STREQ (type, "ielr"))
       lr_type = LR_TYPE__IELR;
-    else if (0 == strcmp (type, "canonical-lr"))
+    else if (STREQ (type, "canonical-lr"))
       lr_type = LR_TYPE__CANONICAL_LR;
     else
       aver (false);

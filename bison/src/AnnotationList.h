@@ -1,6 +1,6 @@
 /* IELR's inadequacy annotation list.
 
-   Copyright (C) 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -20,10 +20,10 @@
 #ifndef ANNOTATION_LIST_H_
 # define ANNOTATION_LIST_H_
 
-#include <bitsetv.h>
-#include "Sbitset.h"
-#include "InadequacyList.h"
-#include "state.h"
+# include <bitsetv.h>
+# include "Sbitset.h"
+# include "InadequacyList.h"
+# include "state.h"
 
 typedef unsigned int AnnotationIndex;
 

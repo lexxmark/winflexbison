@@ -1,6 +1,6 @@
 /* Declaration for error-reporting function for Bison.
 
-   Copyright (C) 2000-2002, 2006, 2009-2012 Free Software Foundation,
+   Copyright (C) 2000-2002, 2006, 2009-2013 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -21,76 +21,124 @@
 
 # include "location.h"
 
-# ifdef	__cplusplus
-extern "C" {
-# endif
-
 /* Sub-messages indent. */
-#define SUB_INDENT (4)
+# define SUB_INDENT (4)
 
-/** Record that a warning is about to be issued, and treat it as an
-    error if <tt>warnings_flag & warnings_error</tt>.  This is exported
-    only for the sake of Yacc-compatible conflict reports in conflicts.c.
-    All other warnings should be implemented in complain.c and should use
-    the normal warning format.  */
-void set_warning_issued (void);
+/*-------------.
+| --warnings.  |
+`-------------*/
 
-/** Informative messages, but we proceed.  Report iff
-    <tt>warnings_flag & warnings_other</tt>.  */
+/** The bits assigned to each warning type.  */
+typedef enum
+  {
+    warning_midrule_values, /**< Unset or unused midrule values.  */
+    warning_yacc,           /**< POSIXME.  */
+    warning_conflicts_sr,   /**< S/R conflicts.  */
+    warning_conflicts_rr,   /**< R/R conflicts.  */
+    warning_empty_rule,     /**< Implicitly empty rules.  */
+    warning_deprecated,     /**< Obsolete constructs.  */
+    warning_precedence,     /**< Useless precedence and associativity.  */
+    warning_other,          /**< All other warnings.  */
 
-void warn (char const *format, ...);
-//  __attribute__ ((__format__ (__printf__, 1, 2)));
+    warnings_size           /**< The number of warnings.  Must be last.  */
+  } warning_bit;
 
-void warn_at (location loc, char const *format, ...);
-//  __attribute__ ((__format__ (__printf__, 2, 3)));
+/** Whether -Werror was set. */
+extern bool warnings_are_errors;
 
-/* Generate a message aligned by an indent.
-   When *indent == 0, assign message's indent to *indent,
-   When *indent > 0, align the message by *indent value. */
-void warn_at_indent (location loc, unsigned *indent,
-                     char const *format, ...);
-//  __attribute__ ((__format__ (__printf__, 3, 4)));
+/** Decode a single argument from -W.
+ *
+ *  \param arg      the subarguments to decode.
+ *                  If null, then activate all the flags.
+ *  \param no       length of the potential "no-" prefix.
+ *                  Can be 0 or 3. If 3, negate the action of the subargument.
+ *  \param err      length of a potential "error=".
+ *                  Can be 0 or 6. If 6, treat the subargument as a CATEGORY.
+ *
+ *  If VALUE != 0 then KEY sets flags and no-KEY clears them.
+ *  If VALUE == 0 then KEY clears all flags from \c all and no-KEY sets all
+ *  flags from \c all.  Thus no-none = all and no-all = none.
+ */
+void warning_argmatch (char const *arg, size_t no, size_t err);
 
-/** An error, but we continue and die later.  */
+/** Decode a comma-separated list of arguments from -W.
+ *
+ *  \param args     comma separated list of effective subarguments to decode.
+ *                  If 0, then activate all the flags.
+ */
+void warnings_argmatch (char *args);
 
-void complain (char const *format, ...);
-//  __attribute__ ((__format__ (__printf__, 1, 2)));
 
-void complain_at (location loc, char const *format, ...);
-//  __attribute__ ((__format__ (__printf__, 2, 3)));
+/*-----------.
+| complain.  |
+`-----------*/
 
-/* Generate a message aligned by an indent.
-   When *indent == 0, assign message's indent to *indent,
-   When *indent > 0, align the message by *indent value. */
-void complain_at_indent (location loc, unsigned *indent,
-                         char const *format, ...);
-//  __attribute__ ((__format__ (__printf__, 3, 4)));
+/** Initialize this module.  */
+void complain_init (void);
 
-/** An incompatibility with POSIX Yacc: mapped either to warn* or
-    complain* depending on yacc_flag. */
+typedef enum
+  {
+    /**< Issue no warnings.  */
+    Wnone             = 0,
 
-void yacc_at (location loc, char const *format, ...);
-//  __attribute__ ((__format__ (__printf__, 2, 3)));
+    Wmidrule_values   = 1 << warning_midrule_values,
+    Wyacc             = 1 << warning_yacc,
+    Wconflicts_sr     = 1 << warning_conflicts_sr,
+    Wconflicts_rr     = 1 << warning_conflicts_rr,
+    Wdeprecated       = 1 << warning_deprecated,
+    Wempty_rule       = 1 << warning_empty_rule,
+    Wprecedence       = 1 << warning_precedence,
+    Wother            = 1 << warning_other,
 
-/** A midrule-value warning.  Report iff
-    <tt>warnings_flag & warnings_midrule_values</tt>.  */
+    Werror            = 1 << 10, /** This bit is no longer used. */
 
-void midrule_value_at (location loc, char const *format, ...);
-//  __attribute__ ((__format__ (__printf__, 2, 3)));
+    complaint         = 1 << 11, /**< All complaints.  */
+    fatal             = 1 << 12, /**< All fatal errors.  */
+    silent            = 1 << 13, /**< Do not display the warning type.  */
+    no_caret          = 1 << 14, /**< Do not display caret location.  */
 
-/** A fatal error, causing immediate exit.  */
+    /**< All above warnings.  */
+    Weverything       = ~complaint & ~fatal & ~silent,
+    Wall              = Weverything & ~Wyacc
+  } warnings;
 
-void fatal (char const *format, ...);
-//  __attribute__ ((__noreturn__, __format__ (__printf__, 1, 2)));
+/** Whether the warnings of \a flags are all unset.
+    (Never enabled, never disabled). */
+bool warning_is_unset (warnings flags);
 
-void fatal_at (location loc, char const *format, ...);
-//  __attribute__ ((__noreturn__, __format__ (__printf__, 2, 3)));
+/** Make a complaint, with maybe a location.  */
+void complain (location const *loc, warnings flags, char const *message, ...)
+  __attribute__ ((__format__ (__printf__, 3, 4)));
+
+/** Likewise, but with an \a argc/argv interface.  */
+void complain_args (location const *loc, warnings w, unsigned *indent,
+                    int argc, char *arg[]);
+
+/** Make a complaint with location and some indentation.  */
+void complain_indent (location const *loc, warnings flags, unsigned *indent,
+                      char const *message, ...)
+  __attribute__ ((__format__ (__printf__, 4, 5)));
+
+
+/** Report an obsolete syntax, suggest the updated one.  */
+void deprecated_directive (location const *loc,
+                           char const *obsolete, char const *updated);
+
+/** Report a repeated directive for a rule.  */
+void duplicate_directive (char const *directive,
+                          location first, location second);
+
+/** Warnings treated as errors shouldn't stop the execution as regular errors
+    should (because due to their nature, it is safe to go on). Thus, there are
+    three possible execution statuses.  */
+typedef enum
+  {
+    status_none,
+    status_warning_as_error,
+    status_complaint
+  } err_status;
 
 /** Whether an error was reported.  */
-extern bool complaint_issued;
-
-# ifdef	__cplusplus
-}
-# endif
+extern err_status complaint_status;
 
 #endif /* !COMPLAIN_H_ */

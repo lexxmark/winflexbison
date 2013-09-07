@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2012 Free Software Foundation,
+   Copyright (C) 2002, 2005-2007, 2009-2013 Free Software Foundation,
    Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -34,8 +34,8 @@ typedef struct symbol_list
    * \c <>.
    */
   enum {
-    SYMLIST_SYMBOL, SYMLIST_TYPE,
-    SYMLIST_DEFAULT_TAGGED, SYMLIST_DEFAULT_TAGLESS
+    SYMLIST_SYMBOL,
+    SYMLIST_TYPE
   } content_type;
   union {
     /**
@@ -46,9 +46,12 @@ typedef struct symbol_list
     /**
      * The semantic type iff <tt>symbol_list::content_type = SYMLIST_TYPE</tt>.
      */
-    uniqstr type_name;
+    semantic_type *sem_type;
   } content;
   location location;
+
+  /* Named reference. */
+  named_ref *named_ref;
 
   /* Proper location of the symbol, not all the rule */
   location sym_loc;
@@ -64,18 +67,25 @@ typedef struct symbol_list
   struct symbol_list *midrule_parent_rule;
   int midrule_parent_rhs_index;
 
+  /* ---------------------------------------------- */
+  /* Apply to the rule (attached to the LHS only).  */
+  /* ---------------------------------------------- */
+
+  /* Precedence/associativity.  */
+  symbol *ruleprec;
+
   /* The action is attached to the LHS of a rule, but action properties for
    * each RHS are also stored here.  */
   code_props action_props;
 
-  /* Precedence/associativity.  */
-  symbol *ruleprec;
+  /* The location of the first %empty for this rule, or \a
+     empty_location.  */
+  location percent_empty_loc;
+
   int dprec;
+  location dprec_location;
   int merger;
   location merger_declaration_location;
-
-  /* Named reference. */
-  named_ref *named_ref;
 
   /* The list.  */
   struct symbol_list *next;
@@ -88,11 +98,6 @@ symbol_list *symbol_list_sym_new (symbol *sym, location loc);
 /** Create a list containing \c type_name at \c loc.  */
 symbol_list *symbol_list_type_new (uniqstr type_name, location loc);
 
-/** Create a list containing a \c <*> at \c loc.  */
-symbol_list *symbol_list_default_tagged_new (location loc);
-/** Create a list containing a \c <> at \c loc.  */
-symbol_list *symbol_list_default_tagless_new (location loc);
-
 /** Print this list.
 
   \pre For every node \c n in the list, <tt>n->content_type =
@@ -101,6 +106,9 @@ void symbol_list_syms_print (const symbol_list *l, FILE *f);
 
 /** Prepend \c node to \c list.  */
 symbol_list *symbol_list_prepend (symbol_list *list, symbol_list *node);
+
+/** Append \c node to \c list.  */
+symbol_list *symbol_list_append (symbol_list *list, symbol_list *node);
 
 /** Free \c list, but not the items it contains.  */
 void symbol_list_free (symbol_list *list);
@@ -118,12 +126,8 @@ uniqstr symbol_list_n_type_name_get (symbol_list *l, location loc, int n);
 /* Check whether the node is a border element of a rule. */
 bool symbol_list_null (symbol_list *node);
 
-/** Set the \c \%destructor for \c node as \c code at \c loc.  */
-void symbol_list_destructor_set (symbol_list *node,
-                                 code_props const *destructor);
-
-/** Set the \c \%printer for \c node as \c code at \c loc.  */
-void symbol_list_printer_set (symbol_list *node,
-                              code_props const *printer);
+/** Set the \c \%destructor or \c \%printer for \c node as \c cprops.  */
+void symbol_list_code_props_set (symbol_list *node, code_props_type kind,
+                                 code_props const *cprops);
 
 #endif /* !SYMLIST_H_ */

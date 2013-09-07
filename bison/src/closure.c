@@ -1,6 +1,6 @@
 /* Closures for Bison
 
-   Copyright (C) 1984, 1989, 2000-2002, 2004-2005, 2007, 2009-2012 Free
+   Copyright (C) 1984, 1989, 2000-2002, 2004-2005, 2007, 2009-2013 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -44,7 +44,7 @@ static bitsetv firsts = NULL;
 
 /* Retrieve the FDERIVES/FIRSTS sets of the nonterminals numbered Var.  */
 #define FDERIVES(Var)   fderives[(Var) - ntokens]
-#define   FIRSTS(Var)   firsts[(Var) - ntokens]
+#define FIRSTS(Var)   firsts[(Var) - ntokens]
 
 
 /*-----------------.
@@ -52,7 +52,7 @@ static bitsetv firsts = NULL;
 `-----------------*/
 
 static void
-print_closure (char const *title, item_number *array, size_t size)
+print_closure (char const *title, item_number const *array, size_t size)
 {
   size_t i;
   fprintf (stderr, "Closure: %s\n", title);
@@ -61,7 +61,7 @@ print_closure (char const *title, item_number *array, size_t size)
       item_number *rp;
       fprintf (stderr, "  %2d: .", array[i]);
       for (rp = &ritem[array[i]]; *rp >= 0; ++rp)
-	fprintf (stderr, " %s", symbols[*rp]->tag);
+        fprintf (stderr, " %s", symbols[*rp]->tag);
       fprintf (stderr, "  (rule %d)\n", -*rp - 1);
     }
   fputs ("\n\n", stderr);
@@ -77,12 +77,9 @@ print_firsts (void)
   for (i = ntokens; i < nsyms; i++)
     {
       bitset_iterator iter;
-      fprintf (stderr, "\t%s firsts\n", symbols[i]->tag);
+      fprintf (stderr, "  %s firsts\n", symbols[i]->tag);
       BITSET_FOR_EACH (iter, FIRSTS (i), j, 0)
-	{
-	  fprintf (stderr, "\t\t%s\n",
-		   symbols[j + ntokens]->tag);
-	}
+        fprintf (stderr, "    %s\n", symbols[j + ntokens]->tag);
     }
   fprintf (stderr, "\n\n");
 }
@@ -98,12 +95,13 @@ print_fderives (void)
   for (i = ntokens; i < nsyms; i++)
     {
       bitset_iterator iter;
-      fprintf (stderr, "\t%s derives\n", symbols[i]->tag);
+      fprintf (stderr, "  %s derives\n", symbols[i]->tag);
       BITSET_FOR_EACH (iter, FDERIVES (i), r, 0)
-	{
-	  fprintf (stderr, "\t\t%3d ", r);
-	  rule_rhs_print (&rules[r], stderr);
-	}
+        {
+          fprintf (stderr, "    %3d ", r);
+          rule_rhs_print (&rules[r], stderr);
+          fprintf (stderr, "\n");
+        }
     }
   fprintf (stderr, "\n\n");
 }
@@ -129,9 +127,9 @@ set_firsts (void)
   for (i = ntokens; i < nsyms; i++)
     for (j = 0; derives[i - ntokens][j]; ++j)
       {
-	item_number sym = derives[i - ntokens][j]->rhs[0];
-	if (ISVAR (sym))
-	  bitset_set (FIRSTS (i), sym - ntokens);
+        item_number sym = derives[i - ntokens][j]->rhs[0];
+        if (ISVAR (sym))
+          bitset_set (FIRSTS (i), sym - ntokens);
       }
 
   if (trace_flag & trace_sets)
@@ -167,8 +165,8 @@ set_fderives (void)
   for (i = ntokens; i < nsyms; ++i)
     for (j = ntokens; j < nsyms; ++j)
       if (bitset_test (FIRSTS (i), j - ntokens))
-	for (k = 0; derives[j - ntokens][k]; ++k)
-	  bitset_set (FDERIVES (i), derives[j - ntokens][k]->number);
+        for (k = 0; derives[j - ntokens][k]; ++k)
+          bitset_set (FDERIVES (i), derives[j - ntokens][k]->number);
 
   if (trace_flag & trace_sets)
     print_fderives ();
@@ -191,7 +189,7 @@ new_closure (unsigned int n)
 
 
 void
-closure (item_number *core, size_t n)
+closure (item_number const *core, size_t n)
 {
   /* Index over CORE. */
   size_t c;
@@ -218,11 +216,11 @@ closure (item_number *core, size_t n)
     {
       item_number itemno = rules[ruleno].rhs - ritem;
       while (c < n && core[c] < itemno)
-	{
-	  itemset[nitemset] = core[c];
-	  nitemset++;
-	  c++;
-	}
+        {
+          itemset[nitemset] = core[c];
+          nitemset++;
+          c++;
+        }
       itemset[nitemset] = itemno;
       nitemset++;
     };

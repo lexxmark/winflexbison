@@ -2,7 +2,7 @@
 
 # Java language support for Bison
 
-# Copyright (C) 2007-2012 Free Software Foundation, Inc.
+# Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,18 +19,12 @@
 
 m4_include(b4_pkgdatadir/[c-like.m4])
 
-# b4_comment(TEXT)
-# ----------------
-m4_define([b4_comment], [/* m4_bpatsubst([$1], [
-], [
-   ])  */])
-
 
 # b4_list2(LIST1, LIST2)
-# --------------------------
+# ----------------------
 # Join two lists with a comma if necessary.
 m4_define([b4_list2],
-	  [$1[]m4_ifval(m4_quote($1), [m4_ifval(m4_quote($2), [[, ]])])[]$2])
+          [$1[]m4_ifval(m4_quote($1), [m4_ifval(m4_quote($2), [[, ]])])[]$2])
 
 
 # b4_percent_define_get3(DEF, PRE, POST, NOT)
@@ -38,8 +32,8 @@ m4_define([b4_list2],
 # Expand to the value of DEF surrounded by PRE and POST if it's %define'ed,
 # otherwise NOT.
 m4_define([b4_percent_define_get3],
-	  [m4_ifval(m4_quote(b4_percent_define_get([$1])),
-		[$2[]b4_percent_define_get([$1])[]$3], [$4])])
+          [m4_ifval(m4_quote(b4_percent_define_get([$1])),
+                [$2[]b4_percent_define_get([$1])[]$3], [$4])])
 
 
 
@@ -104,12 +98,12 @@ m4_define([b4_identification],
 m4_define([b4_int_type],
 [m4_if(b4_ints_in($@,   [-128],   [127]), [1], [byte],
        b4_ints_in($@, [-32768], [32767]), [1], [short],
-					       [int])])
+                                               [int])])
 
 # b4_int_type_for(NAME)
 # ---------------------
 # Return the smallest int type able to handle numbers ranging from
-# `NAME_min' to `NAME_max' (included).
+# 'NAME_min' to 'NAME_max' (included).
 m4_define([b4_int_type_for],
 [b4_int_type($1_min, $1_max)])
 
@@ -118,27 +112,45 @@ m4_define([b4_int_type_for],
 m4_define([b4_null], [null])
 
 
+# b4_typed_parser_table_define(TYPE, NAME, DATA, COMMENT)
+# -------------------------------------------------------
+m4_define([b4_typed_parser_table_define],
+[m4_ifval([$4], [b4_comment([$4])
+  ])dnl
+[private static final ]$1[ yy$2_[] = yy$2_init();
+  private static final ]$1[[] yy$2_init()
+  {
+    return new ]$1[[]
+    {
+  ]$3[
+    };
+  }]])
+
+
+# b4_integral_parser_table_define(NAME, DATA, COMMENT)
+#-----------------------------------------------------
+m4_define([b4_integral_parser_table_define],
+[b4_typed_parser_table_define([b4_int_type_for([$2])], [$1], [$2], [$3])])
+
+
 ## ------------------------- ##
 ## Assigning token numbers.  ##
 ## ------------------------- ##
 
-# b4_token_enum(TOKEN-NAME, TOKEN-NUMBER)
-# ---------------------------------------
+# b4_token_enum(TOKEN-NUM)
+# ------------------------
 # Output the definition of this token as an enum.
 m4_define([b4_token_enum],
-[  /** Token number, to be returned by the scanner.  */
-  public static final int $1 = $2;
-])
+[b4_token_format([    /** Token number, to be returned by the scanner.  */
+    static final int %s = %s;
+], [$1])])
 
-
-# b4_token_enums(LIST-OF-PAIRS-TOKEN-NAME-TOKEN-NUMBER)
-# -----------------------------------------------------
+# b4_token_enums
+# --------------
 # Output the definition of the tokens (if there are) as enums.
 m4_define([b4_token_enums],
-[m4_if([$#$1], [1], [],
-[/* Tokens.  */
-m4_map([b4_token_enum], [$@])])
-])
+[b4_any_token_visible_if([/* Tokens.  */
+b4_symbol_foreach([b4_token_enum])])])
 
 # b4-case(ID, CODE)
 # -----------------
@@ -149,13 +161,36 @@ m4_define([b4_case], [  case $1:
   break;
     ])
 
+# b4_predicate_case(LABEL, CONDITIONS)
+# ------------------------------------
+m4_define([b4_predicate_case], [  case $1:
+     if (! ($2)) YYERROR;
+    break;
+    ])
+
+
+## -------- ##
+## Checks.  ##
+## -------- ##
+
+b4_percent_define_check_kind([[api.value.type]],    [code], [deprecated])
+
+b4_percent_define_check_kind([[annotations]],       [code], [deprecated])
+b4_percent_define_check_kind([[extends]],           [code], [deprecated])
+b4_percent_define_check_kind([[implements]],        [code], [deprecated])
+b4_percent_define_check_kind([[init_throws]],       [code], [deprecated])
+b4_percent_define_check_kind([[lex_throws]],        [code], [deprecated])
+b4_percent_define_check_kind([[parser_class_name]], [code], [deprecated])
+b4_percent_define_check_kind([[throws]],            [code], [deprecated])
+
+
 
 ## ---------------- ##
 ## Default values.  ##
 ## ---------------- ##
 
-m4_define([b4_yystype], [b4_percent_define_get([[stype]])])
-b4_percent_define_default([[stype]], [[Object]])
+m4_define([b4_yystype], [b4_percent_define_get([[api.value.type]])])
+b4_percent_define_default([[api.value.type]], [[Object]])
 
 # %name-prefix
 m4_define_default([b4_prefix], [[YY]])
@@ -168,6 +203,9 @@ m4_define([b4_lex_throws], [b4_percent_define_get([[lex_throws]])])
 
 b4_percent_define_default([[throws]], [])
 m4_define([b4_throws], [b4_percent_define_get([[throws]])])
+
+b4_percent_define_default([[init_throws]], [])
+m4_define([b4_init_throws], [b4_percent_define_get([[init_throws]])])
 
 b4_percent_define_default([[api.location.type]], [Location])
 m4_define([b4_location_type], [b4_percent_define_get([[api.location.type]])])
@@ -224,16 +262,16 @@ m4_define([b4_lex_param], b4_lex_param)
 m4_define([b4_parse_param], b4_parse_param)
 
 # b4_lex_param_decl
-# -------------------
+# -----------------
 # Extra formal arguments of the constructor.
 m4_define([b4_lex_param_decl],
 [m4_ifset([b4_lex_param],
           [b4_remove_comma([$1],
-			   b4_param_decls(b4_lex_param))],
-	  [$1])])
+                           b4_param_decls(b4_lex_param))],
+          [$1])])
 
 m4_define([b4_param_decls],
-	  [m4_map([b4_param_decl], [$@])])
+          [m4_map([b4_param_decl], [$@])])
 m4_define([b4_param_decl], [, $1])
 
 m4_define([b4_remove_comma], [m4_ifval(m4_quote($1), [$1, ], [])m4_shift2($@)])
@@ -246,21 +284,21 @@ m4_define([b4_remove_comma], [m4_ifval(m4_quote($1), [$1, ], [])m4_shift2($@)])
 m4_define([b4_parse_param_decl],
 [m4_ifset([b4_parse_param],
           [b4_remove_comma([$1],
-			   b4_param_decls(b4_parse_param))],
-	  [$1])])
+                           b4_param_decls(b4_parse_param))],
+          [$1])])
 
 
 
 # b4_lex_param_call
-# -------------------
+# -----------------
 # Delegating the lexer parameters to the lexer constructor.
 m4_define([b4_lex_param_call],
           [m4_ifset([b4_lex_param],
-	            [b4_remove_comma([$1],
-				     b4_param_calls(b4_lex_param))],
-	            [$1])])
+                    [b4_remove_comma([$1],
+                                     b4_param_calls(b4_lex_param))],
+                    [$1])])
 m4_define([b4_param_calls],
-	  [m4_map([b4_param_call], [$@])])
+          [m4_map([b4_param_call], [$@])])
 m4_define([b4_param_call], [, $2])
 
 
@@ -270,13 +308,13 @@ m4_define([b4_param_call], [, $2])
 # Extra initialisations of the constructor.
 m4_define([b4_parse_param_cons],
           [m4_ifset([b4_parse_param],
-		    [b4_constructor_calls(b4_parse_param)])])
+                    [b4_constructor_calls(b4_parse_param)])])
 
 m4_define([b4_constructor_calls],
-	  [m4_map([b4_constructor_call], [$@])])
+          [m4_map([b4_constructor_call], [$@])])
 m4_define([b4_constructor_call],
-	  [this.$2 = $2;
-	  ])
+          [this.$2 = $2;
+          ])
 
 
 
@@ -285,15 +323,15 @@ m4_define([b4_constructor_call],
 # Extra instance variables.
 m4_define([b4_parse_param_vars],
           [m4_ifset([b4_parse_param],
-		    [
+                    [
     /* User arguments.  */
 b4_var_decls(b4_parse_param)])])
 
 m4_define([b4_var_decls],
-	  [m4_map_sep([b4_var_decl], [
+          [m4_map_sep([b4_var_decl], [
 ], [$@])])
 m4_define([b4_var_decl],
-	  [    protected final $1;])
+          [    protected final $1;])
 
 
 
@@ -301,4 +339,4 @@ m4_define([b4_var_decl],
 # -----------------------
 # Expand to either an empty string or "throws THROWS".
 m4_define([b4_maybe_throws],
-	  [m4_ifval($1, [throws $1])])
+          [m4_ifval($1, [throws $1])])

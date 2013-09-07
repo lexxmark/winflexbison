@@ -1,6 +1,6 @@
 /* System-dependent definitions for Bison.
 
-   Copyright (C) 2000-2007, 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 2000-2007, 2009-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,26 +22,35 @@
    runs afoul of pre-C99 compilers that have <inttypes.h> or
    <stdint.h>, which are included below if available.  It also runs
    afoul of pre-C99 compilers that define these macros in <limits.h>.  */
-#if ! defined __STDC_VERSION__ || __STDC_VERSION__ < 199901
-# undef INT8_MIN
-# undef INT16_MIN
-# undef INT32_MIN
-# undef INT8_MAX
-# undef INT16_MAX
-# undef UINT8_MAX
-# undef INT32_MAX
-# undef UINT16_MAX
-# undef UINT32_MAX
-#endif
+# if ! defined __STDC_VERSION__ || __STDC_VERSION__ < 199901
+#  undef INT8_MIN
+#  undef INT16_MIN
+#  undef INT32_MIN
+#  undef INT8_MAX
+#  undef INT16_MAX
+#  undef UINT8_MAX
+#  undef INT32_MAX
+#  undef UINT16_MAX
+#  undef UINT32_MAX
+# endif
 
-#include <limits.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+# include <limits.h>
+# include <stddef.h>
+# include <stdlib.h>
+# include <string.h>
 
-#if HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
+# define ARRAY_CARDINALITY(Array) (sizeof (Array) / sizeof *(Array))
+# define STREQ(L, R)  (strcmp(L, R) == 0)
+# define STRNEQ(L, R) (!STREQ(L, R))
+
+/* Just like strncmp, but the second argument must be a literal string
+   and you don't specify the length.  */
+# define STRNCMP_LIT(S, Literal)                        \
+  strncmp (S, "" Literal "", sizeof (Literal) - 1)
+
+/* Whether Literal is a prefix of S.  */
+# define STRPREFIX_LIT(Literal, S)              \
+  (STRNCMP_LIT (S, Literal) == 0)
 
 //#include <unistd.h>
 //#include <inttypes.h>
@@ -60,8 +69,8 @@ typedef size_t uintptr_t;
 `---------*/
 
 //#include <unlocked-io.h>
-#include <verify.h>
-#include <xalloc.h>
+# include <verify.h>
+# include <xalloc.h>
 #include <stdio.h>
 
 
@@ -91,7 +100,7 @@ typedef size_t uintptr_t;
 #  endif
 # endif
 
-/* The __-protected variants of `format' and `printf' attributes
+/* The __-protected variants of 'format' and 'printf' attributes
    are accepted by gcc versions 2.6.4 (effectively 2.7) and later.  */
 # if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7)
 #  define __format__ format
@@ -160,7 +169,9 @@ typedef size_t uintptr_t;
 # define obstack_chunk_free  free
 # include <obstack.h>
 
-# define obstack_sgrow(Obs, Str)                \
+/* String-grow: append Str to Obs.  */
+
+# define obstack_sgrow(Obs, Str) \
   obstack_grow (Obs, Str, strlen (Str))
 
 /* Output Str escaped for our postprocessing (i.e., escape M4 special
@@ -170,15 +181,15 @@ typedef size_t uintptr_t;
 
 # define obstack_escape(Obs, Str)                       \
   do {                                                  \
-    char const *p;                                      \
-    for (p = Str; *p; p++)                              \
-      switch (*p)                                       \
+    char const *p__;                                    \
+    for (p__ = Str; *p__; p__++)                        \
+      switch (*p__)                                     \
         {                                               \
         case '$': obstack_sgrow (Obs, "$]["); break;    \
         case '@': obstack_sgrow (Obs, "@@" ); break;    \
         case '[': obstack_sgrow (Obs, "@{" ); break;    \
         case ']': obstack_sgrow (Obs, "@}" ); break;    \
-        default:  obstack_1grow (Obs, *p   ); break;    \
+        default:  obstack_1grow (Obs, *p__ ); break;    \
         }                                               \
   } while (0)
 
@@ -206,7 +217,7 @@ typedef size_t uintptr_t;
 
 /* Append the ending 0, finish Obs, and return the string.  */
 
-# define obstack_finish0(Obs)                           \
+# define obstack_finish0(Obs)                                   \
   (obstack_1grow (Obs, '\0'), (char *) obstack_finish (Obs))
 
 

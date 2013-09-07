@@ -3,7 +3,7 @@
 <!--
     xml2text.xsl - transform Bison XML Report into plain text.
 
-    Copyright (C) 2007-2012 Free Software Foundation, Inc.
+    Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -253,9 +253,9 @@
     <xsl:text>&#10;</xsl:text>
     <xsl:apply-templates select="transition[@type = $type]">
       <xsl:with-param name="pad">
-	<xsl:call-template name="max-width-symbol">
-	  <xsl:with-param name="node" select="transition[@type = $type]"/>
-	</xsl:call-template>
+        <xsl:call-template name="max-width-symbol">
+          <xsl:with-param name="node" select="transition[@type = $type]"/>
+        </xsl:call-template>
       </xsl:with-param>
     </xsl:apply-templates>
   </xsl:if>
@@ -266,9 +266,9 @@
     <xsl:text>&#10;</xsl:text>
     <xsl:apply-templates select="error">
       <xsl:with-param name="pad">
-	<xsl:call-template name="max-width-symbol">
-	  <xsl:with-param name="node" select="error"/>
-	</xsl:call-template>
+        <xsl:call-template name="max-width-symbol">
+          <xsl:with-param name="node" select="error"/>
+        </xsl:call-template>
       </xsl:with-param>
     </xsl:apply-templates>
   </xsl:if>
@@ -279,9 +279,9 @@
     <xsl:text>&#10;</xsl:text>
     <xsl:apply-templates select="reduction">
       <xsl:with-param name="pad">
-	<xsl:call-template name="max-width-symbol">
-	  <xsl:with-param name="node" select="reduction"/>
-	</xsl:call-template>
+        <xsl:call-template name="max-width-symbol">
+          <xsl:with-param name="node" select="reduction"/>
+        </xsl:call-template>
       </xsl:with-param>
     </xsl:apply-templates>
   </xsl:if>
@@ -290,7 +290,7 @@
 <xsl:template match="item">
   <xsl:param name="pad"/>
   <xsl:param name="prev-rule-number"
-	     select="preceding-sibling::item[1]/@rule-number"/>
+             select="preceding-sibling::item[1]/@rule-number"/>
   <xsl:apply-templates
     select="key('bison:ruleByNumber', current()/@rule-number)"
   >
@@ -329,14 +329,14 @@
   <xsl:choose>
     <xsl:when test="$itemset != 'true' and $prev-lhs = lhs[text()]">
       <xsl:call-template name="lpad">
-	<xsl:with-param name="str" select="'|'"/>
-	<xsl:with-param name="pad" select="number(string-length(lhs[text()])) + 1"/>
+        <xsl:with-param name="str" select="'|'"/>
+        <xsl:with-param name="pad" select="number(string-length(lhs[text()])) + 1"/>
       </xsl:call-template>
     </xsl:when>
     <xsl:when test="$itemset = 'true' and $prev-lhs = lhs[text()]">
       <xsl:call-template name="lpad">
-	<xsl:with-param name="str" select="'|'"/>
-	<xsl:with-param name="pad" select="number(string-length(lhs[text()])) + 1"/>
+        <xsl:with-param name="str" select="'|'"/>
+        <xsl:with-param name="pad" select="number(string-length(lhs[text()])) + 1"/>
       </xsl:call-template>
     </xsl:when>
     <xsl:otherwise>
@@ -373,7 +373,7 @@
 </xsl:template>
 
 <xsl:template match="empty">
-  <xsl:text> /* empty */</xsl:text>
+  <xsl:text> %empty</xsl:text>
 </xsl:template>
 
 <xsl:template match="lookaheads">
@@ -442,7 +442,7 @@
       <xsl:value-of select="@rule"/>
       <xsl:text> (</xsl:text>
       <xsl:value-of
-	  select="key('bison:ruleByNumber', current()/@rule)/lhs[text()]"/>
+          select="key('bison:ruleByNumber', current()/@rule)/lhs[text()]"/>
       <xsl:text>)</xsl:text>
     </xsl:otherwise>
   </xsl:choose>
@@ -479,9 +479,9 @@
   <xsl:variable name="longest">
     <xsl:for-each select="$node">
       <xsl:sort data-type="number" select="string-length(@symbol)"
-		order="descending"/>
+                order="descending"/>
       <xsl:if test="position() = 1">
-	<xsl:value-of select="string-length(@symbol)"/>
+        <xsl:value-of select="string-length(@symbol)"/>
       </xsl:if>
     </xsl:for-each>
   </xsl:variable>
@@ -498,7 +498,7 @@
     </xsl:when>
     <xsl:otherwise>
       <xsl:call-template name="space">
-	<xsl:with-param name="repeat" select="$diff"/>
+        <xsl:with-param name="repeat" select="$diff"/>
       </xsl:call-template>
       <xsl:value-of select="$str"/>
     </xsl:otherwise>
@@ -516,7 +516,7 @@
     <xsl:otherwise>
       <xsl:value-of select="$str"/>
       <xsl:call-template name="space">
-	<xsl:with-param name="repeat" select="$diff"/>
+        <xsl:with-param name="repeat" select="$diff"/>
       </xsl:call-template>
     </xsl:otherwise>
   </xsl:choose>

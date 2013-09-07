@@ -1,6 +1,6 @@
 /* Type definitions for the finite state machine for Bison.
 
-   Copyright (C) 2001-2007, 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 2001-2007, 2009-2013 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -28,9 +28,9 @@
 #include "print-xml.h"
 
 
-			/*-------------------.
-			| Shifts and Gotos.  |
-			`-------------------*/
+                        /*-------------------.
+                        | Shifts and Gotos.  |
+                        `-------------------*/
 
 
 /*-----------------------------------------.
@@ -61,14 +61,14 @@ transitions_to (transitions *shifts, symbol_number sym)
     {
       aver (j < shifts->num);
       if (TRANSITION_SYMBOL (shifts, j) == sym)
-	return shifts->states[j];
+        return shifts->states[j];
     }
 }
 
 
-			/*--------------------.
-			| Error transitions.  |
-			`--------------------*/
+                        /*--------------------.
+                        | Error transitions.  |
+                        `--------------------*/
 
 
 /*---------------------------------.
@@ -88,9 +88,9 @@ errs_new (int num, symbol **tokens)
 
 
 
-			/*-------------.
-			| Reductions.  |
-			`-------------*/
+                        /*-------------.
+                        | Reductions.  |
+                        `-------------*/
 
 
 /*---------------------------------------.
@@ -110,9 +110,9 @@ reductions_new (int num, rule **reds)
 
 
 
-			/*---------.
-			| States.  |
-			`---------*/
+                        /*---------.
+                        | States.  |
+                        `---------*/
 
 
 state_number nstates = 0;
@@ -128,7 +128,7 @@ state *final_state = NULL;
 
 state *
 state_new (symbol_number accessing_symbol,
-	   size_t nitems, item_number *core)
+           size_t nitems, item_number *core)
 {
   state *res;
   size_t items_size = nitems * sizeof *core;
@@ -264,17 +264,17 @@ state_rule_lookahead_tokens_print (state *s, rule *r, FILE *out)
       char const *sep = "";
       fprintf (out, "  [");
       BITSET_FOR_EACH (biter, reds->lookahead_tokens[red], k, 0)
-	{
-	  fprintf (out, "%s%s", sep, symbols[k]->tag);
-	  sep = ", ";
-	}
+        {
+          fprintf (out, "%s%s", sep, symbols[k]->tag);
+          sep = ", ";
+        }
       fprintf (out, "]");
     }
 }
 
 void
 state_rule_lookahead_tokens_print_xml (state *s, rule *r,
-				       FILE *out, int level)
+                                       FILE *out, int level)
 {
   /* Find the reduction we are handling.  */
   reductions *reds = s->reductions;
@@ -287,10 +287,10 @@ state_rule_lookahead_tokens_print_xml (state *s, rule *r,
       int k;
       xml_puts (out, level, "<lookaheads>");
       BITSET_FOR_EACH (biter, reds->lookahead_tokens[red], k, 0)
-	{
-	  xml_printf (out, level + 1, "<symbol>%s</symbol>",
-		      xml_escape (symbols[k]->tag));
-	}
+        {
+          xml_printf (out, level + 1, "<symbol>%s</symbol>",
+                      xml_escape (symbols[k]->tag));
+        }
       xml_puts (out, level, "</lookaheads>");
     }
 }
@@ -306,7 +306,7 @@ state_rule_lookahead_tokens_print_xml (state *s, rule *r,
 static struct hash_table *state_table = NULL;
 
 /* Two states are equal if they have the same core items.  */
-static  bool
+static inline bool
 state_compare (state const *s1, state const *s2)
 {
   size_t i;
@@ -327,7 +327,7 @@ state_comparator (void const *s1, void const *s2)
   return state_compare (s1, s2);
 }
 
-static  size_t
+static inline size_t
 state_hash (state const *s, size_t tablesize)
 {
   /* Add up the state's item numbers to get a hash key.  */
@@ -353,10 +353,10 @@ void
 state_hash_new (void)
 {
   state_table = hash_initialize (HT_INITIAL_CAPACITY,
-				 NULL,
-				 state_hasher,
-				 state_comparator,
-				 NULL);
+                                 NULL,
+                                 state_hasher,
+                                 state_comparator,
+                                 NULL);
 }
 
 

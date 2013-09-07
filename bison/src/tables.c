@@ -1,6 +1,6 @@
 /* Output the generated parsing program for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2006, 2009-2012 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2006, 2009-2013 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -35,7 +35,7 @@
 #include "tables.h"
 
 /* Several tables are indexed both by state and nonterminal numbers.
-   We call such an index a `vector'; i.e., a vector is either a state
+   We call such an index a 'vector'; i.e., a vector is either a state
    or a nonterminal number.
 
    Of course vector_number_t ought to be wide enough to contain
@@ -43,14 +43,14 @@
 typedef int vector_number;
 
 #if 0 /* Not currently used.  */
-static  vector_number
+static inline vector_number
 state_number_to_vector_number (state_number s)
 {
   return s;
 }
 #endif
 
-static  vector_number
+static inline vector_number
 symbol_number_to_vector_number (symbol_number sym)
 {
   return state_number_as_int (nstates) + sym - ntokens;
@@ -84,24 +84,24 @@ int nvectors;
 static base_number **froms;
 static base_number **tos;
 static unsigned int **conflict_tos;
-static int *tally;
+static size_t *tally;
 static base_number *width;
 
 
 /* For a given state, N = ACTROW[SYMBOL]:
 
-   If N = 0, stands for `run the default action'.
-   If N = MIN, stands for `raise a syntax error'.
-   If N > 0, stands for `shift SYMBOL and go to n'.
-   If N < 0, stands for `reduce -N'.  */
+   If N = 0, stands for 'run the default action'.
+   If N = MIN, stands for 'raise a syntax error'.
+   If N > 0, stands for 'shift SYMBOL and go to n'.
+   If N < 0, stands for 'reduce -N'.  */
 typedef int action_number;
 #define ACTION_NUMBER_MINIMUM INT_MIN
 
 static action_number *actrow;
 
 /* FROMS and TOS are reordered to be compressed.  ORDER[VECTOR] is the
-   new vector number of VECTOR.  We skip `empty' vectors (i.e.,
-   TALLY[VECTOR] = 0), and call these `entries'.  */
+   new vector number of VECTOR.  We skip 'empty' vectors (i.e.,
+   TALLY[VECTOR] = 0), and call these 'entries'.  */
 static vector_number *order;
 static int nentries;
 
@@ -135,11 +135,11 @@ int high;
 state_number *yydefgoto;
 rule_number *yydefact;
 
-/*----------------------------------------------------------------.
-| If TABLE (and CHECK) appear to be small to be addressed at      |
-| DESIRED, grow them.  Note that TABLE[DESIRED] is to be used, so |
-| the desired size is at least DESIRED + 1.                       |
-`----------------------------------------------------------------*/
+/*-------------------------------------------------------------------.
+| If TABLE, CONFLICT_TABLE, and CHECK are too small to be addressed  |
+| at DESIRED, grow them.  TABLE[DESIRED] can be used, so the desired |
+| size is at least DESIRED + 1.                                      |
+`-------------------------------------------------------------------*/
 
 static void
 table_grow (int desired)
@@ -151,11 +151,11 @@ table_grow (int desired)
 
   if (trace_flag & trace_resource)
     fprintf (stderr, "growing table and check from: %d to %d\n",
-	     old_size, table_size);
+             old_size, table_size);
 
   table = xnrealloc (table, table_size, sizeof *table);
   conflict_table = xnrealloc (conflict_table, table_size,
-			      sizeof *conflict_table);
+                              sizeof *conflict_table);
   check = xnrealloc (check, table_size, sizeof *check);
 
   for (/* Nothing. */; old_size < table_size; ++old_size)
@@ -171,12 +171,12 @@ table_grow (int desired)
 
 /*-------------------------------------------------------------------.
 | For GLR parsers, for each conflicted token in S, as indicated      |
-| by non-zero entries in CONFLROW, create a list of possible	     |
-| reductions that are alternatives to the shift or reduction	     |
+| by non-zero entries in CONFLROW, create a list of possible         |
+| reductions that are alternatives to the shift or reduction         |
 | currently recorded for that token in S.  Store the alternative     |
-| reductions followed by a 0 in CONFLICT_LIST, updating		     |
+| reductions followed by a 0 in CONFLICT_LIST, updating              |
 | CONFLICT_LIST_CNT, and storing an index to the start of the list   |
-| back into CONFLROW.						     |
+| back into CONFLROW.                                                |
 `-------------------------------------------------------------------*/
 
 static void
@@ -191,26 +191,26 @@ conflict_row (state *s)
   for (j = 0; j < ntokens; j += 1)
     if (conflrow[j])
       {
-	conflrow[j] = conflict_list_cnt;
+        conflrow[j] = conflict_list_cnt;
 
-	/* Find all reductions for token J, and record all that do not
-	   match ACTROW[J].  */
-	for (i = 0; i < reds->num; i += 1)
-	  if (bitset_test (reds->lookahead_tokens[i], j)
-	      && (actrow[j]
-		  != rule_number_as_item_number (reds->rules[i]->number)))
-	    {
-	      aver (0 < conflict_list_free);
-	      conflict_list[conflict_list_cnt] = reds->rules[i]->number + 1;
-	      conflict_list_cnt += 1;
-	      conflict_list_free -= 1;
-	    }
+        /* Find all reductions for token J, and record all that do not
+           match ACTROW[J].  */
+        for (i = 0; i < reds->num; i += 1)
+          if (bitset_test (reds->lookahead_tokens[i], j)
+              && (actrow[j]
+                  != rule_number_as_item_number (reds->rules[i]->number)))
+            {
+              aver (0 < conflict_list_free);
+              conflict_list[conflict_list_cnt] = reds->rules[i]->number + 1;
+              conflict_list_cnt += 1;
+              conflict_list_free -= 1;
+            }
 
-	/* Leave a 0 at the end.  */
-	aver (0 < conflict_list_free);
-	conflict_list[conflict_list_cnt] = 0;
-	conflict_list_cnt += 1;
-	conflict_list_free -= 1;
+        /* Leave a 0 at the end.  */
+        aver (0 < conflict_list_free);
+        conflict_list[conflict_list_cnt] = 0;
+        conflict_list_cnt += 1;
+        conflict_list_free -= 1;
       }
 }
 
@@ -221,9 +221,9 @@ conflict_row (state *s)
 | default action (yydefact) for the state.  In addition, ACTROW is  |
 | filled with what to do for each kind of token, index by symbol    |
 | number, with zero meaning do the default action.  The value       |
-| ACTION_NUMBER_MINIMUM, a very negative number, means this	    |
-| situation is an error.  The parser recognizes this value	    |
-| specially.							    |
+| ACTION_NUMBER_MINIMUM, a very negative number, means this         |
+| situation is an error.  The parser recognizes this value          |
+| specially.                                                        |
 |                                                                   |
 | This is where conflicts are resolved.  The loop over lookahead    |
 | rules considered lower-numbered rules last, and the last rule     |
@@ -255,22 +255,22 @@ action_row (state *s)
       int j;
       bitset_iterator biter;
       /* loop over all the rules available here which require
-	 lookahead (in reverse order to give precedence to the first
-	 rule) */
+         lookahead (in reverse order to give precedence to the first
+         rule) */
       for (i = reds->num - 1; i >= 0; --i)
-	/* and find each token which the rule finds acceptable
-	   to come next */
-	BITSET_FOR_EACH (biter, reds->lookahead_tokens[i], j, 0)
-	{
-	  /* and record this rule as the rule to use if that
-	     token follows.  */
-	  if (actrow[j] != 0)
-	    {
-	      conflicted = true;
-	      conflrow[j] = 1;
-	    }
-	  actrow[j] = rule_number_as_item_number (reds->rules[i]->number);
-	}
+        /* and find each token which the rule finds acceptable
+           to come next */
+        BITSET_FOR_EACH (biter, reds->lookahead_tokens[i], j, 0)
+        {
+          /* and record this rule as the rule to use if that
+             token follows.  */
+          if (actrow[j] != 0)
+            {
+              conflicted = true;
+              conflrow[j] = 1;
+            }
+          actrow[j] = rule_number_as_item_number (reds->rules[i]->number);
+        }
     }
 
   /* Now see which tokens are allowed for shifts in this state.  For
@@ -282,16 +282,16 @@ action_row (state *s)
       state *shift_state = trans->states[i];
 
       if (actrow[sym] != 0)
-	{
-	  conflicted = true;
-	  conflrow[sym] = 1;
-	}
+        {
+          conflicted = true;
+          conflrow[sym] = 1;
+        }
       actrow[sym] = state_number_as_int (shift_state->number);
 
       /* Do not use any default reduction if there is a shift for
-	 error */
+         error */
       if (sym == errtoken->number)
-	nodefault = true;
+        nodefault = true;
     }
 
   /* See which tokens are an explicit error in this state (due to
@@ -308,8 +308,8 @@ action_row (state *s)
      labeled as consistent.  */
   {
     char *default_reductions =
-      muscle_percent_define_get ("lr.default-reductions");
-    if (0 != strcmp (default_reductions, "most") && !s->consistent)
+      muscle_percent_define_get ("lr.default-reduction");
+    if (STRNEQ (default_reductions, "most") && !s->consistent)
       nodefault = true;
     free (default_reductions);
   }
@@ -320,43 +320,43 @@ action_row (state *s)
   if (reds->num >= 1 && !nodefault)
     {
       if (s->consistent)
-	default_reduction = reds->rules[0];
+        default_reduction = reds->rules[0];
       else
-	{
-	  int max = 0;
-	  for (i = 0; i < reds->num; i++)
-	    {
-	      int count = 0;
-	      rule *r = reds->rules[i];
-	      symbol_number j;
+        {
+          int max = 0;
+          for (i = 0; i < reds->num; i++)
+            {
+              int count = 0;
+              rule *r = reds->rules[i];
+              symbol_number j;
 
-	      for (j = 0; j < ntokens; j++)
-		if (actrow[j] == rule_number_as_item_number (r->number))
-		  count++;
+              for (j = 0; j < ntokens; j++)
+                if (actrow[j] == rule_number_as_item_number (r->number))
+                  count++;
 
-	      if (count > max)
-		{
-		  max = count;
-		  default_reduction = r;
-		}
-	    }
+              if (count > max)
+                {
+                  max = count;
+                  default_reduction = r;
+                }
+            }
 
-	  /* GLR parsers need space for conflict lists, so we can't
-	     default conflicted entries.  For non-conflicted entries
-	     or as long as we are not building a GLR parser,
-	     actions that match the default are replaced with zero,
-	     which means "use the default". */
+          /* GLR parsers need space for conflict lists, so we can't
+             default conflicted entries.  For non-conflicted entries
+             or as long as we are not building a GLR parser,
+             actions that match the default are replaced with zero,
+             which means "use the default". */
 
-	  if (max > 0)
-	    {
-	      int j;
-	      for (j = 0; j < ntokens; j++)
-		if (actrow[j]
+          if (max > 0)
+            {
+              int j;
+              for (j = 0; j < ntokens; j++)
+                if (actrow[j]
                     == rule_number_as_item_number (default_reduction->number)
-		    && ! (nondeterministic_parser && conflrow[j]))
-		  actrow[j] = 0;
-	    }
-	}
+                    && ! (nondeterministic_parser && conflrow[j]))
+                  actrow[j] = 0;
+            }
+        }
     }
 
   /* If have no default reduction, the default is an error.
@@ -365,7 +365,7 @@ action_row (state *s)
   if (!default_reduction)
     for (i = 0; i < ntokens; i++)
       if (actrow[i] == ACTION_NUMBER_MINIMUM)
-	actrow[i] = 0;
+        actrow[i] = 0;
 
   if (conflicted)
     conflict_row (s);
@@ -382,39 +382,34 @@ static void
 save_row (state_number s)
 {
   symbol_number i;
-  int count;
-  base_number *sp;
-  base_number *sp1;
-  base_number *sp2;
-  unsigned int *sp3;
 
   /* Number of non default actions in S.  */
-  count = 0;
+  size_t count = 0;
   for (i = 0; i < ntokens; i++)
     if (actrow[i] != 0)
       count++;
 
-  if (count == 0)
-    return;
+  if (count)
+    {
+      /* Allocate non defaulted actions.  */
+      base_number *sp1 = froms[s] = xnmalloc (count, sizeof *sp1);
+      base_number *sp2 = tos[s] = xnmalloc (count, sizeof *sp2);
+      unsigned int *sp3 = conflict_tos[s] =
+        nondeterministic_parser ? xnmalloc (count, sizeof *sp3) : NULL;
 
-  /* Allocate non defaulted actions.  */
-  froms[s] = sp = sp1 = xnmalloc (count, sizeof *sp1);
-  tos[s] = sp2 = xnmalloc (count, sizeof *sp2);
-  conflict_tos[s] = sp3 =
-    nondeterministic_parser ? xnmalloc (count, sizeof *sp3) : NULL;
+      /* Store non defaulted actions.  */
+      for (i = 0; i < ntokens; i++)
+        if (actrow[i] != 0)
+          {
+            *sp1++ = i;
+            *sp2++ = actrow[i];
+            if (nondeterministic_parser)
+              *sp3++ = conflrow[i];
+          }
 
-  /* Store non defaulted actions.  */
-  for (i = 0; i < ntokens; i++)
-    if (actrow[i] != 0)
-      {
-	*sp1++ = i;
-	*sp2++ = actrow[i];
-	if (nondeterministic_parser)
-	  *sp3++ = conflrow[i];
-      }
-
-  tally[s] = count;
-  width[s] = sp1[-1] - sp[0] + 1;
+      tally[s] = count;
+      width[s] = sp1[-1] - froms[s][0] + 1;
+    }
 }
 
 
@@ -429,10 +424,6 @@ save_row (state_number s)
 static void
 token_actions (void)
 {
-  state_number i;
-  symbol_number j;
-  rule_number r;
-
   int nconflict = nondeterministic_parser ? conflicts_total_count () : 0;
 
   yydefact = xnmalloc (nstates, sizeof *yydefact);
@@ -446,28 +437,34 @@ token_actions (void)
 
   /* Find the rules which are reduced.  */
   if (!nondeterministic_parser)
-    for (r = 0; r < nrules; ++r)
-      rules[r].useful = false;
-
-  for (i = 0; i < nstates; ++i)
     {
-      rule *default_reduction = action_row (states[i]);
-      yydefact[i] = default_reduction ? default_reduction->number + 1 : 0;
-      save_row (i);
-
-      /* Now that the parser was computed, we can find which rules are
-	 really reduced, and which are not because of SR or RR
-	 conflicts.  */
-      if (!nondeterministic_parser)
-	{
-	  for (j = 0; j < ntokens; ++j)
-	    if (actrow[j] < 0 && actrow[j] != ACTION_NUMBER_MINIMUM)
-	      rules[item_number_as_rule_number (actrow[j])].useful = true;
-	  if (yydefact[i])
-	    rules[yydefact[i] - 1].useful = true;
-	}
+      rule_number r;
+      for (r = 0; r < nrules; ++r)
+        rules[r].useful = false;
     }
 
+  {
+    state_number i;
+    for (i = 0; i < nstates; ++i)
+      {
+        rule *default_reduction = action_row (states[i]);
+        yydefact[i] = default_reduction ? default_reduction->number + 1 : 0;
+        save_row (i);
+
+        /* Now that the parser was computed, we can find which rules are
+           really reduced, and which are not because of SR or RR
+           conflicts.  */
+        if (!nondeterministic_parser)
+          {
+            symbol_number j;
+            for (j = 0; j < ntokens; ++j)
+              if (actrow[j] < 0 && actrow[j] != ACTION_NUMBER_MINIMUM)
+                rules[item_number_as_rule_number (actrow[j])].useful = true;
+            if (yydefact[i])
+              rules[yydefact[i] - 1].useful = true;
+          }
+      }
+  }
   free (actrow);
   free (conflrow);
 }
@@ -486,72 +483,68 @@ static void
 save_column (symbol_number sym, state_number default_state)
 {
   goto_number i;
-  base_number *sp;
-  base_number *sp1;
-  base_number *sp2;
-  int count;
-  vector_number symno = symbol_number_to_vector_number (sym);
-
   goto_number begin = goto_map[sym - ntokens];
   goto_number end = goto_map[sym - ntokens + 1];
 
   /* Number of non default GOTO.  */
-  count = 0;
+  size_t count = 0;
   for (i = begin; i < end; i++)
     if (to_state[i] != default_state)
       count++;
 
-  if (count == 0)
-    return;
+  if (count)
+    {
+      /* Allocate room for non defaulted gotos.  */
+      vector_number symno = symbol_number_to_vector_number (sym);
+      base_number *sp1 = froms[symno] = xnmalloc (count, sizeof *sp1);
+      base_number *sp2 = tos[symno] = xnmalloc (count, sizeof *sp2);
 
-  /* Allocate room for non defaulted gotos.  */
-  froms[symno] = sp = sp1 = xnmalloc (count, sizeof *sp1);
-  tos[symno] = sp2 = xnmalloc (count, sizeof *sp2);
+      /* Store the state numbers of the non defaulted gotos.  */
+      for (i = begin; i < end; i++)
+        if (to_state[i] != default_state)
+          {
+            *sp1++ = from_state[i];
+            *sp2++ = to_state[i];
+          }
 
-  /* Store the state numbers of the non defaulted gotos.  */
-  for (i = begin; i < end; i++)
-    if (to_state[i] != default_state)
-      {
-	*sp1++ = from_state[i];
-	*sp2++ = to_state[i];
-      }
-
-  tally[symno] = count;
-  width[symno] = sp1[-1] - sp[0] + 1;
+      tally[symno] = count;
+      width[symno] = sp1[-1] - froms[symno][0] + 1;
+    }
 }
 
 
-/*-------------------------------------------------------------.
-| Return `the' most common destination GOTO on SYM (a nterm).  |
-`-------------------------------------------------------------*/
+/*----------------------------------------------------------------.
+| The default state for SYM: the state which is 'the' most common |
+| GOTO destination on SYM (an nterm).                             |
+`----------------------------------------------------------------*/
 
 static state_number
 default_goto (symbol_number sym, size_t state_count[])
 {
-  state_number s;
-  goto_number i;
-  goto_number m = goto_map[sym - ntokens];
-  goto_number n = goto_map[sym - ntokens + 1];
-  state_number default_state = -1;
-  size_t max = 0;
+  goto_number begin = goto_map[sym - ntokens];
+  goto_number end = goto_map[sym - ntokens + 1];
+  state_number res = -1;
 
-  if (m == n)
-    return -1;
+  if (begin != end)
+    {
+      size_t max = 0;
+      goto_number i;
+      state_number s;
 
-  for (s = 0; s < nstates; s++)
-    state_count[s] = 0;
+      for (s = 0; s < nstates; s++)
+        state_count[s] = 0;
 
-  for (i = m; i < n; i++)
-    state_count[to_state[i]]++;
+      for (i = begin; i < end; i++)
+        state_count[to_state[i]]++;
 
-  for (s = 0; s < nstates; s++)
-    if (state_count[s] > max)
-      {
-	max = state_count[s];
-	default_state = s;
-      }
-
-  return default_state;
+      for (s = 0; s < nstates; s++)
+        if (max < state_count[s])
+          {
+            max = state_count[s];
+            res = s;
+          }
+    }
+  return res;
 }
 
 
@@ -596,29 +589,29 @@ sort_actions (void)
   nentries = 0;
 
   for (i = 0; i < nvectors; i++)
-    if (tally[i] > 0)
+    if (0 < tally[i])
       {
-	int k;
-	int t = tally[i];
-	int w = width[i];
-	int j = nentries - 1;
+        int k;
+        size_t t = tally[i];
+        int w = width[i];
+        int j = nentries - 1;
 
-	while (j >= 0 && (width[order[j]] < w))
-	  j--;
+        while (0 <= j && width[order[j]] < w)
+          j--;
 
-	while (j >= 0 && (width[order[j]] == w) && (tally[order[j]] < t))
-	  j--;
+        while (0 <= j && width[order[j]] == w && tally[order[j]] < t)
+          j--;
 
-	for (k = nentries - 1; k > j; k--)
-	  order[k + 1] = order[k];
+        for (k = nentries - 1; k > j; k--)
+          order[k + 1] = order[k];
 
-	order[j + 1] = i;
-	nentries++;
+        order[j + 1] = i;
+        nentries++;
       }
 }
 
 
-/* If VECTOR is a state which actions (reflected by FROMS, TOS, TALLY
+/* If VECTOR is a state whose actions (reflected by FROMS, TOS, TALLY
    and WIDTH of VECTOR) are common to a previous state, return this
    state number.
 
@@ -628,46 +621,43 @@ static state_number
 matching_state (vector_number vector)
 {
   vector_number i = order[vector];
-  int t;
-  int w;
-  int prev;
-
   /* If VECTOR is a nterm, return -1.  */
-  if (nstates <= i)
-    return -1;
-
-  t = tally[i];
-  w = width[i];
-
-  /* If VECTOR has GLR conflicts, return -1 */
-  if (conflict_tos[i] != NULL)
+  if (i < nstates)
     {
-      int j;
-      for (j = 0; j < t; j += 1)
-	if (conflict_tos[i][j] != 0)
-	  return -1;
+      size_t t = tally[i];
+      int w = width[i];
+      int prev;
+
+      /* If VECTOR has GLR conflicts, return -1 */
+      if (conflict_tos[i] != NULL)
+        {
+          int j;
+          for (j = 0; j < t; j += 1)
+            if (conflict_tos[i][j] != 0)
+              return -1;
+        }
+
+      for (prev = vector - 1; 0 <= prev; prev--)
+        {
+          vector_number j = order[prev];
+          /* Given how ORDER was computed, if the WIDTH or TALLY is
+             different, there cannot be a matching state.  */
+          if (width[j] != w || tally[j] != t)
+            return -1;
+          else
+            {
+              bool match = true;
+              int k;
+              for (k = 0; match && k < t; k++)
+                if (tos[j][k] != tos[i][k]
+                    || froms[j][k] != froms[i][k]
+                    || (conflict_tos[j] != NULL && conflict_tos[j][k] != 0))
+                  match = false;
+              if (match)
+                return j;
+            }
+        }
     }
-
-  for (prev = vector - 1; prev >= 0; prev--)
-    {
-      vector_number j = order[prev];
-      int k;
-      int match = 1;
-
-      /* Given how ORDER was computed, if the WIDTH or TALLY is
-	 different, there cannot be a matching state.  */
-      if (width[j] != w || tally[j] != t)
-	return -1;
-
-      for (k = 0; match && k < t; k++)
-	if (tos[j][k] != tos[i][k] || froms[j][k] != froms[i][k]
-	    || (conflict_tos[j] != NULL && conflict_tos[j][k] != 0))
-	  match = 0;
-
-      if (match)
-	return j;
-    }
-
   return -1;
 }
 
@@ -675,57 +665,59 @@ matching_state (vector_number vector)
 static base_number
 pack_vector (vector_number vector)
 {
+  base_number res;
   vector_number i = order[vector];
-  int j;
-  int t = tally[i];
-  int loc = 0;
+  size_t t = tally[i];
   base_number *from = froms[i];
   base_number *to = tos[i];
   unsigned int *conflict_to = conflict_tos[i];
 
   aver (t != 0);
 
-  for (j = lowzero - from[0]; ; j++)
+  for (res = lowzero - from[0]; ; res++)
     {
-      int k;
       bool ok = true;
+      aver (res < table_size);
+      {
+        int k;
+        for (k = 0; ok && k < t; k++)
+          {
+            int loc = res + state_number_as_int (from[k]);
+            if (table_size <= loc)
+              table_grow (loc);
 
-      aver (j < table_size);
+            if (table[loc] != 0)
+              ok = false;
+          }
 
-      for (k = 0; ok && k < t; k++)
-	{
-	  loc = j + state_number_as_int (from[k]);
-	  if (table_size <= loc)
-	    table_grow (loc);
-
-	  if (table[loc] != 0)
-	    ok = false;
-	}
-
-      for (k = 0; ok && k < vector; k++)
-	if (pos[k] == j)
-	  ok = false;
+        if (ok)
+          for (k = 0; k < vector; k++)
+            if (pos[k] == res)
+              ok = false;
+      }
 
       if (ok)
-	{
-	  for (k = 0; k < t; k++)
-	    {
-	      loc = j + from[k];
-	      table[loc] = to[k];
-	      if (nondeterministic_parser && conflict_to != NULL)
-		conflict_table[loc] = conflict_to[k];
-	      check[loc] = from[k];
-	    }
+        {
+          int loc;
+          int k;
+          for (k = 0; k < t; k++)
+            {
+              loc = res + state_number_as_int (from[k]);
+              table[loc] = to[k];
+              if (nondeterministic_parser && conflict_to != NULL)
+                conflict_table[loc] = conflict_to[k];
+              check[loc] = from[k];
+            }
 
-	  while (table[lowzero] != 0)
-	    lowzero++;
+          while (table[lowzero] != 0)
+            lowzero++;
 
-	  if (loc > high)
-	    high = loc;
+          if (high < loc)
+            high = loc;
 
-	  aver (BASE_MINIMUM <= j && j <= BASE_MAXIMUM);
-	  return j;
-	}
+          aver (BASE_MINIMUM <= res && res <= BASE_MAXIMUM);
+          return res;
+        }
     }
 }
 
@@ -783,11 +775,11 @@ pack_table (void)
       base_number place;
 
       if (s < 0)
-	/* A new set of state actions, or a nonterminal.  */
-	place = pack_vector (i);
+        /* A new set of state actions, or a nonterminal.  */
+        place = pack_vector (i);
       else
-	/* Action of I were already coded for S.  */
-	place = base[s];
+        /* Action of I were already coded for S.  */
+        place = base[s];
 
       pos[i] = place;
       base[order[i]] = place;
@@ -816,7 +808,7 @@ tables_generate (void)
      correlated.  In particular the signedness is not taken into
      account.  But it's not useless.  */
   verify (sizeof nstates <= sizeof nvectors
-	  && sizeof nvars <= sizeof nvectors);
+          && sizeof nvars <= sizeof nvectors);
 
   nvectors = state_number_as_int (nstates) + nvars;
 
