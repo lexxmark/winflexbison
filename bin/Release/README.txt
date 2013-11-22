@@ -1,3 +1,22 @@
+=======
+versions 2.4.1 2.5.1
+--------------
+remove XSI extention syntax for fprintf function (not implemented in windows)
+this fixes Graphviz files generation for bison
+
+NOTE:
+2.4.x versions will include bison version 2.7
+2.5.x versions will include bison version 3.0
+
+version 2.5
+--------------
+upgrade win_bison to version 3.0 and make temporary win_bison's files process unique (so parallel invocations of win_bison are possible)
+
+NOTE: There are several deprecated features were removed in bison 3.0 so this version can break your projects.
+Please see http://savannah.gnu.org/forum/forum.php?forum_id=7663
+For the reason of compatibility I don't change win_flex_bison-latest.zip to refer to win_flex_bison-2.5.zip file.
+It still refer to win_flex_bison-2.4.zip 
+
 version 2.4
 --------------
 fix problem with "m4_syscmd is not implemented" message. Now win_bison should output correct 
