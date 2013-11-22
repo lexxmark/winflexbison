@@ -1,3 +1,12 @@
+versions 2.4.1 2.5.1
+--------------
+remove XSI extention syntax for fprintf function (not implemented in windows)
+this fixes Graphviz files generation for bison
+
+NOTE:
+2.4.x versions will include bison version 2.7
+2.5.x versions will include bison version 3.0
+
 version 2.5
 --------------
 upgrade win_bison to version 3.0 and make temporary win_bison's files process unique (so parallel invocations of win_bison are possible)
