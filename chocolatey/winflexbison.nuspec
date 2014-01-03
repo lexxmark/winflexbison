@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>winflexbison</id>
+    <title>Win flex-bison</title>
+    <version>2.4.1.20140103</version>
+    <authors>Alex Zhondin (in addition to original authors of flex and bison)</authors>
+    <owners>lexxmark</owners>
+    <summary>Win flex-bison is a port Flex/Bison tools to the Windows platform</summary>
+    <description>flex - The Fast Lexical Analyzer (http://flex.sourceforge.net/) and bison - GNU parser generator (http://www.gnu.org/software/bison/)</description>
+    <projectUrl>http://sourceforge.net/projects/winflexbison/</projectUrl>
+    <tags>flex bison</tags>
+    <licenseUrl>http://www.gnu.org/licenses/gpl-3.0-standalone.html</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
