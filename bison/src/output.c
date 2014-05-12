@@ -500,6 +500,91 @@ muscles_output (FILE *out)
 /*---------------------------.
 | Call the skeleton parser.  |
 `---------------------------*/
+#include <process.h>
+#include <io.h>
+static const char letters[] =
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+/* Generate a temporary file name based on TMPL.  TMPL must match the
+   rules for mk[s]temp (i.e. end in "XXXXXX").  The name constructed
+   does not exist at the time of the call to mkstemp.  TMPL is
+   overwritten with the result.  */
+static FILE* mkstempFILE (char *tmpl, const char *mode)
+{
+	int len;
+	char *XXXXXX;
+	static unsigned long long value;
+	unsigned long long random_time_bits;
+	unsigned int count;
+	FILE* fd = NULL;
+	int r;
+
+	/* A lower bound on the number of temporary files to attempt to
+	generate.  The maximum total number of temporary file names that
+	can exist for a given template is 62**6.  It should never be
+	necessary to try all these combinations.  Instead if a reasonable
+	number of names is tried (we define reasonable as 62**3) fail to
+	give the system administrator the chance to remove the problems.  */
+#define ATTEMPTS_MIN (62 * 62 * 62)
+
+	/* The number of times to attempt to generate a temporary file.  To
+	conform to POSIX, this must be no smaller than TMP_MAX.  */
+#if ATTEMPTS_MIN < TMP_MAX
+	unsigned int attempts = TMP_MAX;
+#else
+	unsigned int attempts = ATTEMPTS_MIN;
+#endif
+
+	len = strlen (tmpl);
+	if (len < 6 || strcmp (&tmpl[len - 6], "XXXXXX"))
+	{
+		return NULL;
+	}
+
+	/* This is where the Xs start.  */
+	XXXXXX = &tmpl[len - 6];
+
+	/* Get some more or less random data but unique per process */
+	{
+		static unsigned long long g_value;
+		g_value = _getpid();
+ 		g_value += 100;
+		random_time_bits = (((unsigned long long)234546 << 32)
+			| (unsigned long long)g_value);
+	}
+	value += random_time_bits ^ (unsigned long long)122434;
+
+	for (count = 0; count < attempts; value += 7777, ++count)
+	{
+		unsigned long long v = value;
+
+		/* Fill in the random bits.  */
+		XXXXXX[0] = letters[v % 62];
+		v /= 62;
+		XXXXXX[1] = letters[v % 62];
+		v /= 62;
+		XXXXXX[2] = letters[v % 62];
+		v /= 62;
+		XXXXXX[3] = letters[v % 62];
+		v /= 62;
+		XXXXXX[4] = letters[v % 62];
+		v /= 62;
+		XXXXXX[5] = letters[v % 62];
+
+		/* file doesn't exist */
+		if (r = _access(tmpl, 0) == -1)
+		{
+			fd = fopen (tmpl, mode);
+			if (fd)
+			{
+				return fd;
+			}
+		}
+	}
+
+	/* We got out of the loop because we ran out of combinations to try.  */
+	return NULL;
+}
+
 extern int
 main_m4 (int argc, char *const *argv, FILE* in, FILE* out);
 
@@ -508,8 +593,8 @@ output_skeleton (void)
 {
   FILE *m4_in = NULL;
   FILE *m4_out = NULL;
-  char const m4_in_file_name[] = "~m4_in_temp_file";
-  char const m4_out_file_name[] = "~m4_out_temp_file";
+  char m4_in_file_name[] = "~m4_in_temp_file_XXXXXX";
+  char m4_out_file_name[] = "~m4_out_temp_file_XXXXXX";
 //  FILE *in;
 //  int filter_fd[2];
   char const *argv[10];
@@ -596,7 +681,7 @@ output_skeleton (void)
     muscles_output (stderr);
 
   {
-    m4_in = fopen (m4_in_file_name, "w+");
+    m4_in = mkstempFILE(m4_in_file_name, "w+");
     if (!m4_in)
       error (EXIT_FAILURE, get_errno (),
              "fopen");
@@ -610,7 +695,7 @@ output_skeleton (void)
 
   /* Read and process m4's output.  */
   {
-    m4_out = fopen (m4_out_file_name, "w+");
+    m4_out = mkstempFILE(m4_out_file_name, "w+");
     if (!m4_out)
       error (EXIT_FAILURE, get_errno (),
              "fopen");
