@@ -1,4 +1,10 @@
 =======
+versions 2.4.3/2.5.3
+--------------
+fix incorrect #line directives in win_flex.exe
+see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=542482
+
+=======
 versions 2.4.2/2.5.2
 --------------
 backport parallel invocations of win_bison version 2.7
