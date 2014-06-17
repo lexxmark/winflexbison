@@ -2159,6 +2159,7 @@ void make_tables ()
 
 	/* Copy remainder of input to output. */
 
+	linenum--;
 	line_directive_out (stdout, 1);
 
 	if (sectnum == 3) {
