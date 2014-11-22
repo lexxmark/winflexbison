@@ -55,6 +55,16 @@
     <Bison
       Condition="'@(Bison)' != '' and '%(Bison.ExcludedFromBuild)' != 'true'"
       CommandLineTemplate="%(Bison.CommandLineTemplate)"
+      OutputFile="%(Bison.OutputFile)"
+      DefinesFile="%(Bison.DefinesFile)"
+      Debug="%(Bison.Debug)"
+      Verbose="%(Bison.Verbose)"
+      NoLines="%(Bison.NoLines)"
+      FilePrefix="%(Bison.FilePrefix)"
+      GraphFile="%(Bison.GraphFile)"
+      Warnings="%(Bison.Warnings)"
+      Report="%(Bison.Report)"
+      ReportFile="%(Bison.ReportFile)"
       AdditionalOptions="%(Bison.AdditionalOptions)"
       Inputs="%(Bison.Identity)" />
   </Target>
@@ -119,6 +129,17 @@
     <Flex
       Condition="'@(Flex)' != '' and '%(Flex.ExcludedFromBuild)' != 'true'"
       CommandLineTemplate="%(Flex.CommandLineTemplate)"
+      OutputFile="%(Flex.OutputFile)"
+      HeaderFile="%(Flex.HeaderFile)"
+      Wincompat="%(Flex.Wincompat)"
+      CaseInsensitive="%(Flex.CaseInsensitive)"
+      LexCompat="%(Flex.LexCompat)"
+      Stack="%(Flex.Stack)"
+      BisonBridge="%(Flex.BisonBridge)"
+      Noline="%(Flex.Noline)"
+      Reentrant="%(Flex.Reentrant)"
+      Cpp="%(Flex.Cpp)"
+      Debug="%(Flex.Debug)"
       AdditionalOptions="%(Flex.AdditionalOptions)"
       Inputs="%(Flex.Identity)" />
   </Target>
