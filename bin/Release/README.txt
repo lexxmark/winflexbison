@@ -1,4 +1,10 @@
 =======
+versions 2.4.4/2.5.4
+--------------
+fix silent errors in custom build rules
+add some flex/bison options to Visual Studio property pages
+
+=======
 versions 2.4.3/2.5.3
 --------------
 fix incorrect #line directives in win_flex.exe
