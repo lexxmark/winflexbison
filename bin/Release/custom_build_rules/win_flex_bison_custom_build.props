@@ -31,7 +31,7 @@ exit /b %errorlevel%</CommandLineTemplate>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Flex>
-      <OutputFile>%(Filename).tab.cpp</OutputFile>
+      <OutputFile>%(Filename).flex.cpp</OutputFile>
       <Wincompat>true</Wincompat>
       <CommandLineTemplate>
 start /B /WAIT /D "%(RootDir)%(Directory)" win_flex.exe [AllOptions] "%(Filename)%(Extension)"
