@@ -131,6 +131,7 @@
       CommandLineTemplate="%(Flex.CommandLineTemplate)"
       OutputFile="%(Flex.OutputFile)"
       HeaderFile="%(Flex.HeaderFile)"
+      Prefix="%(Flex.Prefix)"
       Wincompat="%(Flex.Wincompat)"
       CaseInsensitive="%(Flex.CaseInsensitive)"
       LexCompat="%(Flex.LexCompat)"
@@ -139,6 +140,7 @@
       Noline="%(Flex.Noline)"
       Reentrant="%(Flex.Reentrant)"
       Cpp="%(Flex.Cpp)"
+      CppClassName="%(Flex.CppClassName)"
       Debug="%(Flex.Debug)"
       AdditionalOptions="%(Flex.AdditionalOptions)"
       Inputs="%(Flex.Identity)" />

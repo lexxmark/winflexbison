@@ -1,8 +1,41 @@
 =======
+versions 2.4.5/2.5.5
+--------------
+fix missing Additional Options in custom build rules
+fix incorrect "----header-file" option in flex custom build rules
+add some extra flex options to Visual Studio property pages:
+   1. Prefix (--prefix="...")
+   2. C++ Class Name (--yyclass="...")
+
+=======
 versions 2.4.4/2.5.4
 --------------
 fix silent errors in custom build rules
-add some flex/bison options to Visual Studio property pages
+add some flex/bison options to Visual Studio property pages:
+Bison:
+   1. Output File Name (--output="...")
+   2. Defines File Name (--defines="...")
+   3. Debug (--debug)
+   4. Verbose (--verbose)
+   5. No lines (--no-lines)
+   6. File Prefix (--file-prefix="...")
+   7. Graph File (--graph="...")
+   8. Warnings (--warnings="...")
+   9. Report (--report="...")
+   10. Report File Name (--report-file="...")
+   
+Flex:
+   1. Output File Name (--outfile="...")
+   2. Header File Name (--header-file="...")
+   3. Windows compatibility mode (--wincompat)
+   4. Case-insensitive mode (--case-insensitive)
+   5. Lex-compatibility mode (--lex-compat)
+   6. Start Condition Stacks (--stack)
+   7. Bison Bridge Mode (--bison-bridge)
+   8. No #line Directives (--noline)
+   9. Generate Reentrant Scanner (--reentrant)
+   10. Generate C++ Scanner (--c++)
+   11. Debug Mode (--debug)
 
 =======
 versions 2.4.3/2.5.3

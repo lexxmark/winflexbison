@@ -14,7 +14,7 @@
       <OutputFile>%(Filename).tab.cpp</OutputFile>
       <DefinesFile>%(Filename).tab.h</DefinesFile>
       <CommandLineTemplate>
-start /B /WAIT /D "%(RootDir)%(Directory)" win_bison.exe [AllOptions] "%(Filename)%(Extension)"
+start /B /WAIT /D "%(RootDir)%(Directory)" win_bison.exe [AllOptions] [AdditionalOptions] "%(Filename)%(Extension)"
 exit /b %errorlevel%</CommandLineTemplate>
       <Outputs>%(RootDir)%(Directory)%(OutputFile);</Outputs>
       <ExecutionDescription>Process "%(Filename)%(Extension)" bison file</ExecutionDescription>
@@ -34,7 +34,7 @@ exit /b %errorlevel%</CommandLineTemplate>
       <OutputFile>%(Filename).flex.cpp</OutputFile>
       <Wincompat>true</Wincompat>
       <CommandLineTemplate>
-start /B /WAIT /D "%(RootDir)%(Directory)" win_flex.exe [AllOptions] "%(Filename)%(Extension)"
+start /B /WAIT /D "%(RootDir)%(Directory)" win_flex.exe [AllOptions] [AdditionalOptions] "%(Filename)%(Extension)"
 exit /b %errorlevel%</CommandLineTemplate>
       <Outputs>%(RootDir)%(Directory)%(OutputFile);</Outputs>
       <ExecutionDescription>Process "%(Filename)%(Extension)" flex file</ExecutionDescription>
