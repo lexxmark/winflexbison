@@ -324,14 +324,22 @@
     <StringListProperty
       Name="HeaderFile"
       Category="Flex Options"
-      IsRequired="true"
       HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
       DisplayName="Header File Name"
       Description="Instructs flex to write a C header to ‘FILE’. This file contains function prototypes, extern variables, and types used by the scanner. Only the external API is exported by the header file.         (--header-file=value)"
-      Switch="--header-file=&quot;[value]&quot;"
+      Switch="header-file=&quot;[value]&quot;"
       />
 
-    <BoolProperty
+    <StringListProperty
+      Name="Prefix"
+      Category="Flex Options"
+      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      DisplayName="Prefix"
+      Description="Changes the default ‘yy’ prefix used by flex for all globally-visible variable and function names to instead be ‘PREFIX’. For example, ‘--prefix=foo’ changes the name of yytext to footext. It also changes the name of the default output file from lex.yy.c to lex.foo.c.         (--prefix=value)"
+      Switch="prefix=&quot;[value]&quot;"
+      />
+
+	  <BoolProperty
       Name="Wincompat"
       Category="Flex Options"
       DisplayName="Windows compatibility mode"
@@ -395,7 +403,15 @@
        HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
        Switch="c++" />
 
-    <BoolProperty
+    <StringListProperty
+      Name="CppClassName"
+      Category="Flex Options"
+      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      DisplayName="C++ Class Name"
+      Description="Only applies when generating a C++ scanner (the ‘--c++’ option). It informs flex that you have derived NAME as a subclass of yyFlexLexer, so flex will place your actions in the member function foo::yylex() instead of yyFlexLexer::yylex(). It also generates a yyFlexLexer::yylex() member function that emits a run-time error (by invoking yyFlexLexer::LexerError()) if called.         (--yyclass=value)"
+      Switch="yyclass=&quot;[value]&quot;" />
+
+	   <BoolProperty
        Name="Debug"
        Category="Flex Options"
        DisplayName="Debug Mode"
