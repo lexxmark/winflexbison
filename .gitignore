@@ -5,3 +5,5 @@
 *.ipch
 *.opensdf
 *.sdf
+*.log
+*.tlog

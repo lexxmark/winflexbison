@@ -34,6 +34,7 @@
 #include "flexdef.h"
 #include "tables.h"
 
+#if _MSC_VER < 1900
 int snprintf(char* str, size_t size, const char* format, ...)
 {
     size_t count;
@@ -44,7 +45,7 @@ int snprintf(char* str, size_t size, const char* format, ...)
     va_end(ap);
     return count;
 }
-
+#endif
 
 #define CMD_IF_TABLES_SER    "%if-tables-serialization"
 #define CMD_TABLES_YYDMAP    "%tables-yydmap"
