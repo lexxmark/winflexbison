@@ -1,1 +1,0 @@
-see "bin/Release/README.txt"
