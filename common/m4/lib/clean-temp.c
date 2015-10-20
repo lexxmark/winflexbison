@@ -587,7 +587,9 @@ cleanup_temp_dir (struct temp_dir *dir)
 static bool
 supports_delete_on_close ()
 {
-  static int known; /* 1 = yes, -1 = no, 0 = unknown */
+	// assume windows NT always
+  static int known = 1; /* 1 = yes, -1 = no, 0 = unknown */
+/*
   if (!known)
     {
       OSVERSIONINFO v;
@@ -597,6 +599,7 @@ supports_delete_on_close ()
       else
         known = -1;
     }
+*/
   return (known > 0);
 }
 

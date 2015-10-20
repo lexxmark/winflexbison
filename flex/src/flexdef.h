@@ -58,6 +58,7 @@ char *alloca ();
 #define STDC_HEADERS
 #define HAVE_ASSERT_H
 #define HAVE_LIMITS_H
+#define HAVE_STDBOOL_H
 
 #include <io.h>
 #include <fcntl.h>
