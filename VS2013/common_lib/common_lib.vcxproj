@@ -1,0 +1,329 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{11561197-1120-428C-A43D-7BCDFBCF79B8}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>common_lib</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)..\tmp\$(Configuration)\lib\</OutDir>
+    <IntDir>$(SolutionDir)..\tmp\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)..\tmp\$(Configuration)\lib\</OutDir>
+    <IntDir>$(SolutionDir)..\tmp\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\common\m4;$(ProjectDir)..\..\common\m4\lib;$(ProjectDir)..\..\common\misc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_LIB;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\common\m4;$(ProjectDir)..\common\m4\lib;$(ProjectDir)..\common\misc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\common\m4;$(ProjectDir)..\..\common\m4\lib;$(ProjectDir)..\..\common\misc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_LIB;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\common\m4;$(ProjectDir)..\common\m4\lib;$(ProjectDir)..\common\misc;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\m4;$(ProjectDir)..\src\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\common\m4\lib\binary-io.h" />
+    <ClInclude Include="..\..\common\m4\lib\c-stack.h" />
+    <ClInclude Include="..\..\common\m4\lib\clean-temp.h" />
+    <ClInclude Include="..\..\common\m4\lib\cloexec.h" />
+    <ClInclude Include="..\..\common\m4\lib\close-stream.h" />
+    <ClInclude Include="..\..\common\m4\lib\closein.h" />
+    <ClInclude Include="..\..\common\m4\lib\closeout.h" />
+    <ClInclude Include="..\..\common\m4\lib\execute.h" />
+    <ClInclude Include="..\..\common\m4\lib\filenamecat.h" />
+    <ClInclude Include="..\..\common\m4\lib\fpending.h" />
+    <ClInclude Include="..\..\common\m4\lib\freadahead.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_anyhash_list1.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_anyhash_list2.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_anylinked_list1.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_anylinked_list2.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_anytree_oset.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_avltree_oset.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_linkedhash_list.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_list.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_oset.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_xlist.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_xoset.h" />
+    <ClInclude Include="..\..\common\m4\lib\ignore-value.h" />
+    <ClInclude Include="..\..\common\m4\lib\malloca.h" />
+    <ClInclude Include="..\..\common\m4\lib\memchr2.h" />
+    <ClInclude Include="..\..\common\m4\lib\pathmax.h" />
+    <ClInclude Include="..\..\common\m4\lib\printf-args.h" />
+    <ClInclude Include="..\..\common\m4\lib\printf-parse.h" />
+    <ClInclude Include="..\..\common\m4\lib\progname.h" />
+    <ClInclude Include="..\..\common\m4\lib\regex.h" />
+    <ClInclude Include="..\..\common\m4\lib\regex_internal.h" />
+    <ClInclude Include="..\..\common\m4\lib\stdio--.h" />
+    <ClInclude Include="..\..\common\m4\lib\stdlib--.h" />
+    <ClInclude Include="..\..\common\m4\lib\stdlib-safer.h" />
+    <ClInclude Include="..\..\common\m4\lib\tempname.h" />
+    <ClInclude Include="..\..\common\m4\lib\tmpdir.h" />
+    <ClInclude Include="..\..\common\m4\lib\unistd--.h" />
+    <ClInclude Include="..\..\common\m4\lib\unistd-safer.h" />
+    <ClInclude Include="..\..\common\m4\lib\vasnprintf.h" />
+    <ClInclude Include="..\..\common\m4\lib\verror.h" />
+    <ClInclude Include="..\..\common\m4\lib\version-etc.h" />
+    <ClInclude Include="..\..\common\m4\lib\w32spawn.h" />
+    <ClInclude Include="..\..\common\m4\lib\xmalloca.h" />
+    <ClInclude Include="..\..\common\m4\lib\xprintf.h" />
+    <ClInclude Include="..\..\common\m4\lib\xsize.h" />
+    <ClInclude Include="..\..\common\m4\lib\xvasprintf.h" />
+    <ClInclude Include="..\..\common\m4\m4.h" />
+    <ClInclude Include="..\..\common\misc\abitset.h" />
+    <ClInclude Include="..\..\common\misc\argmatch.h" />
+    <ClInclude Include="..\..\common\misc\bbitset.h" />
+    <ClInclude Include="..\..\common\misc\bitrotate.h" />
+    <ClInclude Include="..\..\common\misc\bitset.h" />
+    <ClInclude Include="..\..\common\misc\bitsetv-print.h" />
+    <ClInclude Include="..\..\common\misc\bitsetv.h" />
+    <ClInclude Include="..\..\common\misc\bitset_stats.h" />
+    <ClInclude Include="..\..\common\misc\c-ctype.h" />
+    <ClInclude Include="..\..\common\misc\c-strcase.h" />
+    <ClInclude Include="..\..\common\misc\c-strcaseeq.h" />
+    <ClInclude Include="..\..\common\misc\cjk.h" />
+    <ClInclude Include="..\..\common\misc\config.h" />
+    <ClInclude Include="..\..\common\misc\dirname.h" />
+    <ClInclude Include="..\..\common\misc\dosname.h" />
+    <ClInclude Include="..\..\common\misc\ebitset.h" />
+    <ClInclude Include="..\..\common\misc\error.h" />
+    <ClInclude Include="..\..\common\misc\exitfail.h" />
+    <ClInclude Include="..\..\common\misc\get-errno.h" />
+    <ClInclude Include="..\..\common\misc\getopt.h" />
+    <ClInclude Include="..\..\common\misc\getopt_int.h" />
+    <ClInclude Include="..\..\common\misc\gettext.h" />
+    <ClInclude Include="..\..\common\misc\hash.h" />
+    <ClInclude Include="..\..\common\misc\lbitset.h" />
+    <ClInclude Include="..\..\common\misc\localcharset.h" />
+    <ClInclude Include="..\..\common\misc\mbswidth.h" />
+    <ClInclude Include="..\..\common\misc\obstack.h" />
+    <ClInclude Include="..\..\common\misc\progname.h" />
+    <ClInclude Include="..\..\common\misc\quote.h" />
+    <ClInclude Include="..\..\common\misc\quotearg.h" />
+    <ClInclude Include="..\..\common\misc\stdbool.h" />
+    <ClInclude Include="..\..\common\misc\stdio-safer.h" />
+    <ClInclude Include="..\..\common\misc\streq.h" />
+    <ClInclude Include="..\..\common\misc\system.h" />
+    <ClInclude Include="..\..\common\misc\timevar.h" />
+    <ClInclude Include="..\..\common\misc\unitypes.in.h" />
+    <ClInclude Include="..\..\common\misc\uniwidth.in.h" />
+    <ClInclude Include="..\..\common\misc\vbitset.h" />
+    <ClInclude Include="..\..\common\misc\verify.h" />
+    <ClInclude Include="..\..\common\misc\xalloc.h" />
+    <ClInclude Include="..\..\common\misc\xmemdup0.h" />
+    <ClInclude Include="..\..\common\misc\xstrndup.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\common\m4\builtin.c" />
+    <ClCompile Include="..\..\common\m4\debug.c" />
+    <ClCompile Include="..\..\common\m4\eval.c" />
+    <ClCompile Include="..\..\common\m4\format.c" />
+    <ClCompile Include="..\..\common\m4\freeze.c" />
+    <ClCompile Include="..\..\common\m4\input.c" />
+    <ClCompile Include="..\..\common\m4\lib\clean-temp.c" />
+    <ClCompile Include="..\..\common\m4\lib\cloexec.c" />
+    <ClCompile Include="..\..\common\m4\lib\close-stream.c" />
+    <ClCompile Include="..\..\common\m4\lib\closein.c" />
+    <ClCompile Include="..\..\common\m4\lib\closeout.c" />
+    <ClCompile Include="..\..\common\m4\lib\execute.c" />
+    <ClCompile Include="..\..\common\m4\lib\fd-safer.c" />
+    <ClCompile Include="..\..\common\m4\lib\filenamecat-lgpl.c" />
+    <ClCompile Include="..\..\common\m4\lib\gl_avltree_oset.c" />
+    <ClCompile Include="..\..\common\m4\lib\gl_linkedhash_list.c" />
+    <ClCompile Include="..\..\common\m4\lib\gl_list.c" />
+    <ClCompile Include="..\..\common\m4\lib\gl_oset.c" />
+    <ClCompile Include="..\..\common\m4\lib\gl_xlist.c" />
+    <ClCompile Include="..\..\common\m4\lib\gl_xoset.c" />
+    <ClCompile Include="..\..\common\m4\lib\memchr2.c" />
+    <ClCompile Include="..\..\common\m4\lib\mkdtemp.c" />
+    <ClCompile Include="..\..\common\m4\lib\mkstemp-safer.c" />
+    <ClCompile Include="..\..\common\m4\lib\mkstemp.c" />
+    <ClCompile Include="..\..\common\m4\lib\printf-args.c" />
+    <ClCompile Include="..\..\common\m4\lib\printf-parse.c" />
+    <ClCompile Include="..\..\common\m4\lib\regcomp.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\common\m4\lib\regex.c" />
+    <ClCompile Include="..\..\common\m4\lib\regexec.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\common\m4\lib\regex_internal.c" />
+    <ClCompile Include="..\..\common\m4\lib\tempname.c" />
+    <ClCompile Include="..\..\common\m4\lib\tmpdir.c" />
+    <ClCompile Include="..\..\common\m4\lib\vasnprintf.c" />
+    <ClCompile Include="..\..\common\m4\lib\vasprintf.c" />
+    <ClCompile Include="..\..\common\m4\lib\verror.c" />
+    <ClCompile Include="..\..\common\m4\lib\xasprintf.c" />
+    <ClCompile Include="..\..\common\m4\lib\xprintf.c" />
+    <ClCompile Include="..\..\common\m4\lib\xvasprintf.c" />
+    <ClCompile Include="..\..\common\m4\m4.c" />
+    <ClCompile Include="..\..\common\m4\macro.c" />
+    <ClCompile Include="..\..\common\m4\output.c" />
+    <ClCompile Include="..\..\common\m4\path.c" />
+    <ClCompile Include="..\..\common\m4\symtab.c" />
+    <ClCompile Include="..\..\common\misc\abitset.c" />
+    <ClCompile Include="..\..\common\misc\app_path.c" />
+    <ClCompile Include="..\..\common\misc\argmatch.c" />
+    <ClCompile Include="..\..\common\misc\basename-lgpl.c" />
+    <ClCompile Include="..\..\common\misc\bitset.c" />
+    <ClCompile Include="..\..\common\misc\bitsetv-print.c" />
+    <ClCompile Include="..\..\common\misc\bitsetv.c" />
+    <ClCompile Include="..\..\common\misc\bitset_stats.c" />
+    <ClCompile Include="..\..\common\misc\c-ctype.c" />
+    <ClCompile Include="..\..\common\misc\c-strcasecmp.c" />
+    <ClCompile Include="..\..\common\misc\c-strncasecmp.c" />
+    <ClCompile Include="..\..\common\misc\dirname-lgpl.c" />
+    <ClCompile Include="..\..\common\misc\dirname.c" />
+    <ClCompile Include="..\..\common\misc\ebitset.c" />
+    <ClCompile Include="..\..\common\misc\error.c" />
+    <ClCompile Include="..\..\common\misc\exitfail.c" />
+    <ClCompile Include="..\..\common\misc\get-errno.c" />
+    <ClCompile Include="..\..\common\misc\getdelim.c" />
+    <ClCompile Include="..\..\common\misc\getline.c" />
+    <ClCompile Include="..\..\common\misc\getopt.c" />
+    <ClCompile Include="..\..\common\misc\getopt1.c" />
+    <ClCompile Include="..\..\common\misc\hash.c" />
+    <ClCompile Include="..\..\common\misc\lbitset.c" />
+    <ClCompile Include="..\..\common\misc\localcharset.c" />
+    <ClCompile Include="..\..\common\misc\mbswidth.c" />
+    <ClCompile Include="..\..\common\misc\obstack.c" />
+    <ClCompile Include="..\..\common\misc\obstack_printf.c" />
+    <ClCompile Include="..\..\common\misc\progname.c" />
+    <ClCompile Include="..\..\common\misc\quotearg.c" />
+    <ClCompile Include="..\..\common\misc\strverscmp.c" />
+    <ClCompile Include="..\..\common\misc\timevar.c" />
+    <ClCompile Include="..\..\common\misc\vbitset.c" />
+    <ClCompile Include="..\..\common\misc\wcwidth.c" />
+    <ClCompile Include="..\..\common\misc\width.c" />
+    <ClCompile Include="..\..\common\misc\xalloc-die.c" />
+    <ClCompile Include="..\..\common\misc\xmalloc.c" />
+    <ClCompile Include="..\..\common\misc\xmemdup0.c" />
+    <ClCompile Include="..\..\common\misc\xstrndup.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
