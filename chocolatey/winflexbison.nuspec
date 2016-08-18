@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>winflexbison</id>
-    <title>Win flex-bison</title>
-    <version>2.4.1.20140103</version>
+    <id>winflexbison3</id>
+    <title>Win flex-bison (bison ver 3.x.x)</title>
+    <version>2.5.5.20160817</version>
     <authors>Alex Zhondin (in addition to original authors of flex and bison)</authors>
     <owners>lexxmark</owners>
     <summary>Win flex-bison is a port Flex/Bison tools to the Windows platform</summary>
