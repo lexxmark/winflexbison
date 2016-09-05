@@ -1,6 +1,6 @@
 /* Bison Grammar Scanner                             -*- C -*-
 
-   Copyright (C) 2002-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002-2015 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -44,9 +44,6 @@
 #include <src/scan-gram.h>
 
 #define YY_DECL GRAM_LEX_DECL
-
-#define YY_USER_INIT                                    \
-   code_start = scanner_cursor = loc->start;            \
 
 /* Location of scanner cursor.  */
 static boundary scanner_cursor;
@@ -166,6 +163,15 @@ eqopt    ([[:space:]]*=)?
   /* Where containing comment or string or character literal started,
      when applicable.  */
   boundary token_start PACIFY_CC (= scanner_cursor);
+
+  /* We cannot trust YY_USER_INIT, whose semantics changes over time
+     (it moved in Flex 2.5.38).  */
+  static bool first = true;
+  if (first)
+    {
+      scanner_cursor = loc->start;
+      first = false;
+    }
 %}
 
 
@@ -266,7 +272,7 @@ eqopt    ([[:space:]]*=)?
   "%pure"[-_]"parser"               DEPRECATED("%pure-parser");
   "%token"[-_]"table"               DEPRECATED("%token-table");
 
-  "%"{id}|"%"{notletter}([[:graph:]])+ {
+  "%"{id} {
     complain (loc, complaint, _("invalid directive: %s"), quote (yytext));
   }
 

@@ -1,6 +1,6 @@
 /* Keeping a unique copy of strings.
 
-   Copyright (C) 2002-2003, 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2008-2015 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -19,6 +19,8 @@
 
 #ifndef UNIQSTR_H_
 # define UNIQSTR_H_
+
+# include <stdio.h>
 
 /*-----------------------------------------.
 | Pointers to unique copies of C strings.  |

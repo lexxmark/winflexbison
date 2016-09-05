@@ -1,6 +1,6 @@
 /* Bison Action Scanner                             -*- C -*-
 
-   Copyright (C) 2006-2013 Free Software Foundation, Inc.
+   Copyright (C) 2006-2015 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -342,8 +342,19 @@ show_sub_message (warnings warning,
     {
       static struct obstack msg_buf;
       const char *tail = explicit_bracketing ? "" : cp + strlen (var->id);
-      const char *id = var->hidden_by ? var->hidden_by->id : var->id;
-      location id_loc = var->hidden_by ? var->hidden_by->loc : var->loc;
+      const char *id;
+      location id_loc;
+
+      if (var->hidden_by)
+        {
+          id = var->hidden_by->id;
+          id_loc = var->hidden_by->loc;
+        }
+      else
+        {
+          id = var->id;
+          id_loc = var->loc;
+        }
 
       /* Create the explanation message. */
       obstack_init (&msg_buf);
@@ -573,9 +584,6 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
         return INVALID_REF;
       }
     }
-
-  /* Not reachable. */
-  return INVALID_REF;
 }
 
 /* Keeps track of the maximum number of semantic values to the left of
@@ -656,7 +664,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
 
     case LHS_REF:
       if (!type_name)
-        type_name = symbol_list_n_type_name_get (rule, dollar_loc, 0);
+        type_name = symbol_list_n_type_name_get (rule, 0);
 
       if (!type_name)
         {
@@ -687,8 +695,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
       if (max_left_semantic_context < 1 - n)
         max_left_semantic_context = 1 - n;
       if (!type_name && 0 < n)
-        type_name =
-          symbol_list_n_type_name_get (effective_rule, dollar_loc, n);
+        type_name = symbol_list_n_type_name_get (effective_rule, n);
       if (!type_name)
         {
           if (union_seen | tag_seen)
@@ -703,7 +710,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
                       "]b4_rhs_value(%d, %d, ", effective_rule_length, n);
       obstack_quote (&obstack_for_string, type_name);
       obstack_sgrow (&obstack_for_string, ")[");
-      if (n > 0)
+      if (0 < n)
         symbol_list_n_get (effective_rule, n)->action_props.is_value_used =
           true;
       break;

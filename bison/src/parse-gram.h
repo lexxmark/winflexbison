@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.  */
+/* A Bison parser, made by GNU Bison 3.0.2.13-975bb-dirty.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ extern int gram_debug;
     param_parse  = 1 << 1,
     param_both   = param_lex | param_parse
   } param_type;
-#line 645 "src/parse-gram.y" /* yacc.c:1909  */
+#line 647 "src/parse-gram.y" /* yacc.c:1909  */
 #include "muscle-tab.h"
 
 #line 68 "src/parse-gram.h" /* yacc.c:1909  */
@@ -132,7 +132,7 @@ extern int gram_debug;
 
 /* Value type.  */
 #if ! defined GRAM_STYPE && ! defined GRAM_STYPE_IS_DECLARED
-typedef union GRAM_STYPE GRAM_STYPE;
+
 union GRAM_STYPE
 {
 #line 182 "src/parse-gram.y" /* yacc.c:1909  */
@@ -155,7 +155,7 @@ named_ref *named_ref;
 param_type param;
 #line 409 "src/parse-gram.y" /* yacc.c:1909  */
 code_props_type code_type;
-#line 647 "src/parse-gram.y" /* yacc.c:1909  */
+#line 649 "src/parse-gram.y" /* yacc.c:1909  */
 
   struct
   {
@@ -165,6 +165,8 @@ code_props_type code_type;
 
 #line 167 "src/parse-gram.h" /* yacc.c:1909  */
 };
+
+typedef union GRAM_STYPE GRAM_STYPE;
 # define GRAM_STYPE_IS_TRIVIAL 1
 # define GRAM_STYPE_IS_DECLARED 1
 #endif

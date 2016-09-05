@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2013 Free Software Foundation,
+   Copyright (C) 2002, 2005-2007, 2009-2015 Free Software Foundation,
    Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -21,7 +21,6 @@
 #include <config.h>
 #include "system.h"
 
-#include "complain.h"
 #include "symlist.h"
 
 /*--------------------------------------.
@@ -177,21 +176,16 @@ symbol_list *
 symbol_list_n_get (symbol_list *l, int n)
 {
   int i;
-
-  if (n < 0)
-    return NULL;
-
+  aver (0 <= n);
   for (i = 0; i < n; ++i)
     {
       l = l->next;
-      if (l == NULL
-          || (l->content_type == SYMLIST_SYMBOL && l->content.sym == NULL))
-        return NULL;
+      aver (l);
     }
-
+  aver (l->content_type == SYMLIST_SYMBOL);
+  aver (l->content.sym);
   return l;
 }
-
 
 /*--------------------------------------------------------------.
 | Get the data type (alternative in the union) of the value for |
@@ -199,23 +193,16 @@ symbol_list_n_get (symbol_list *l, int n)
 `--------------------------------------------------------------*/
 
 uniqstr
-symbol_list_n_type_name_get (symbol_list *l, location loc, int n)
+symbol_list_n_type_name_get (symbol_list *l, int n)
 {
-  l = symbol_list_n_get (l, n);
-  if (!l)
-    {
-      complain (&loc, complaint, _("invalid $ value: $%d"), n);
-      return NULL;
-    }
-  aver (l->content_type == SYMLIST_SYMBOL);
-  return l->content.sym->type_name;
+  return symbol_list_n_get (l, n)->content.sym->type_name;
 }
 
 bool
 symbol_list_null (symbol_list *node)
 {
-  return !node ||
-    (node->content_type == SYMLIST_SYMBOL && !(node->content.sym));
+  return (!node
+          || (node->content_type == SYMLIST_SYMBOL && !node->content.sym));
 }
 
 void

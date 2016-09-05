@@ -3,7 +3,7 @@
 <!--
     xml2html.xsl - transform Bison XML Report into XHTML.
 
-    Copyright (C) 2007-2013 Free Software Foundation, Inc.
+    Copyright (C) 2007-2015 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -532,12 +532,7 @@
       <xsl:text> </xsl:text>
       <span class="point">.</span>
     </xsl:if>
-    <xsl:if test="$itemset = 'true' and name(.) != 'empty'">
-      <xsl:apply-templates select="."/>
-    </xsl:if>
-    <xsl:if test="$itemset != 'true'">
-      <xsl:apply-templates select="."/>
-    </xsl:if>
+    <xsl:apply-templates select="."/>
     <xsl:if test="position() = last() and position() = $point">
       <xsl:text> </xsl:text>
       <span class="point">.</span>
@@ -563,7 +558,7 @@
 </xsl:template>
 
 <xsl:template match="empty">
-  <xsl:text> &#949;</xsl:text>
+  <xsl:text> %empty</xsl:text>
 </xsl:template>
 
 <xsl:template match="lookaheads">

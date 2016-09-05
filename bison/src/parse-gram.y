@@ -1,6 +1,6 @@
 /* Bison Grammar Parser                             -*- C -*-
 
-   Copyright (C) 2002-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002-2015 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -421,7 +421,9 @@ code_props_type:
 
 union_name:
   %empty {}
-| ID     { muscle_code_grow ("union_name", $1, @1); }
+| ID     { muscle_percent_define_insert ("api.value.union.name",
+                                         @1, muscle_keyword, $1,
+                                         MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE); }
 ;
 
 grammar_declaration:

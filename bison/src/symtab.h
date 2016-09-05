@@ -1,6 +1,6 @@
 /* Definitions for symtab.c and callers, part of Bison.
 
-   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2013 Free Software
+   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2015 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -73,12 +73,12 @@ typedef enum
     declared,
   } status;
 
-typedef enum code_props_type code_props_type;
 enum code_props_type
   {
     destructor = 0,
     printer = 1,
   };
+typedef enum code_props_type code_props_type;
 
 enum { CODE_PROPS_SIZE = 2 };
 

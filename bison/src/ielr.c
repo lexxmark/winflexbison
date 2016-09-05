@@ -1,6 +1,6 @@
 /* IELR main implementation.
 
-   Copyright (C) 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -1102,7 +1102,10 @@ ielr (void)
     else if (STREQ (type, "canonical-lr"))
       lr_type = LR_TYPE__CANONICAL_LR;
     else
-      aver (false);
+      {
+        aver (false);
+        abort ();
+      }
     free (type);
   }
 

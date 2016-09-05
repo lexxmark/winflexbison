@@ -2380,7 +2380,7 @@ at_output (int argc, char *argv[], char **out_namep, int *out_linenop)
       xfclose (skel_out);
     }
   *out_namep = xstrdup (argv[1]);
-  output_file_name_check (out_namep);
+  output_file_name_check (out_namep, true);
   skel_out = xfopen (*out_namep, "w");
   *out_linenop = 1;
 }

@@ -1,6 +1,6 @@
 /* Symbol table manager for Bison.
 
-   Copyright (C) 1984, 1989, 2000-2002, 2004-2013 Free Software
+   Copyright (C) 1984, 1989, 2000-2002, 2004-2015 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -100,6 +100,41 @@ symbol_new (uniqstr tag, location loc)
   return res;
 }
 
+/* If needed, swap first and second so that first has the earliest
+   location (according to location_cmp).
+
+   Many symbol features (e.g., user token numbers) are not assigned
+   during the parsing, but in a second step, via a traversal of the
+   symbol table sorted on tag.
+
+   However, error messages make more sense if we keep the first
+   declaration first.
+*/
+
+static
+void symbols_sort (symbol **first, symbol **second)
+{
+  if (0 < location_cmp ((*first)->location, (*second)->location))
+    {
+      symbol* tmp = *first;
+      *first = *second;
+      *second = tmp;
+    }
+}
+
+/* Likewise, for locations.  */
+
+static
+void locations_sort (location *first, location *second)
+{
+  if (0 < location_cmp (*first, *second))
+    {
+      location tmp = *first;
+      *first = *second;
+      *second = tmp;
+    }
+}
+
 char const *
 code_props_type_string (code_props_type kind)
 {
@@ -110,7 +145,7 @@ code_props_type_string (code_props_type kind)
     case printer:
       return "%printer";
     }
-  assert (0);
+  abort ();
 }
 
 /*----------------------------------------.
@@ -210,6 +245,7 @@ symbol_redeclaration (symbol *s, const char *what, location first,
                       location second)
 {
   unsigned i = 0;
+  locations_sort (&first, &second);
   complain_indent (&second, complaint, &i,
                    _("%s redeclaration for %s"), what, s->tag);
   i += SUB_INDENT;
@@ -222,6 +258,7 @@ semantic_type_redeclaration (semantic_type *s, const char *what, location first,
                              location second)
 {
   unsigned i = 0;
+  locations_sort (&first, &second);
   complain_indent (&second, complaint, &i,
                    _("%s redeclaration for <%s>"), what, s->tag);
   i += SUB_INDENT;
@@ -587,17 +624,7 @@ static void
 user_token_number_redeclaration (int num, symbol *first, symbol *second)
 {
   unsigned i = 0;
-  /* User token numbers are not assigned during the parsing, but in a
-     second step, via a traversal of the symbol table sorted on tag.
-
-     However, error messages make more sense if we keep the first
-     declaration first.  */
-  if (location_cmp (first->location, second->location) > 0)
-    {
-      symbol* tmp = first;
-      first = second;
-      second = tmp;
-    }
+  symbols_sort (&first, &second);
   complain_indent (&second->location, complaint, &i,
                    _("user token number %d redeclaration for %s"),
                    num, second->tag);

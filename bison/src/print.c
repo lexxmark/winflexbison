@@ -1,6 +1,6 @@
 /* Print information on generated parser, for bison,
 
-   Copyright (C) 1984, 1986, 1989, 2000-2005, 2007, 2009-2013 Free
+   Copyright (C) 1984, 1986, 1989, 2000-2005, 2007, 2009-2015 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -106,8 +106,11 @@ print_core (FILE *out, state *s)
       for (sp = rules[r].rhs; sp < sp1; sp++)
         fprintf (out, " %s", symbols[*sp]->tag);
       fputs (" .", out);
-      for (/* Nothing */; *sp >= 0; ++sp)
-        fprintf (out, " %s", symbols[*sp]->tag);
+      if (0 <= *rules[r].rhs)
+        for (/* Nothing */; 0 <= *sp; ++sp)
+          fprintf (out, " %s", symbols[*sp]->tag);
+      else
+        fprintf (out, " %%empty");
 
       /* Display the lookahead tokens?  */
       if (report_flag & report_lookahead_tokens
@@ -340,6 +343,7 @@ print_reductions (FILE *out, state *s)
             || (STREQ (default_reductions, "consistent")
                 && default_reduction_only)
             || (reds->num == 1 && reds->rules[0]->number == 0));
+      (void) default_reduction_only;
       free (default_reductions);
     }
 }

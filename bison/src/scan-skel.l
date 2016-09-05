@@ -1,6 +1,6 @@
 /* Scan Bison Skeletons.                                       -*- C -*-
 
-   Copyright (C) 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001-2015 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -192,7 +192,7 @@ flag (const char *arg)
   else if (STREQ (arg, "warn"))
     return Wother;
   else
-    aver (false);
+    abort ();
 }
 
 static void
@@ -244,8 +244,9 @@ at_output (int argc, char *argv[], char **out_namep, int *out_linenop)
       xfclose (yyout);
     }
   *out_namep = xstrdup (argv[1]);
-  output_file_name_check (out_namep);
-  yyout = xfopen (*out_namep, "w");
+  output_file_name_check (out_namep, true);
+  /* If there were errors, do not generate the output.  */
+  yyout = xfopen (complaint_status ? "/dev/null" : *out_namep, "w");
   *out_linenop = 1;
 }
 

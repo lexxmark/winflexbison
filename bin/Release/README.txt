@@ -1,4 +1,10 @@
 =======
+versions 2.4.6/2.5.6
+--------------
+upgrade win_bison  to version 3.0.4
+win_bison v2.7 is unchanged
+
+=======
 versions 2.4.5/2.5.5
 --------------
 fix missing Additional Options in custom build rules

@@ -2781,7 +2781,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
 
     case LHS_REF:
       if (!type_name)
-        type_name = symbol_list_n_type_name_get (rule, dollar_loc, 0);
+        type_name = symbol_list_n_type_name_get (rule, 0);
 
       if (!type_name)
         {
@@ -2813,7 +2813,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
         max_left_semantic_context = 1 - n;
       if (!type_name && 0 < n)
         type_name =
-          symbol_list_n_type_name_get (effective_rule, dollar_loc, n);
+          symbol_list_n_type_name_get (effective_rule, n);
       if (!type_name)
         {
           if (union_seen | tag_seen)

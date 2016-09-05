@@ -1,6 +1,6 @@
 /* Output a graph of the generated parser, for Bison.
 
-   Copyright (C) 2001-2007, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001-2007, 2009-2015 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -84,8 +84,11 @@ print_core (struct obstack *oout, state *s)
 
       obstack_1grow (oout, '.');
 
-      for (/* Nothing */; *sp >= 0; ++sp)
-        obstack_printf (oout, " %s", escape (symbols[*sp]->tag));
+      if (0 <= *r->rhs)
+        for (/* Nothing */; *sp >= 0; ++sp)
+          obstack_printf (oout, " %s", escape (symbols[*sp]->tag));
+      else
+        obstack_printf (oout, " %%empty");
 
       /* Experimental feature: display the lookahead tokens. */
       if (report_flag & report_lookahead_tokens

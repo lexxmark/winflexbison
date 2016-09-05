@@ -3,7 +3,7 @@
 <!--
     xml2dot.xsl - transform Bison XML Report into DOT.
 
-    Copyright (C) 2007-2013 Free Software Foundation, Inc.
+    Copyright (C) 2007-2015 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -201,6 +201,8 @@
   <xsl:if test="$point = 0">
     <xsl:text> .</xsl:text>
   </xsl:if>
+
+  <!-- RHS -->
   <xsl:for-each select="rhs/symbol|rhs/empty">
     <xsl:apply-templates select="."/>
     <xsl:if test="$point = position()">
@@ -214,7 +216,9 @@
   <xsl:value-of select="."/>
 </xsl:template>
 
-<xsl:template match="empty"/>
+<xsl:template match="empty">
+  <xsl:text> %empty</xsl:text>
+</xsl:template>
 
 <xsl:template match="lookaheads">
   <xsl:text>  [</xsl:text>
