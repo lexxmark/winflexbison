@@ -1,8 +1,10 @@
 =======
 versions 2.4.6/2.5.6
 --------------
-upgrade win_bison  to version 3.0.4
+upgrade win_bison to version 3.0.4
 win_bison v2.7 is unchanged
+add separate custom build rules for win_bison "custom_build_rules\win_bison_only"
+    and win_flex "custom_build_rules\win_flex_only"
 
 =======
 versions 2.4.5/2.5.5
