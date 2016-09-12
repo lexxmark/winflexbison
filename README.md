@@ -1,6 +1,9 @@
-##WinFlexBison - Flex and Bison for Microsoft Visual Studio 2015
+##WinFlexBison - Flex and Bison for Microsoft Windows
 
-Updated winflexbison from http://sourceforge.net/projects/winflexbison/
+Main winflexbison repository for http://sourceforge.net/projects/winflexbison/
+
+##Downloads
+Go to http://sourceforge.net/projects/winflexbison/files/
 
 ##HowTo
 http://sourceforge.net/p/winflexbison/wiki/Visual%20Studio%20custom%20build%20rules/
