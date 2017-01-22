@@ -37,18 +37,19 @@
 
 
 /* yylex - scan for a regular expression token */
-
-int     yylex ()
+extern char *yytext;
+extern FILE *yyout;
+bool no_section3_escape = false;
+int     yylex (void)
 {
 	int     toktype;
 	static int beglin = false;
-	extern char *yytext;
 
-	if (eofseen)
+	if (eofseen) {
 		toktype = EOF;
-	else
+        } else {
 		toktype = flexscan ();
-
+        }
 	if (toktype == EOF || toktype == 0) {
 		eofseen = 1;
 
@@ -150,11 +151,12 @@ int     yylex ()
 				break;
 
 			default:
-				if (!isascii (yylval) || !isprint (yylval))
-					fprintf (stderr,
-						 "\\%.3o",
-						 (unsigned int) yylval);
-				else
+				if (!isascii (yylval) || !isprint (yylval)) {
+					if(trace_hex)
+						fprintf (stderr, "\\x%02x", (unsigned int) yylval);
+					else
+						fprintf (stderr, "\\%.3o", (unsigned int) yylval);
+				} else
 					(void) putc (yylval, stderr);
 				break;
 			}
@@ -173,12 +175,12 @@ int     yylex ()
 			fprintf (stderr, "<<EOF>>");
 			break;
 
-		case OPTION_OP:
+		case TOK_OPTION:
 			fprintf (stderr, "%s ", yytext);
 			break;
 
-		case OPT_OUTFILE:
-		case OPT_PREFIX:
+		case TOK_OUTFILE:
+		case TOK_PREFIX:
 		case CCE_ALNUM:
 		case CCE_ALPHA:
 		case CCE_BLANK:

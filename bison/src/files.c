@@ -406,7 +406,7 @@ unlink_generated_sources (void)
   for (i = 0; i < generated_files_size; i++)
     if (generated_files[i].is_source)
       /* Ignore errors.  The file might not even exist.  */
-      unlink (generated_files[i].name);
+      _unlink (generated_files[i].name);
 }
 
 void

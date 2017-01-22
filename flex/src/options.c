@@ -117,6 +117,8 @@ optspec_t flexopts[] = {
 	,
 	{"--help", OPT_HELP, 0}
 	,			/* Produce this help message. */
+	{"--hex", OPT_HEX, 0}
+	,			/* Use hexadecimals in debug/trace outputs */
 	{"-I", OPT_INTERACTIVE, 0}
 	,
 	{"--interactive", OPT_INTERACTIVE, 0}
@@ -193,8 +195,8 @@ optspec_t flexopts[] = {
 	,			/* Flex should run in trace mode. */
 	{"--tables-file[=FILE]", OPT_TABLES_FILE, 0}
 	,			/* Save tables to FILE */
-    {"--tables-verify", OPT_TABLES_VERIFY, 0}
-    ,                       /* Tables integrity check */
+        {"--tables-verify", OPT_TABLES_VERIFY, 0}
+        ,                       /* Tables integrity check */
 	{"--nounistd", OPT_NO_UNISTD_H, 0}
 	,			/* Do not include unistd.h */
 	{"--wincompat", OPT_WIN_COMPAT, 0}
@@ -213,10 +215,6 @@ optspec_t flexopts[] = {
 	,
 	{"--nowarn", OPT_NO_WARN, 0}
 	,			/* Suppress warning messages. */
-	{"--noansi-definitions", OPT_NO_ANSI_FUNC_DEFS, 0}
-	,
-	{"--noansi-prototypes", OPT_NO_ANSI_FUNC_PROTOS, 0}
-	,
 	{"--yyclass=NAME", OPT_YYCLASS, 0}
 	,
 	{"--yylineno", OPT_YYLINENO, 0}
@@ -275,7 +273,8 @@ optspec_t flexopts[] = {
 	,
 	{"--noyyset_lloc", OPT_NO_YYSET_LLOC, 0}
 	,
-
+        {"--unsafe-no-m4-sect3-escape", OPT_NO_SECT3_ESCAPE, 0}
+        ,
 	{0, 0, 0}		/* required final NULL entry. */
 };
 
