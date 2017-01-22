@@ -38,6 +38,8 @@ static const char letters[] =
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#include <process.h>
+#include <io.h>
 
 /* Adds temporary dir if environment variable FLEX_TMP_DIR is set */
 char* add_tmp_dir(const char* tmp_file_name)
@@ -170,7 +172,6 @@ void unlinktemp()
 	}
 }
 
-
 #if 0
 /* Allocate and initialize an external filter.
  * @param chain the current chain or NULL for new chain
@@ -188,9 +189,9 @@ struct filter *filter_create_ext (struct filter *chain, const char *cmd,
 	va_list ap;
 
 	/* allocate and initialize new filter */
-	f = (struct filter *) flex_alloc (sizeof (struct filter));
+	f = malloc(sizeof(struct filter));
 	if (!f)
-		flexerror (_("flex_alloc failed (f) in filter_create_ext"));
+		flexerror(_("malloc failed (f) in filter_create_ext"));
 	memset (f, 0, sizeof (*f));
 	f->filter_func = NULL;
 	f->extra = NULL;
@@ -207,23 +208,16 @@ struct filter *filter_create_ext (struct filter *chain, const char *cmd,
 
 	/* allocate argv, and populate it with the argument list. */
 	max_args = 8;
-	f->argv =
-		(const char **) flex_alloc (sizeof (char *) *
-					    (max_args + 1));
+	f->argv = malloc(sizeof(char *) * (size_t) (max_args + 1));
 	if (!f->argv)
-		flexerror (_("flex_alloc failed (f->argv) in filter_create_ext"));
+		flexerror(_("malloc failed (f->argv) in filter_create_ext"));
 	f->argv[f->argc++] = cmd;
 
 	va_start (ap, cmd);
 	while ((s = va_arg (ap, const char *)) != NULL) {
 		if (f->argc >= max_args) {
 			max_args += 8;
-			f->argv =
-				(const char **) flex_realloc (f->argv,
-							      sizeof (char
-								      *) *
-							      (max_args +
-							       1));
+			f->argv = realloc(f->argv, sizeof(char*) * (size_t) (max_args + 1));
 		}
 		f->argv[f->argc++] = s;
 	}
@@ -248,11 +242,13 @@ struct filter *filter_create_int (struct filter *chain,
 	struct filter *f;
 
 	/* allocate and initialize new filter */
-	f = (struct filter *) flex_alloc (sizeof (struct filter));
+	f = malloc(sizeof(struct filter));
 	if (!f)
-		flexerror (_("flex_alloc failed in filter_create_int"));
+		flexerror(_("malloc failed in filter_create_int"));
 	memset (f, 0, sizeof (*f));
 	f->next = NULL;
+	f->argc = 0;
+	f->argv = NULL;
 	f->in_file = NULL;
 	f->out_file = NULL;
 
@@ -325,13 +321,13 @@ bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
 	if (mid_out_file)
 	{
 		if (fclose(mid_out_file))
-			lerrsf(_("error close file %s"), out_file_name);
+			lerr(_("error close file %s"), out_file_name);
 	}
 
 	return result;
 #if 0		
-	int pipes[2];
-	intptr_t pid;
+	int     pid, pipes[2];
+
 
 	/* Tricky recursion, since we want to begin the chain
 	 * at the END. Why? Because we need all the forked processes
@@ -348,10 +344,11 @@ bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
 	fflush (stdout);
 	fflush (stderr);
 
-	if (_pipe (pipes, 512, _O_TEXT) == -1)
+
+	if (pipe (pipes) == -1)
 		flexerror (_("pipe failed"));
 
-	if ((pid = _spawnl (_P_NOWAIT, "win_flex.exe", "win_flex.exe", NULL)) == -1)
+	if ((pid = fork ()) == -1)
 		flexerror (_("fork failed"));
 
 	if (pid == 0) {
@@ -363,11 +360,14 @@ bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
          * So we dup the new pipe onto the stdin descriptor and use a no-op fseek
          * to sync the stream. This is a Hail Mary situation. It seems to work.
          */
-		_close (pipes[1]);
-		if (_dup2 (pipes[0], _fileno (stdin)) == -1)
+		close (pipes[1]);
+clearerr(stdin);
+		if (dup2 (pipes[0], fileno (stdin)) == -1)
 			flexfatal (_("dup2(pipes[0],0)"));
-		_close (pipes[0]);
+		close (pipes[0]);
         fseek (stdin, 0, SEEK_CUR);
+        ungetc(' ', stdin); /* still an evil hack, but one that works better */
+        (void)fgetc(stdin); /* on NetBSD than the fseek attempt does */
 
 		/* run as a filter, either internally or by exec */
 		if (chain->filter_func) {
@@ -378,19 +378,20 @@ bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
 			exit (0);
 		}
 		else {
-			_execvp (chain->argv[0],
+			execvp (chain->argv[0],
 				(char **const) (chain->argv));
-			flexfatal (_("exec failed"));
+            lerr_fatal ( _("exec of %s failed"),
+                    chain->argv[0]);
 		}
 
 		exit (1);
 	}
 
 	/* Parent */
-	_close (pipes[0]);
-	if (_dup2 (pipes[1], _fileno (stdout)) == -1)
+	close (pipes[0]);
+	if (dup2 (pipes[1], fileno (stdout)) == -1)
 		flexfatal (_("dup2(pipes[1],1)"));
-	_close (pipes[1]);
+	close (pipes[1]);
     fseek (stdout, 0, SEEK_CUR);
 
 	return true;
@@ -404,7 +405,7 @@ bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
  */
 int filter_truncate (struct filter *chain, int max_len)
 {
-	int len = 1;
+	int     len = 1;
 
 	if (!chain)
 		return 0;
@@ -426,8 +427,8 @@ int filter_truncate (struct filter *chain, int max_len)
 int filter_tee_header (struct filter *chain)
 {
 	/* This function reads from stdin and writes to both the C file and the
-	* header file at the same time.
-	*/
+	 * header file at the same time.
+	 */
 
 	const int readsz = 512;
 	char   *buf;
@@ -439,10 +440,15 @@ int filter_tee_header (struct filter *chain)
 	write_header = (chain->extra != NULL);
 
 	/* Store a copy of the stdout pipe, which is already piped to C file
-	* through the running chain. Then create a new pipe to the H file as
-	* stdout, and fork the rest of the chain again.
-	*/
+	 * through the running chain. Then create a new pipe to the H file as
+	 * stdout, and fork the rest of the chain again.
+	 */
 
+     /*
+	if ((to_cfd = dup (1)) == -1)
+		flexfatal (_("dup(1) failed"));
+	to_c = fdopen (to_cfd, "w");
+    */
 	if (!chain->out_file)
 		flexfatal (_("out_file failed"));
 
@@ -452,6 +458,13 @@ int filter_tee_header (struct filter *chain)
 	to_c = chain->out_file;
 
 	if (write_header) {
+        /*
+		if (freopen ((char *) chain->extra, "w", stdout) == NULL)
+			flexfatal (_("freopen(headerfilename) failed"));
+
+		filter_apply_chain (chain->next);
+		to_h = stdout;
+        */
 		char tmp_file_name[256] = "~temp_header_file_XXXXXX";
 		to_h = mkstempFILE(tmp_file_name, "w+");
 		if (!to_h)
@@ -459,37 +472,38 @@ int filter_tee_header (struct filter *chain)
 	}
 
 	/* Now to_c is a pipe to the C branch, and to_h is a pipe to the H branch.
-	*/
+	 */
 
 	if (write_header) {
-		fputs (check_4_gnu_m4, to_h);
+        fputs (check_4_gnu_m4, to_h);
 		fputs ("m4_changecom`'m4_dnl\n", to_h);
 		fputs ("m4_changequote`'m4_dnl\n", to_h);
 		fputs ("m4_changequote([[,]])[[]]m4_dnl\n", to_h);
-		fputs ("m4_define([[M4_YY_NOOP]])[[]]m4_dnl\n", to_h);
+	    fputs ("m4_define([[M4_YY_NOOP]])[[]]m4_dnl\n", to_h);
 		fputs ("m4_define( [[M4_YY_IN_HEADER]],[[]])m4_dnl\n",
-			to_h);
+		       to_h);
 		fprintf (to_h, "#ifndef %sHEADER_H\n", prefix);
 		fprintf (to_h, "#define %sHEADER_H 1\n", prefix);
 		fprintf (to_h, "#define %sIN_HEADER 1\n\n", prefix);
 		fprintf (to_h,
-			"m4_define( [[M4_YY_OUTFILE_NAME]],[[%s]])m4_dnl\n",
-			headerfilename ? headerfilename : "<stdout>");
+			 "m4_define( [[M4_YY_OUTFILE_NAME]],[[%s]])m4_dnl\n",
+			 headerfilename ? headerfilename : "<stdout>");
 
 	}
 
-	fputs (check_4_gnu_m4, to_c);
+    fputs (check_4_gnu_m4, to_c);
 	fputs ("m4_changecom`'m4_dnl\n", to_c);
 	fputs ("m4_changequote`'m4_dnl\n", to_c);
 	fputs ("m4_changequote([[,]])[[]]m4_dnl\n", to_c);
 	fputs ("m4_define([[M4_YY_NOOP]])[[]]m4_dnl\n", to_c);
 	fprintf (to_c, "m4_define( [[M4_YY_OUTFILE_NAME]],[[%s]])m4_dnl\n",
-		outfilename ? outfilename : "<stdout>");
+		 outfilename ? outfilename : "<stdout>");
 
-	buf = (char *) flex_alloc (readsz);
+	buf = malloc((size_t) readsz);
 	if (!buf)
-		flexerror (_("flex_alloc failed in filter_tee_header"));
-	while (fgets (buf, readsz, chain->in_file)) {
+		flexerror(_("malloc failed in filter_tee_header"));
+	//while (fgets(buf, readsz, stdin)) {
+	while (fgets(buf, readsz, chain->in_file)) {
 		fputs (buf, to_c);
 		if (write_header)
 			fputs (buf, to_h);
@@ -507,46 +521,28 @@ int filter_tee_header (struct filter *chain)
 
 		fflush (to_h);
 		if (ferror (to_h))
-			lerrsf (_("error writing output file %s"),
-			(char *) chain->extra);
-		else
-		{
-			if (fseek(to_h, 0, SEEK_SET))
-				flexerror(_("fseek failed"));
-
-			header_out_file = fopen ((char *) chain->extra, "w");
-			if (!header_out_file)
-				flexfatal (_("fopen(headerfilename) failed"));
-
-			/* make branch for header file */
-			filter_apply_chain(chain->next, to_h, header_out_file);
-
-			/* cleanup */
-			if (fclose (to_h))
-				lerrsf (_("error closing output file 1 %s"),
+			lerr (_("error writing output file %s"),
 				(char *) chain->extra);
 
-			if (fclose (header_out_file))
-				lerrsf (_("error closing output file 2 %s"),
+		else if (fclose (to_h))
+			lerr (_("error closing output file %s"),
 				(char *) chain->extra);
-		}
 	}
 
 	fflush (to_c);
 	if (ferror (to_c))
-		lerrsf (_("error writing output file %s"),
-		outfilename ? outfilename : "<stdout>");
+		lerr (_("error writing output file %s"),
+			outfilename ? outfilename : "<stdout>");
 /*
 	else if (fclose (to_c))
-		lerrsf (_("error closing output file %s"),
-		outfilename ? outfilename : "<stdout>");
+		lerr (_("error closing output file %s"),
+			outfilename ? outfilename : "<stdout>");
 
-	while (_cwait (NULL, ) > 0) ;
-	assert(false);
+	while (wait (0) > 0) ;
+
 	exit (0);
 	return 0;
-	*/
-
+    */
 	return 0;
 }
 
@@ -573,7 +569,7 @@ int filter_m4_p (struct filter *chain)
 int filter_fix_linedirs (struct filter *chain)
 {
 	char   *buf;
-	const int readsz = 512;
+	const size_t readsz = 512;
 	int     lineno = 1;
 	bool    in_gen = true;	/* in generated code */
 	bool    last_was_blank = false;
@@ -581,23 +577,21 @@ int filter_fix_linedirs (struct filter *chain)
 	if (!chain)
 		return 0;
 
-	buf = (char *) flex_alloc (readsz);
+	buf = malloc(readsz);
 	if (!buf)
-		flexerror (_("flex_alloc failed in filter_fix_linedirs"));
+		flexerror(_("malloc failed in filter_fix_linedirs"));
 
-	while (fgets (buf, readsz, chain->in_file)) {
+	while (fgets (buf, (int) readsz, chain->in_file/*stdin*/)) {
 
 		regmatch_t m[10];
 
 		/* Check for #line directive. */
 		if (buf[0] == '#'
-		    && regexec (&regex_linedir, buf, 3, m, 0) == 0) {
+			&& regexec (&regex_linedir, buf, 3, m, 0) == 0) {
 
-			int     num;
 			char   *fname;
 
 			/* extract the line number and filename */
-			num = regmatch_strtol (&m[1], buf, NULL, 0);
 			fname = regmatch_dup (&m[2], buf);
 
 			if (strcmp (fname,
@@ -629,7 +623,7 @@ int filter_fix_linedirs (struct filter *chain)
 				/* Adjust the line directives. */
 				in_gen = true;
 				snprintf (buf, readsz, "#line %d \"%s\"\n",
-					  lineno + 1, filename);
+					  lineno, filename);
 			}
 			else {
 				/* it's a #line directive for code we didn't write */
@@ -655,14 +649,18 @@ int filter_fix_linedirs (struct filter *chain)
 			last_was_blank = false;
 		}
 
-		fputs (buf, chain->out_file);
+		fputs (buf, chain->out_file/*stdout*/);
 		lineno++;
 	}
-	fflush (chain->out_file);
-	if (ferror (chain->out_file))
-		lerrsf (_("error writing output file %s"),
+	fflush (chain->out_file/*stdout*/);
+	if (ferror (chain->out_file/*stdout*/))
+		lerr (_("error writing output file %s"),
 			outfilename ? outfilename : "<stdout>");
-
+/*
+	else if (fclose (stdout))
+		lerr (_("error closing output file %s"),
+			outfilename ? outfilename : "<stdout>");
+*/
 	return 0;
 }
 

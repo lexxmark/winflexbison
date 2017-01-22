@@ -34,10 +34,10 @@
 
 /* declare functions that have forward references */
 
-void dump_associated_rules PROTO ((FILE *, int));
-void dump_transitions PROTO ((FILE *, int[]));
-void sympartition PROTO ((int[], int, int[], int[]));
-int symfollowset PROTO ((int[], int, int, int[]));
+void	dump_associated_rules(FILE *, int);
+void	dump_transitions(FILE *, int[]);
+void	sympartition(int[], int, int[], int[]);
+int	symfollowset(int[], int, int, int[]);
 
 
 /* check_for_backing_up - check a DFA state for backing up
@@ -49,9 +49,7 @@ int symfollowset PROTO ((int[], int, int, int[]));
  * indexed by equivalence class.
  */
 
-void check_for_backing_up (ds, state)
-     int ds;
-     int state[];
+void check_for_backing_up (int ds, int state[])
 {
 	if ((reject && !dfaacc[ds].dfaacc_set) || (!reject && !dfaacc[ds].dfaacc_state)) {	/* state is non-accepting */
 		++num_backing_up;
@@ -96,17 +94,14 @@ void check_for_backing_up (ds, state)
  *    accset[1 .. nacc] is the list of accepting numbers for the DFA state.
  */
 
-void check_trailing_context (nfa_states, num_states, accset, nacc)
-     int    *nfa_states, num_states;
-     int    *accset;
-     int nacc;
+void check_trailing_context (int *nfa_states, int num_states, int *accset, int nacc)
 {
-	register int i, j;
+	int i, j;
 
 	for (i = 1; i <= num_states; ++i) {
 		int     ns = nfa_states[i];
-		register int type = state_type[ns];
-		register int ar = assoc_rule[ns];
+		int type = state_type[ns];
+		int ar = assoc_rule[ns];
 
 		if (type == STATE_NORMAL || rule_type[ar] != RULE_VARIABLE) {	/* do nothing */
 		}
@@ -137,18 +132,16 @@ void check_trailing_context (nfa_states, num_states, accset, nacc)
  * and writes a report to the given file.
  */
 
-void dump_associated_rules (file, ds)
-     FILE   *file;
-     int ds;
+void dump_associated_rules (FILE *file, int ds)
 {
-	register int i, j;
-	register int num_associated_rules = 0;
-	int     rule_set[MAX_ASSOC_RULES + 1];
-	int    *dset = dss[ds];
-	int     size = dfasiz[ds];
+	int i, j;
+	int num_associated_rules = 0;
+	int rule_set[MAX_ASSOC_RULES + 1];
+	int *dset = dss[ds];
+	int size = dfasiz[ds];
 
 	for (i = 1; i <= size; ++i) {
-		register int rule_num = rule_linenum[assoc_rule[dset[i]]];
+		int rule_num = rule_linenum[assoc_rule[dset[i]]];
 
 		for (j = 1; j <= num_associated_rules; ++j)
 			if (rule_num == rule_set[j])
@@ -161,7 +154,7 @@ void dump_associated_rules (file, ds)
 		}
 	}
 
-	qsort (&rule_set [1], num_associated_rules, sizeof (rule_set [1]), intcmp);
+	qsort (&rule_set [1], (size_t) num_associated_rules, sizeof (rule_set [1]), intcmp);
 
 	fprintf (file, _(" associated rule line numbers:"));
 
@@ -187,12 +180,10 @@ void dump_associated_rules (file, ds)
  * is done to the given file.
  */
 
-void dump_transitions (file, state)
-     FILE   *file;
-     int state[];
+void dump_transitions (FILE *file, int state[])
 {
-	register int i, ec;
-	int     out_char_set[CSIZE];
+	int i, ec;
+	int out_char_set[CSIZE];
 
 	for (i = 0; i < csize; ++i) {
 		ec = ABS (ecgroup[i]);
@@ -235,10 +226,9 @@ void dump_transitions (file, state)
  *  hashval is the hash value for the dfa corresponding to the state set.
  */
 
-int    *epsclosure (t, ns_addr, accset, nacc_addr, hv_addr)
-     int    *t, *ns_addr, accset[], *nacc_addr, *hv_addr;
+int    *epsclosure (int *t, int *ns_addr, int accset[], int *nacc_addr, int *hv_addr)
 {
-	register int stkpos, ns, tsp;
+	int     stkpos, ns, tsp;
 	int     numstates = *ns_addr, nacc, hashval, transsym, nfaccnum;
 	int     stkend, nstate;
 	static int did_stk_init = false, *stk;
@@ -351,7 +341,7 @@ ADD_STATE(state); \
 
 /* increase_max_dfas - increase the maximum number of DFAs */
 
-void increase_max_dfas ()
+void increase_max_dfas (void)
 {
 	current_max_dfas += MAX_DFAS_INCREMENT;
 
@@ -378,7 +368,7 @@ void increase_max_dfas ()
  * dfa starts out in state #1.
  */
 
-void ntod ()
+void ntod (void)
 {
 	int    *accset, ds, nacc, newds;
 	int     sym, hashval, numstates, dsize;
@@ -400,7 +390,7 @@ void ntod ()
 	 * from 1 to CSIZE, so their size must be CSIZE + 1.
 	 */
 	int     duplist[CSIZE + 1], state[CSIZE + 1];
-	int     targfreq[CSIZE + 1], targstate[CSIZE + 1];
+	int     targfreq[CSIZE + 1] = {0}, targstate[CSIZE + 1];
 
 	/* accset needs to be large enough to hold all of the rules present
 	 * in the input, *plus* their YY_TRAILING_HEAD_MASK variants.
@@ -521,15 +511,13 @@ void ntod ()
 		 * So we'll have to realloc() on the way...
 		 * we'll wait until we can calculate yynxt_tbl->td_hilen.
 		 */
-		yynxt_tbl =
-			(struct yytbl_data *) calloc (1,
-						      sizeof (struct
-							      yytbl_data));
+		yynxt_tbl = calloc(1, sizeof (struct yytbl_data));
+     
 		yytbl_data_init (yynxt_tbl, YYTD_ID_NXT);
 		yynxt_tbl->td_hilen = 1;
-		yynxt_tbl->td_lolen = num_full_table_rows;
+		yynxt_tbl->td_lolen = (flex_uint32_t) num_full_table_rows;
 		yynxt_tbl->td_data = yynxt_data =
-			(flex_int32_t *) calloc (yynxt_tbl->td_lolen *
+			calloc(yynxt_tbl->td_lolen *
 					    yynxt_tbl->td_hilen,
 					    sizeof (flex_int32_t));
 		yynxt_curr = 0;
@@ -543,12 +531,12 @@ void ntod ()
 		 */
 		if (gentables)
 			out_str_dec
-				("static yyconst %s yy_nxt[][%d] =\n    {\n",
+				("static const %s yy_nxt[][%d] =\n    {\n",
 				 long_align ? "flex_int32_t" : "flex_int16_t",
 				 num_full_table_rows);
 		else {
 			out_dec ("#undef YY_NXT_LOLEN\n#define YY_NXT_LOLEN (%d)\n", num_full_table_rows);
-			out_str ("static yyconst %s *yy_nxt =0;\n",
+			out_str ("static const %s *yy_nxt =0;\n",
 				 long_align ? "flex_int32_t" : "flex_int16_t");
 		}
 
@@ -713,7 +701,7 @@ void ntod ()
 			/* Each time we hit here, it's another td_hilen, so we realloc. */
 			yynxt_tbl->td_hilen++;
 			yynxt_tbl->td_data = yynxt_data =
-				(flex_int32_t *) realloc (yynxt_data,
+				realloc (yynxt_data,
 						     yynxt_tbl->td_hilen *
 						     yynxt_tbl->td_lolen *
 						     sizeof (flex_int32_t));
@@ -805,8 +793,8 @@ void ntod ()
 		mkdeftbl ();
 	}
 
-	flex_free ((void *) accset);
-	flex_free ((void *) nset);
+	free(accset);
+	free(nset);
 }
 
 
@@ -820,12 +808,11 @@ void ntod ()
  * On return, the dfa state number is in newds.
  */
 
-int snstods (sns, numstates, accset, nacc, hashval, newds_addr)
-     int sns[], numstates, accset[], nacc, hashval, *newds_addr;
+int snstods (int sns[], int numstates, int accset[], int nacc, int hashval, int *newds_addr)
 {
-	int     didsort = 0;
-	register int i, j;
-	int     newds, *oldsns;
+	int didsort = 0;
+	int i, j;
+	int newds, *oldsns;
 
 	for (i = 1; i <= lastdfa; ++i)
 		if (hashval == dhash[i]) {
@@ -836,7 +823,7 @@ int snstods (sns, numstates, accset, nacc, hashval, newds_addr)
 					/* We sort the states in sns so we
 					 * can compare it to oldsns quickly.
 					 */
-					qsort (&sns [1], numstates, sizeof (sns [1]), intcmp);
+					qsort (&sns [1], (size_t) numstates, sizeof (sns [1]), intcmp);
 					didsort = 1;
 				}
 
@@ -871,7 +858,7 @@ int snstods (sns, numstates, accset, nacc, hashval, newds_addr)
 	 */
 
 	if (!didsort)
-		qsort (&sns [1], numstates, sizeof (sns [1]), intcmp);
+          	qsort (&sns [1], (size_t) numstates, sizeof (sns [1]), intcmp);
 
 	for (i = 1; i <= numstates; ++i)
 		dss[newds][i] = sns[i];
@@ -881,7 +868,7 @@ int snstods (sns, numstates, accset, nacc, hashval, newds_addr)
 
 	if (nacc == 0) {
 		if (reject)
-			dfaacc[newds].dfaacc_set = (int *) 0;
+			dfaacc[newds].dfaacc_set = NULL;
 		else
 			dfaacc[newds].dfaacc_state = 0;
 
@@ -894,7 +881,7 @@ int snstods (sns, numstates, accset, nacc, hashval, newds_addr)
 		 * match in the event of ties will work.
 		 */
 
-		qsort (&accset [1], nacc, sizeof (accset [1]), intcmp);
+		qsort (&accset [1], (size_t) nacc, sizeof (accset [1]), intcmp);
 
 		dfaacc[newds].dfaacc_set =
 			allocate_integer_array (nacc + 1);
@@ -942,8 +929,7 @@ int snstods (sns, numstates, accset, nacc, hashval, newds_addr)
  *				int transsym, int nset[current_max_dfa_size] );
  */
 
-int symfollowset (ds, dsize, transsym, nset)
-     int ds[], dsize, transsym, nset[];
+int symfollowset (int ds[], int dsize, int transsym, int nset[])
 {
 	int     ns, tsp, sym, i, j, lenccl, ch, numstates, ccllist;
 
@@ -1020,9 +1006,7 @@ int symfollowset (ds, dsize, transsym, nset)
  *			int symlist[numecs], int duplist[numecs] );
  */
 
-void sympartition (ds, numstates, symlist, duplist)
-     int ds[], numstates;
-     int symlist[], duplist[];
+void sympartition (int ds[], int numstates, int symlist[], int duplist[])
 {
 	int     tch, i, j, k, ns, dupfwd[CSIZE + 1], lenccl, cclp, ich;
 

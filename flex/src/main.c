@@ -36,15 +36,17 @@
 //#include "version.h"
 #include "options.h"
 #include "tables.h"
+#include "parse.h"
+#include <io.h>
 
-static char flex_version[] = "2.5.37";//FLEX_VERSION;
+static char flex_version[] = "2.6.3";//FLEX_VERSION;
 
 /* declare functions that have forward references */
 
-void flexinit PROTO ((int, char **));
-void readin PROTO ((void));
-void set_up_initial_allocations PROTO ((void));
-static char *basename2 PROTO ((char *path, int should_strip_ext, char **ext_path));
+void flexinit(int, char **);
+void readin(void);
+void set_up_initial_allocations(void);
+static char *basename2 (char *path, int should_strip_ext, char **ext_path);
 
 
 /* these globals are all defined and commented in flexdef.h */
@@ -57,6 +59,7 @@ int     C_plus_plus, long_align, use_read, yytext_is_array, do_yywrap,
 int     reentrant, bison_bridge_lval, bison_bridge_lloc;
 int     yymore_used, reject, real_reject, continued_action, in_rule;
 int     yymore_really_used, reject_really_used;
+int     trace_hex = 0;
 int     datapos, dataline, linenum;
 FILE   *skelfile = NULL;
 int     skel_ind = 0;
@@ -93,7 +96,7 @@ int    *accsiz, *dhash, numas;
 int     numsnpairs, jambase, jamstate;
 int     lastccl, *cclmap, *ccllen, *cclng, cclreuse;
 int     current_maxccls, current_max_ccl_tbl_size;
-Char   *ccltbl;
+unsigned char   *ccltbl;
 char    nmstr[MAXLINE];
 int     sectnum, nummt, hshcol, dfaeql, numeps, eps2, num_reallocs;
 int     tmpuses, totnst, peakpairs, numuniq, numdup, hshsave;
@@ -105,33 +108,22 @@ int     num_input_files;
 jmp_buf flex_main_jmp_buf;
 bool   *rule_has_nl, *ccl_has_nl;
 int     nlch = '\n';
-bool    ansi_func_defs, ansi_func_protos;
 
 bool    tablesext, tablesverify, gentables;
 char   *tablesfilename=0,*tablesname=0;
 struct yytbl_writer tableswr;
 
 int     prev_stdout = 0;
-char   *flex_temp_out_main=0;
+char   *flex_temp_out_main = 0;
 
 /* Make sure program_name is initialized so we don't crash if writing
  * out an error message before getting the program name from argv[0].
  */
 char   *program_name = "win_flex.exe";
 
-#ifndef SHORT_FILE_NAMES
-static char *outfile_template = "lex.%s.%s";
-static char *backing_name = "lex.backup";
-static char *tablesfile_template = "lex.%s.tables";
-#else
-static char *outfile_template = "lex%s.%s";
-static char *backing_name = "lex.bck";
-static char *tablesfile_template = "lex%s.tbl";
-#endif
-
-#ifdef MS_DOS
-extern unsigned _stklen = 16384;
-#endif
+static const char outfile_template[] = "lex.%s.%s";
+static const char backing_name[] = "lex.backup";
+static const char tablesfile_template[] = "lex.%s.tables";
 
 /* From scan.l */
 extern FILE* yyout;
@@ -140,22 +132,17 @@ static char outfile_path[MAXLINE];
 //static int outfile_created = 0;
 static char *skelname = NULL;
 static int _stdout_closed = 0; /* flag to prevent double-fclose() on stdout. */
-const char *escaped_qstart = "[[]]M4_YY_NOOP[M4_YY_NOOP[M4_YY_NOOP[[]]";
-const char *escaped_qend   = "[[]]M4_YY_NOOP]M4_YY_NOOP]M4_YY_NOOP[[]]";
+const char *escaped_qstart = "]]M4_YY_NOOP[M4_YY_NOOP[M4_YY_NOOP[[";
+const char *escaped_qend   = "]]M4_YY_NOOP]M4_YY_NOOP]M4_YY_NOOP[[";
 
 /* For debugging. The max number of filters to apply to skeleton. */
 static int preproc_level = 1000;
 
-int flex_main PROTO ((int argc, char *argv[]));
-int main PROTO ((int argc, char *argv[]));
+int flex_main (int argc, char *argv[]);
 
-intptr_t g_child_pid = 0;
-
-int flex_main (argc, argv)
-     int argc;
-     char   *argv[];
+int flex_main (int argc, char *argv[])
 {
-	int     i;//, exit_status, child_status;
+	int     i;// , exit_status, child_status;
 
 	/* Set a longjmp target. Yes, I know it's a hack, but it gets worse: The
 	 * return value of setjmp, if non-zero, is the desired exit code PLUS ONE.
@@ -164,8 +151,6 @@ int flex_main (argc, argv)
 	 * specify a value of 0 to longjmp. FLEX_EXIT(n) should be used instead of
 	 * exit(n);
 	 */
-
-	
 #if 0
 	exit_status = setjmp (flex_main_jmp_buf);
 	if (exit_status){
@@ -173,7 +158,7 @@ int flex_main (argc, argv)
             fflush(stdout);
             fclose(stdout);
         }
-        while (_wait(&child_status, g_child_pid, NULL) > 0){
+        while (wait(&child_status) > 0){
             if (!WIFEXITED (child_status)
                 || WEXITSTATUS (child_status) != 0){
                 /* report an error of a child
@@ -186,11 +171,13 @@ int flex_main (argc, argv)
         return exit_status - 1;
     }
 #endif
-	
+
 	flexinit (argc, argv);
 
 	readin ();
 
+	skelout ();
+	/* %% [1.5] DFA */
 	ntod ();
 
 	for (i = 1; i <= num_rules; ++i)
@@ -215,9 +202,7 @@ int flex_main (argc, argv)
 }
 
 /* Wrapper around flex_main, so flex_main can be built as a library. */
-int main (argc, argv)
-     int argc;
-     char   *argv[];
+int main (int argc, char *argv[])
 {
 #if ENABLE_NLS
 #if HAVE_LOCALE_H
@@ -233,7 +218,7 @@ int main (argc, argv)
 
 /* check_options - check user-specified options */
 
-void check_options ()
+void check_options (void)
 {
 	int     i;
     const char * m4 = NULL;
@@ -248,11 +233,6 @@ void check_options ()
 		if (reentrant || bison_bridge_lval)
 			flexerror (_
 				   ("Can't use --reentrant or --bison-bridge with -l option"));
-
-		/* Don't rely on detecting use of yymore() and REJECT,
-		 * just assume they'll be used.
-		 */
-		yymore_really_used = reject_really_used = true;
 
 		yytext_is_array = true;
 		do_yylineno = true;
@@ -337,28 +317,96 @@ void check_options ()
 		}
 	}
 
-    if (!ansi_func_defs)
-        buf_m4_define( &m4defs_buf, "M4_YY_NO_ANSI_FUNC_DEFS", NULL);
-
-    if (!ansi_func_protos)
-        buf_m4_define( &m4defs_buf, "M4_YY_NO_ANSI_FUNC_PROTOS", NULL);
-
     if (extra_type)
         buf_m4_define( &m4defs_buf, "M4_EXTRA_TYPE_DEFS", extra_type);
+/*
+	if (!use_stdout) {
+		FILE   *prev_stdout;
+
+		if (!did_outfilename) {
+			char   *suffix;
+
+			if (C_plus_plus)
+				suffix = "cc";
+			else
+				suffix = "c";
+
+			snprintf (outfile_path, sizeof(outfile_path), outfile_template,
+				 prefix, suffix);
+
+			outfilename = outfile_path;
+		}
+
+		prev_stdout = freopen (outfilename, "w+", stdout);
+
+		if (prev_stdout == NULL)
+			lerr (_("could not create %s"), outfilename);
+
+		outfile_created = 1;
+	}
+*/
 
     /* Setup the filter chain. */
     output_chain = filter_create_int(NULL, filter_tee_header, headerfilename);
-    filter_create_int(output_chain, filter_m4_p, NULL);
-    filter_create_int(output_chain, filter_fix_linedirs, NULL);
+#if 0
+    if ( !(m4 = getenv("M4"))) {
+	    char *slash;
+		m4 = M4;
+		if ((slash = strrchr(M4, '/')) != NULL) {
+			m4 = slash+1;
+			/* break up $PATH */
+			const char *path = getenv("PATH");
+			if (!path) {
+				m4 = M4;
+			} else {
+				int m4_length = strlen(m4);
+				do {
+					size_t length = strlen(path);
+					struct stat sbuf;
+
+					const char *endOfDir = strchr(path, ':');
+					if (!endOfDir)
+						endOfDir = path+length;
+
+					{
+						char m4_path[endOfDir-path + 1 + m4_length + 1];
+
+						memcpy(m4_path, path, endOfDir-path);
+						m4_path[endOfDir-path] = '/';
+						memcpy(m4_path + (endOfDir-path) + 1, m4, m4_length + 1);
+						if (stat(m4_path, &sbuf) == 0 &&
+							(S_ISREG(sbuf.st_mode)) && sbuf.st_mode & S_IXUSR) {
+							m4 = strdup(m4_path);
+							break;
+						}
+					}
+					path = endOfDir+1;
+				} while (path[0]);
+				if (!path[0])
+				    m4 = M4;
+			}
+		}
+	}
+    filter_create_ext(output_chain, m4, "-P", 0);
+#endif
+	filter_create_int(output_chain, filter_m4_p, NULL);
+	filter_create_int(output_chain, filter_fix_linedirs, NULL);
+
+    /* For debugging, only run the requested number of filters. */
+/*    if (preproc_level > 0) {
+        filter_truncate(output_chain, preproc_level);
+        filter_apply_chain(output_chain);
+    }
+	*/
 
 	/* collect all output to temp file to use it as input for filter chain */
 	prev_stdout = _dup(1);   // prev_stdout now refers to "stdout" 
-	freopen (flex_temp_out_main, "w+", stdout);
+	freopen(flex_temp_out_main, "w+", stdout);
 
 	if (stdout == NULL)
-		lerrsf (_("could not create %s"), flex_temp_out_main);
+		lerr(_("could not create %s"), flex_temp_out_main);
 	
-    yyout = stdout;
+	yyout = stdout;
 
 
 	/* always generate the tablesverify flag. */
@@ -375,26 +423,25 @@ void check_options ()
 		FILE   *tablesout;
 		struct yytbl_hdr hdr;
 		char   *pname = 0;
-		int     nbytes = 0;
+		size_t  nbytes = 0;
 
 		buf_m4_define (&m4defs_buf, "M4_YY_TABLES_EXTERNAL", NULL);
 
 		if (!tablesfilename) {
 			nbytes = strlen (prefix) + strlen (tablesfile_template) + 2;
-			tablesfilename = pname = (char *) calloc (nbytes, 1);
+			tablesfilename = pname = calloc(nbytes, 1);
 			snprintf (pname, nbytes, tablesfile_template, prefix);
 		}
 
 		if ((tablesout = fopen (tablesfilename, "w")) == NULL)
-			lerrsf (_("could not create %s"), tablesfilename);
-		if (pname)
-			free (pname);
+			lerr (_("could not create %s"), tablesfilename);
+		free(pname);
 		tablesfilename = 0;
 
 		yytbl_writer_init (&tableswr, tablesout);
 
 		nbytes = strlen (prefix) + strlen ("tables") + 2;
-		tablesname = (char *) calloc (nbytes, 1);
+		tablesname = calloc(nbytes, 1);
 		snprintf (tablesname, nbytes, "%stables", prefix);
 		yytbl_hdr_init (&hdr, flex_version, tablesname);
 
@@ -403,7 +450,7 @@ void check_options ()
 	}
 
 	if (skelname && (skelfile = fopen (skelname, "r")) == NULL)
-		lerrsf (_("can't open skeleton file %s"), skelname);
+		lerr (_("can't open skeleton file %s"), skelname);
 
 	if (reentrant) {
         buf_m4_define (&m4defs_buf, "M4_YY_REENTRANT", NULL);
@@ -417,6 +464,8 @@ void check_options ()
 	if ( bison_bridge_lloc)
         buf_m4_define (&m4defs_buf, "<M4_YY_BISON_LLOC>", NULL);
 
+    if (strchr(prefix, '[') || strchr(prefix, ']'))
+        flexerror(_("Prefix cannot include '[' or ']'"));
     buf_m4_define(&m4defs_buf, "M4_YY_PREFIX", prefix);
 
 	if (did_outfilename)
@@ -437,7 +486,8 @@ void check_options ()
              char *str, *fmt = "#define %s %d\n";
              size_t strsz;
 
-             str = (char*)flex_alloc(strsz = strlen(fmt) + strlen(scname[i]) + (int)(1 + log10(i)) + 2);
+             strsz = strlen(fmt) + strlen(scname[i]) + (size_t)(1 + ceil (log10(i))) + 2;
+             str = malloc(strsz);
              if (!str)
                flexfatal(_("allocation of macro definition failed"));
              snprintf(str, strsz, fmt,      scname[i], i - 1);
@@ -459,7 +509,8 @@ void check_options ()
     m4defs_buf.nelts = 0; /* memory leak here. */
 
     /* Place a bogus line directive, it will be fixed in the filter. */
-    outn("#line 0 \"M4_YY_OUTFILE_NAME\"\n");
+    if (gen_line_dirs)
+        outn("#line 0 \"M4_YY_OUTFILE_NAME\"\n");
 
 	/* Dump the user defined preproc directives. */
 	if (userdef_buf.elts)
@@ -475,15 +526,13 @@ void check_options ()
  *    This routine does not return.
  */
 
-void flexend (exit_status)
-     int exit_status;
-
+void flexend (int exit_status)
 {
 	static int called_before = -1;	/* prevent infinite recursion. */
 	int     tblsiz;
 
 	if (++called_before)
-		exit (exit_status);
+		FLEX_EXIT (exit_status);
 
 	if (!exit_status)
 	{
@@ -504,15 +553,15 @@ void flexend (exit_status)
 				else
 					suffix = "c";
 
-				snprintf (outfile_path, sizeof(outfile_path), outfile_template,
-					 prefix, suffix);
+				snprintf(outfile_path, sizeof(outfile_path), outfile_template,
+					prefix, suffix);
 
 				outfilename = outfile_path;
 			}
 
-			out = fopen (outfilename, "w+");
+			out = fopen(outfilename, "w+");
 			if (out == NULL)
-				lerrsf (_("could not create %s"), outfilename);
+				lerr(_("could not create %s"), outfilename);
 
 			//outfile_created = 1;
 
@@ -523,13 +572,13 @@ void flexend (exit_status)
 			}
 
 			if (fclose(out))
-				lerrsf (_("could not close %s"), outfilename);
+				lerr(_("could not close %s"), outfilename);
 		}
 		else {
 			FILE* orig_stdout = _fdopen(prev_stdout, "w+");
 
 			if (orig_stdout == NULL)
-				lerrsf (_("stdout is not initialized"));
+				lerr(_("stdout is not initialized"));
 
 			/* For debugging, only run the requested number of filters. */
 			if (preproc_level > 0) {
@@ -545,21 +594,222 @@ void flexend (exit_status)
 	if (prev_stdout)
 	{
 		if (fclose(stdout))
-			lerrsf (_("error closing file %s"), flex_temp_out_main);
+			lerr(_("error closing file %s"), flex_temp_out_main);
 
 		if (_unlink(flex_temp_out_main))
-			lerrsf (_("error deleting file %s"), flex_temp_out_main);
+			lerr(_("error deleting file %s"), flex_temp_out_main);
 	}
 
 	if (skelfile != NULL) {
 		if (ferror (skelfile))
-			lerrsf (_("input error reading skeleton file %s"),
+			lerr (_("input error reading skeleton file %s"),
 				skelname);
 
 		else if (fclose (skelfile))
-			lerrsf (_("error closing skeleton file %s"),
+			lerr (_("error closing skeleton file %s"),
 				skelname);
 	}
+
+#if 0
+		fprintf (header_out,
+			 "#ifdef YY_HEADER_EXPORT_START_CONDITIONS\n");
+		fprintf (header_out,
+			 "/* Beware! Start conditions are not prefixed. */\n");
+
+		/* Special case for "INITIAL" */
+		fprintf (header_out,
+			 "#undef INITIAL\n#define INITIAL 0\n");
+		for (i = 2; i <= lastsc; i++)
+			fprintf (header_out, "#define %s %d\n", scname[i], i - 1);
+		fprintf (header_out,
+			 "#endif /* YY_HEADER_EXPORT_START_CONDITIONS */\n\n");
+
+		/* Kill ALL flex-related macros. This is so the user
+		 * can #include more than one generated header file. */
+		fprintf (header_out, "#ifndef YY_HEADER_NO_UNDEFS\n");
+		fprintf (header_out,
+			 "/* Undefine all internal macros, etc., that do no belong in the header. */\n\n");
+
+        {
+            const char * undef_list[] = {
+
+                "BEGIN",
+                "ECHO",
+                "EOB_ACT_CONTINUE_SCAN",
+                "EOB_ACT_END_OF_FILE",
+                "EOB_ACT_LAST_MATCH",
+                "FLEX_SCANNER",
+                "REJECT",
+                "YYFARGS0",
+                "YYFARGS1",
+                "YYFARGS2",
+                "YYFARGS3",
+                "YYLMAX",
+                "YYSTATE",
+                "YY_AT_BOL",
+                "YY_BREAK",
+                "YY_BUFFER_EOF_PENDING",
+                "YY_BUFFER_NEW",
+                "YY_BUFFER_NORMAL",
+                "YY_BUF_SIZE",
+                "M4_YY_CALL_LAST_ARG",
+                "M4_YY_CALL_ONLY_ARG",
+                "YY_CURRENT_BUFFER",
+                "YY_DECL",
+                "M4_YY_DECL_LAST_ARG",
+                "M4_YY_DEF_LAST_ARG",
+                "M4_YY_DEF_ONLY_ARG",
+                "YY_DO_BEFORE_ACTION",
+                "YY_END_OF_BUFFER",
+                "YY_END_OF_BUFFER_CHAR",
+                "YY_EXIT_FAILURE",
+                "YY_EXTRA_TYPE",
+                "YY_FATAL_ERROR",
+                "YY_FLEX_DEFINED_ECHO",
+                "YY_FLEX_LEX_COMPAT",
+                "YY_FLEX_MAJOR_VERSION",
+                "YY_FLEX_MINOR_VERSION",
+                "YY_FLEX_SUBMINOR_VERSION",
+                "YY_FLUSH_BUFFER",
+                "YY_G",
+                "YY_INPUT",
+                "YY_INTERACTIVE",
+                "YY_INT_ALIGNED",
+                "YY_LAST_ARG",
+                "YY_LESS_LINENO",
+                "YY_LEX_ARGS",
+                "YY_LEX_DECLARATION",
+                "YY_LEX_PROTO",
+                "YY_MAIN",
+                "YY_MORE_ADJ",
+                "YY_NEED_STRLEN",
+                "YY_NEW_FILE",
+                "YY_NULL",
+                "YY_NUM_RULES",
+                "YY_ONLY_ARG",
+                "YY_PARAMS",
+                "YY_PROTO",
+                "M4_YY_PROTO_LAST_ARG",
+                "M4_YY_PROTO_ONLY_ARG void",
+                "YY_READ_BUF_SIZE",
+                "YY_REENTRANT",
+                "YY_RESTORE_YY_MORE_OFFSET",
+                "YY_RULE_SETUP",
+                "YY_SC_TO_UI",
+                "YY_SKIP_YYWRAP",
+                "YY_START",
+                "YY_START_STACK_INCR",
+                "YY_STATE_EOF",
+                "YY_STDINIT",
+                "YY_TRAILING_HEAD_MASK",
+                "YY_TRAILING_MASK",
+                "YY_USER_ACTION",
+                "YY_USE_CONST",
+                "YY_USE_PROTOS",
+                "unput",
+                "yyTABLES_NAME",
+                "yy_create_buffer",
+                "yy_delete_buffer",
+                "yy_flex_debug",
+                "yy_flush_buffer",
+                "yy_init_buffer",
+                "yy_load_buffer_state",
+                "yy_new_buffer",
+                "yy_scan_buffer",
+                "yy_scan_bytes",
+                "yy_scan_string",
+                "yy_set_bol",
+                "yy_set_interactive",
+                "yy_switch_to_buffer",
+				"yypush_buffer_state",
+				"yypop_buffer_state",
+				"yyensure_buffer_stack",
+                "yyalloc",
+                "const",
+                "yyextra",
+                "yyfree",
+                "yyget_debug",
+                "yyget_extra",
+                "yyget_in",
+                "yyget_leng",
+                "yyget_lineno",
+                "yyget_lloc",
+                "yyget_lval",
+                "yyget_out",
+                "yyget_text",
+                "yyin",
+                "yyleng",
+                "yyless",
+                "yylex",
+                "yylex_destroy",
+                "yylex_init",
+                "yylex_init_extra",
+                "yylineno",
+                "yylloc",
+                "yylval",
+                "yymore",
+                "yyout",
+                "yyrealloc",
+                "yyrestart",
+                "yyset_debug",
+                "yyset_extra",
+                "yyset_in",
+                "yyset_lineno",
+                "yyset_lloc",
+                "yyset_lval",
+                "yyset_out",
+                "yytables_destroy",
+                "yytables_fload",
+                "yyterminate",
+                "yytext",
+                "yytext_ptr",
+                "yywrap",
+
+                /* must be null-terminated */
+                NULL};
+
+
+                for (i=0; undef_list[i] != NULL; i++)
+                    fprintf (header_out, "#undef %s\n", undef_list[i]);
+        }
+
+		/* undef any of the auto-generated symbols. */
+		for (i = 0; i < defs_buf.nelts; i++) {
+
+			/* don't undef start conditions */
+			if (sclookup (((char **) defs_buf.elts)[i]) > 0)
+				continue;
+			fprintf (header_out, "#undef %s\n",
+				 ((char **) defs_buf.elts)[i]);
+		}
+
+		fprintf (header_out,
+			 "#endif /* !YY_HEADER_NO_UNDEFS */\n");
+		fprintf (header_out, "\n");
+		fprintf (header_out, "#undef %sIN_HEADER\n", prefix);
+		fprintf (header_out, "#endif /* %sHEADER_H */\n", prefix);
+
+		if (ferror (header_out))
+			lerr (_("error creating header file %s"),
+				headerfilename);
+		fflush (header_out);
+		fclose (header_out);
+#endif
+/*
+	if (exit_status != 0 && outfile_created) {
+		if (ferror (stdout))
+			lerr (_("error writing output file %s"),
+				outfilename);
+
+		else if ((_stdout_closed = 1) && fclose (stdout))
+			lerr (_("error closing output file %s"),
+				outfilename);
+
+		else if (unlink (outfilename))
+			lerr (_("error deleting output file %s"),
+				outfilename);
+	}
+*/
 
 	if (backing_up_report && backing_up_file) {
 		if (num_backing_up == 0)
@@ -574,11 +824,11 @@ void flexend (exit_status)
 				 _("Compressed tables always back up.\n"));
 
 		if (ferror (backing_up_file))
-			lerrsf (_("error writing backup file %s"),
+			lerr (_("error writing backup file %s"),
 				backing_name);
 
 		else if (fclose (backing_up_file))
-			lerrsf (_("error closing backup file %s"),
+			lerr (_("error closing backup file %s"),
 				backing_name);
 	}
 
@@ -769,18 +1019,17 @@ void flexend (exit_status)
 			 tblsiz);
 	}
 
-	free (flex_temp_out_main);
+	free(flex_temp_out_main);
 	flex_temp_out_main = 0;
-	
-	exit (exit_status);
+
+	exit(exit_status);
+//	FLEX_EXIT (exit_status);
 }
 
 
 /* flexinit - initialize flex */
 
-void flexinit (argc, argv)
-     int argc;
-     char  **argv;
+void flexinit (int argc, char **argv)
 {
 	int     i, sawcmpflag, rv, optind;
 	char   *arg;
@@ -809,7 +1058,6 @@ void flexinit (argc, argv)
 	tablesext = tablesverify = false;
 	gentables = true;
 	tablesfilename = tablesname = NULL;
-    ansi_func_defs = ansi_func_protos = true;
 
 	sawcmpflag = false;
 
@@ -838,8 +1086,11 @@ void flexinit (argc, argv)
     flex_init_regex();
 
 	/* Enable C++ if program name ends with '+'. */
-	program_name = basename2 (argv[0], 0, &ext_path);
+	//program_name = basename (argv[0]);
+	program_name = basename2(argv[0], 0, &ext_path);
 
+//	if (program_name != NULL &&
+//	    program_name[strlen (program_name) - 1] == '+')
 	if (ext_path && *(--ext_path) == '+')
 		C_plus_plus = true;
 
@@ -914,9 +1165,9 @@ void flexinit (argc, argv)
 					break;
 
 				default:
-					lerrif (_
+					lerr (_
 						("unknown -C option '%c'"),
-						(int) arg[i]);
+						arg[i]);
 					break;
 				}
 			break;
@@ -960,7 +1211,7 @@ void flexinit (argc, argv)
 			break;
 
         case OPT_PREPROC_LEVEL:
-            preproc_level = strtol(arg,NULL,0);
+            preproc_level = (int) strtol(arg,NULL,0);
             break;
 
 		case OPT_MAIN:
@@ -1027,7 +1278,7 @@ void flexinit (argc, argv)
 			break;
 
 		case OPT_WIN_COMPAT:
-            buf_m4_define( &m4defs_buf, "M4_YY_WIN_COMPAT",0);
+			buf_m4_define(&m4defs_buf, "M4_YY_WIN_COMPAT", 0);
 			break;
 
 		case OPT_TABLES_FILE:
@@ -1127,7 +1378,7 @@ void flexinit (argc, argv)
 				}
 				else {
 					buf_strnappend (&userdef_buf, arg,
-							def - arg);
+							(int) (def - arg));
 					buf_strappend (&userdef_buf, " ");
 					buf_strappend (&userdef_buf,
 						       def + 1);
@@ -1188,14 +1439,6 @@ void flexinit (argc, argv)
 		case OPT_NO_REJECT:
 			reject_really_used = false;
 			break;
-
-        case OPT_NO_ANSI_FUNC_DEFS:
-            ansi_func_defs = false;
-            break;
-
-        case OPT_NO_ANSI_FUNC_PROTOS:
-            ansi_func_protos = false;
-            break;
 
 		case OPT_NO_YY_PUSH_STATE:
 			//buf_strdefine (&userdef_buf, "YY_NO_PUSH_STATE", "1");
@@ -1281,7 +1524,12 @@ void flexinit (argc, argv)
 			//buf_strdefine (&userdef_buf, "YY_NO_SET_LLOC", "1");
             buf_m4_define( &m4defs_buf, "M4_YY_NO_SET_LLOC",0);
 			break;
-
+		case OPT_HEX:
+			trace_hex = 1;
+                        break;
+                case OPT_NO_SECT3_ESCAPE:
+                        no_section3_escape = true;
+                        break;
 		}		/* switch */
 	}			/* while scanopt() */
 
@@ -1314,13 +1562,13 @@ void flexinit (argc, argv)
 
 /* readin - read in the rules section of the input file(s) */
 
-void readin ()
+void readin (void)
 {
 	static char yy_stdinit[] = "FILE *yyin = stdin, *yyout = stdout;";
 	static char yy_nostdinit[] =
-		"FILE *yyin = (FILE *) 0, *yyout = (FILE *) 0;";
+		"FILE *yyin = NULL, *yyout = NULL;";
 
-	line_directive_out ((FILE *) 0, 1);
+	line_directive_out(NULL, 1);
 
 	if (yyparse ()) {
 		pinpoint_message (_("fatal parse error"));
@@ -1354,7 +1602,7 @@ void readin ()
 	if (backing_up_report) {
 		backing_up_file = fopen (backing_name, "w");
 		if (backing_up_file == NULL)
-			lerrsf (_
+			lerr (_
 				("could not create backing-up info file %s"),
 				backing_name);
 	}
@@ -1435,11 +1683,12 @@ void readin ()
     }
 
 	if (!do_yywrap) {
-		if (!C_plus_plus)
+		if (!C_plus_plus) {
 			 if (reentrant)
-				outn ("\n#define yywrap(yyscanner) 1");
+				outn ("\n#define yywrap(yyscanner) (/*CONSTCOND*/1)");
 			 else
-				outn ("\n#define yywrap() 1");
+				outn ("\n#define yywrap() (/*CONSTCOND*/1)");
+		}
 		outn ("#define YY_SKIP_YYWRAP");
 	}
 
@@ -1447,10 +1696,7 @@ void readin ()
 		outn ("\n#define FLEX_DEBUG");
 
 	OUT_BEGIN_CODE ();
-	if (csize == 256)
-		outn ("typedef unsigned char YY_CHAR;");
-	else
-		outn ("typedef char YY_CHAR;");
+	outn ("typedef flex_uint8_t YY_CHAR;");
 	OUT_END_CODE ();
 
 	if (C_plus_plus) {
@@ -1494,7 +1740,7 @@ void readin ()
 
 	OUT_BEGIN_CODE ();
 	if (fullspd)
-		outn ("typedef yyconst struct yy_trans_info *yy_state_type;");
+		outn ("typedef const struct yy_trans_info *yy_state_type;");
 	else if (!C_plus_plus)
 		outn ("typedef int yy_state_type;");
 	OUT_END_CODE ();
@@ -1543,6 +1789,10 @@ void readin ()
 			}
 			else {
 				outn ("extern char *yytext;");
+
+				outn("#ifdef yytext_ptr");
+				outn("#undef yytext_ptr");
+				outn("#endif");
 				outn ("#define yytext_ptr yytext");
 			}
 		}
@@ -1568,7 +1818,7 @@ void readin ()
 
 /* set_up_initial_allocations - allocate memory for internal tables */
 
-void set_up_initial_allocations ()
+void set_up_initial_allocations (void)
 {
 	maximum_mns = (long_align ? MAXIMUM_MNS_LONG : MAXIMUM_MNS);
 	current_mns = INITIAL_MNS;
@@ -1622,16 +1872,15 @@ void set_up_initial_allocations ()
 	dss = allocate_int_ptr_array (current_max_dfas);
 	dfaacc = allocate_dfaacc_union (current_max_dfas);
 
-	nultrans = (int *) 0;
+	nultrans = NULL;
 }
 
-
 /* extracts basename from path, optionally stripping the extension "\.*"
- * (same concept as /bin/sh `basename`, but different handling of extension). */
-static char *basename2 (path, strip_ext, ext_path)
-     char   *path;
-     int strip_ext;		/* boolean */
-	 char **ext_path;
+* (same concept as /bin/sh `basename`, but different handling of extension). */
+static char *basename2(path, strip_ext, ext_path)
+char   *path;
+int strip_ext;		/* boolean */
+char **ext_path;
 {
 	char   *b, *e = 0;
 
@@ -1655,7 +1904,7 @@ static char *basename2 (path, strip_ext, ext_path)
 	return b;
 }
 
-void usage ()
+void usage (void)
 {
 	FILE   *f = stdout;
 
@@ -1687,6 +1936,7 @@ void usage ()
 		  "  -T, --trace             %s should run in trace mode\n"
 		  "  -w, --nowarn            do not generate warnings\n"
 		  "  -v, --verbose           write summary of scanner statistics to stdout\n"
+		  "      --hex               use hexadecimal numbers instead of octal in debug outputs\n"
 		  "\n" "Files:\n"
 		  "  -o, --outfile=FILE      specify output filename\n"
 		  "  -S, --skel=FILE         specify skeleton file\n"
@@ -1712,8 +1962,6 @@ void usage ()
 		  "       --bison-bridge      scanner for bison pure parser.\n"
 		  "       --bison-locations   include yylloc support.\n"
 		  "       --stdinit           initialize yyin/yyout to stdin/stdout\n"
-          "       --noansi-definitions old-style function definitions\n"
-          "       --noansi-prototypes  empty parameter list in prototypes\n"
 		  "       --nounistd          do not include <unistd.h>\n"
 		  "       --wincompat         windows compatibility (uses <io.h> instead of <unistd.h> and _isatty, _fileno functions)\n"
 		  "       --noFUNCTION        do not generate a particular FUNCTION\n"

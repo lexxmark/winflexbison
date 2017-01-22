@@ -29,7 +29,9 @@
 #include <locale.h>
 
 #include <gettext.h>
+#ifndef _
 #define _(Msgid)  gettext (Msgid)
+#endif
 #define N_(Msgid) (Msgid)
 
 

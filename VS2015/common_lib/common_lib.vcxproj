@@ -228,7 +228,12 @@
   <ItemGroup>
     <ClCompile Include="..\..\common\m4\builtin.c" />
     <ClCompile Include="..\..\common\m4\debug.c" />
-    <ClCompile Include="..\..\common\m4\eval.c" />
+    <ClCompile Include="..\..\common\m4\eval.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="..\..\common\m4\format.c" />
     <ClCompile Include="..\..\common\m4\freeze.c" />
     <ClCompile Include="..\..\common\m4\input.c" />
