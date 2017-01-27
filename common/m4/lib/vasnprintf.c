@@ -1887,16 +1887,16 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
                 switch (a.arg[dp->arg_index].type)
                   {
                   case TYPE_COUNT_SCHAR_POINTER:
-                    *a.arg[dp->arg_index].a.a_count_schar_pointer = length;
+                    *a.arg[dp->arg_index].a.a_count_schar_pointer = (signed char)length;
                     break;
                   case TYPE_COUNT_SHORT_POINTER:
-                    *a.arg[dp->arg_index].a.a_count_short_pointer = length;
+                    *a.arg[dp->arg_index].a.a_count_short_pointer = (short)length;
                     break;
                   case TYPE_COUNT_INT_POINTER:
-                    *a.arg[dp->arg_index].a.a_count_int_pointer = length;
+                    *a.arg[dp->arg_index].a.a_count_int_pointer = (int)length;
                     break;
                   case TYPE_COUNT_LONGINT_POINTER:
-                    *a.arg[dp->arg_index].a.a_count_longint_pointer = length;
+                    *a.arg[dp->arg_index].a.a_count_longint_pointer = (long int)length;
                     break;
 #if HAVE_LONG_LONG_INT
                   case TYPE_COUNT_LONGLONGINT_POINTER:
@@ -5278,7 +5278,7 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
 #endif
 
 #if !USE_SNPRINTF
-                    if (count >= tmp_length)
+                    if (count >= (int)tmp_length)
                       /* tmp_length was incorrectly calculated - fix the
                          code above!  */
                       abort ();
@@ -5369,7 +5369,7 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
 
 #if DCHAR_IS_TCHAR && !USE_SNPRINTF
                     /* Make room for the result.  */
-                    if (count > allocated - length)
+                    if (count > (int)(allocated - length))
                       {
                         /* Need at least count elements.  But allocate
                            proportionally.  */

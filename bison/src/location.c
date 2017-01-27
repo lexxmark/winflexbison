@@ -171,7 +171,7 @@ location_caret (location loc, FILE *out)
   /* If the line we want to quote is seekable (the same line as the previous
      location), just seek it. If it was a previous line, we lost track of it,
      so return to the start of file.  */
-  if (caret_info.line <= loc.start.line)
+  if (caret_info.line <= (size_t)loc.start.line)
     fseek (caret_info.source, caret_info.offset, SEEK_SET);
   else
     {
@@ -181,7 +181,7 @@ location_caret (location loc, FILE *out)
     }
 
   /* Advance to the line's position, keeping track of the offset.  */
-  while (caret_info.line < loc.start.line)
+  while (caret_info.line < (size_t)loc.start.line)
     caret_info.line += getc (caret_info.source) == '\n';
   caret_info.offset = ftell (caret_info.source);
 
@@ -207,7 +207,7 @@ location_caret (location loc, FILE *out)
 
           /* Print the carets (at least one), with the same indent as above.*/
           fprintf (out, " %*s", loc.start.column - 1, "");
-          for (i = loc.start.column; i == loc.start.column || i < len; ++i)
+          for (i = loc.start.column; i == loc.start.column || i < (int)len; ++i)
             putc ('^', out);
           }
         putc ('\n', out);

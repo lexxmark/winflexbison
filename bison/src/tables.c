@@ -631,7 +631,7 @@ matching_state (vector_number vector)
       /* If VECTOR has GLR conflicts, return -1 */
       if (conflict_tos[i] != NULL)
         {
-          int j;
+          size_t j;
           for (j = 0; j < t; j += 1)
             if (conflict_tos[i][j] != 0)
               return -1;
@@ -647,7 +647,7 @@ matching_state (vector_number vector)
           else
             {
               bool match = true;
-              int k;
+              size_t k;
               for (k = 0; match && k < t; k++)
                 if (tos[j][k] != tos[i][k]
                     || froms[j][k] != froms[i][k]
@@ -679,7 +679,7 @@ pack_vector (vector_number vector)
       bool ok = true;
       aver (res < table_size);
       {
-        int k;
+        size_t k;
         for (k = 0; ok && k < t; k++)
           {
             int loc = res + state_number_as_int (from[k]);
@@ -699,7 +699,7 @@ pack_vector (vector_number vector)
       if (ok)
         {
           int loc PACIFY_CC (= -1);
-          int k;
+          size_t k;
           for (k = 0; k < t; k++)
             {
               loc = res + state_number_as_int (from[k]);
