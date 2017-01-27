@@ -1,4 +1,10 @@
 =======
+versions 2.4.7/2.5.7
+--------------
+upgrade win_flex to version 2.6.3
+fixed compilation warnings
+
+=======
 versions 2.4.6/2.5.6
 --------------
 upgrade win_bison to version 3.0.4
