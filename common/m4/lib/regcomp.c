@@ -606,7 +606,8 @@ static const bitset_t utf8_sb_map =
 static void
 free_dfa_content (re_dfa_t *dfa)
 {
-  Idx i, j;
+  size_t i;
+  Idx j;
 
   if (dfa->nodes)
     for (i = 0; i < dfa->nodes_len; ++i)
@@ -850,7 +851,7 @@ init_dfa (re_dfa_t *dfa, size_t pat_len)
 {
   __re_size_t table_size;
 #ifndef _LIBC
-  char *codeset_name;
+//  char *codeset_name;
 #endif
 #ifdef RE_ENABLE_I18N
   size_t max_i18n_object_size = MAX (sizeof (wchar_t), sizeof (wctype_t));
@@ -1159,7 +1160,7 @@ analyze (regex_t *preg)
   dfa->subexp_map = re_malloc (Idx, preg->re_nsub);
   if (dfa->subexp_map != NULL)
     {
-      Idx i;
+      size_t i;
       for (i = 0; i < preg->re_nsub; i++)
 	dfa->subexp_map[i] = i;
       preorder (dfa->str_tree, optimize_subexps, dfa);
@@ -1609,7 +1610,8 @@ duplicate_node (re_dfa_t *dfa, Idx org_idx, unsigned int constraint)
 static reg_errcode_t
 calc_inveclosure (re_dfa_t *dfa)
 {
-  Idx src, idx;
+  size_t src, idx;
+  Idx idx2;
   bool ok;
   for (idx = 0; idx < dfa->nodes_len; ++idx)
     re_node_set_init_empty (dfa->inveclosures + idx);
@@ -1617,9 +1619,9 @@ calc_inveclosure (re_dfa_t *dfa)
   for (src = 0; src < dfa->nodes_len; ++src)
     {
       Idx *elems = dfa->eclosures[src].elems;
-      for (idx = 0; idx < dfa->eclosures[src].nelem; ++idx)
+      for (idx2 = 0; idx2 < dfa->eclosures[src].nelem; ++idx2)
 	{
-	  ok = re_node_set_insert_last (dfa->inveclosures + elems[idx], src);
+	  ok = re_node_set_insert_last (dfa->inveclosures + elems[idx2], src);
 	  if (BE (! ok, 0))
 	    return REG_ESPACE;
 	}

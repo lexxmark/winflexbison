@@ -545,7 +545,7 @@ get_run_time ()
 {
   struct timevar_time_def total_elapsed;
   timevar_get (TV_TOTAL, &total_elapsed);
-  return total_elapsed.user + total_elapsed.sys;
+  return (long)(total_elapsed.user + total_elapsed.sys);
 }
 
 /* Prints a message to stderr stating that time elapsed in STR is

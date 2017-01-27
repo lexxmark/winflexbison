@@ -355,7 +355,7 @@ ielr_compute_auxiliary_tables (bitsetv *follow_kernel_itemsp,
   }
   ielr_compute_always_follows (&edges, edge_counts, always_followsp);
   {
-    int i;
+    size_t i;
     for (i = 0; i < ngotos; ++i)
       free (edges[i]);
   }
@@ -1040,7 +1040,7 @@ ielr_split_states (bitsetv follow_kernel_items, bitsetv always_follows,
           {
             size_t i = 0;
             item_number *itemset = node->state->items;
-            size_t r;
+            int r;
             for (r = 0; r < node->state->reductions->num; ++r)
               {
                 rule *this_rule = node->state->reductions->rules[r];

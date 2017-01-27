@@ -315,7 +315,7 @@ __extension__                                                           \
    *(__o->next_free)++ = 0;                                             \
    (void) 0; })
 
-# define obstack_1grow(OBSTACK,datum)                                   \
+# defineobstack_1grow(OBSTACK,datum)                                   \
 __extension__                                                           \
 ({ struct obstack *__o = (OBSTACK);                                     \
    if (__o->next_free + 1 > __o->chunk_limit)                           \

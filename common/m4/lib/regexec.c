@@ -534,7 +534,7 @@ re_copy_regs (struct re_registers *regs, regmatch_t *pmatch, Idx nregs,
     { /* Yes.  If we need more elements than were already
 	 allocated, reallocate them.  If we need fewer, just
 	 leave it alone.  */
-      if (BE (need_regs > regs->num_regs, 0))
+      if (BE (need_regs > (Idx)regs->num_regs, 0))
 	{
 	  regoff_t *new_start = re_realloc (regs->start, regoff_t, need_regs);
 	  regoff_t *new_end;
@@ -565,7 +565,7 @@ re_copy_regs (struct re_registers *regs, regmatch_t *pmatch, Idx nregs,
       regs->start[i] = pmatch[i].rm_so;
       regs->end[i] = pmatch[i].rm_eo;
     }
-  for ( ; i < regs->num_regs; ++i)
+  for ( ; i < (Idx)regs->num_regs; ++i)
     regs->start[i] = regs->end[i] = -1;
 
   return rval;
@@ -651,7 +651,7 @@ re_search_internal (const regex_t *preg,
   int match_kind;
   Idx match_first;
   Idx match_last = REG_MISSING;
-  Idx extra_nmatch;
+  size_t extra_nmatch;
   bool sb;
   int ch;
 #if defined _LIBC || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L)
@@ -900,7 +900,7 @@ re_search_internal (const regex_t *preg,
   /* Set pmatch[] if we need.  */
   if (nmatch > 0)
     {
-      Idx reg_idx;
+      size_t reg_idx;
 
       /* Initialize registers.  */
       for (reg_idx = 1; reg_idx < nmatch; ++reg_idx)
@@ -1480,7 +1480,7 @@ set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
 
       if (idx == pmatch[0].rm_eo && cur_node == mctx->last_node)
 	{
-	  Idx reg_idx;
+	  size_t reg_idx;
 	  if (fs)
 	    {
 	      for (reg_idx = 0; reg_idx < nmatch; ++reg_idx)
@@ -4207,7 +4207,7 @@ match_ctx_init (re_match_context_t *mctx, int eflags, Idx n)
       size_t max_object_size =
 	MAX (sizeof (struct re_backref_cache_entry),
 	     sizeof (re_sub_match_top_t *));
-      if (BE (SIZE_MAX / max_object_size < n, 0))
+      if (BE (SIZE_MAX / max_object_size < (size_t)n, 0))
 	return REG_ESPACE;
 
       mctx->bkref_ents = re_malloc (struct re_backref_cache_entry, n);

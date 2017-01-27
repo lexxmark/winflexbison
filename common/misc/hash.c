@@ -113,8 +113,8 @@ struct hash_table
    1.0).  The growth threshold defaults to 0.8, and the growth factor
    defaults to 1.414, meaning that the table will have doubled its size
    every second time 80% of the buckets get used.  */
-#define DEFAULT_GROWTH_THRESHOLD 0.8
-#define DEFAULT_GROWTH_FACTOR 1.414
+#define DEFAULT_GROWTH_THRESHOLD 0.8f
+#define DEFAULT_GROWTH_FACTOR 1.414f
 
 /* If a deletion empties a bucket and causes the ratio of used buckets to
    table size to become smaller than the shrink threshold (a number between
@@ -122,8 +122,8 @@ struct hash_table
    number greater than the shrink threshold but smaller than 1.0).  The shrink
    threshold and factor default to 0.0 and 1.0, meaning that the table never
    shrinks.  */
-#define DEFAULT_SHRINK_THRESHOLD 0.0
-#define DEFAULT_SHRINK_FACTOR 1.0
+#define DEFAULT_SHRINK_THRESHOLD 0.0f
+#define DEFAULT_SHRINK_FACTOR 1.0f
 
 /* Use this to initialize or reset a TUNING structure to
    some sensible values. */
@@ -548,7 +548,7 @@ compute_bucket_size (size_t candidate, const Hash_tuning *tuning)
       float new_candidate = candidate / tuning->growth_threshold;
       if (SIZE_MAX <= new_candidate)
         return 0;
-      candidate = new_candidate;
+      candidate = (size_t)new_candidate;
     }
   candidate = next_prime (candidate);
   if (xalloc_oversized (candidate, sizeof (struct hash_entry *)))
@@ -1077,7 +1077,7 @@ hash_insert0 (Hash_table *table, void const *entry, void const **matched_ent)
             return -1;
 
           /* If the rehash fails, arrange to return NULL.  */
-          if (!hash_rehash (table, candidate))
+          if (!hash_rehash (table, (size_t)candidate))
             return -1;
 
           /* Update the bucket we are interested in.  */
@@ -1161,13 +1161,13 @@ hash_delete (Hash_table *table, const void *entry)
               < table->tuning->shrink_threshold * table->n_buckets)
             {
               const Hash_tuning *tuning = table->tuning;
-              size_t candidate =
+              float candidate =
                 (tuning->is_n_buckets
                  ? table->n_buckets * tuning->shrink_factor
                  : (table->n_buckets * tuning->shrink_factor
                     * tuning->growth_threshold));
 
-              if (!hash_rehash (table, candidate))
+              if (!hash_rehash (table, (size_t)candidate))
                 {
                   /* Failure to allocate memory in an attempt to
                      shrink the table is not fatal.  But since memory

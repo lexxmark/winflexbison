@@ -49,7 +49,7 @@ print_lhs (struct obstack *oout, rule *previous_rule, rule *r)
 {
   if (previous_rule && STREQ (previous_rule->lhs->tag, r->lhs->tag))
     {
-      int i;
+      size_t i;
       for (i = 0; i < strlen (r->lhs->tag); ++i)
         obstack_1grow (oout, ' ');
       obstack_1grow (oout, '|');
