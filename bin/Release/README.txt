@@ -1,4 +1,9 @@
 =======
+versions 2.4.8/2.5.8
+--------------
+fixed outdated FlexLexer.h file
+
+=======
 versions 2.4.7/2.5.7
 --------------
 upgrade win_flex to version 2.6.3
