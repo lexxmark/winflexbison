@@ -1,4 +1,9 @@
 =======
+versions 2.4.9/2.5.9
+--------------
+recovered --header-file win_flex option
+
+=======
 versions 2.4.8/2.5.8
 --------------
 fixed outdated FlexLexer.h file
