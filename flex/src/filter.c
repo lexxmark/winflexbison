@@ -520,13 +520,30 @@ int filter_tee_header (struct filter *chain)
 		fputs ("m4_undefine( [[M4_YY_IN_HEADER]])m4_dnl\n", to_h);
 
 		fflush (to_h);
-		if (ferror (to_h))
-			lerr (_("error writing output file %s"),
-				(char *) chain->extra);
+		if (ferror(to_h))
+			lerr(_("error writing output file %s"),
+			(char *)chain->extra);
+		else
+		{
+			if (fseek(to_h, 0, SEEK_SET))
+				flexerror(_("fseek failed"));
 
-		else if (fclose (to_h))
-			lerr (_("error closing output file %s"),
-				(char *) chain->extra);
+			header_out_file = fopen((char *)chain->extra, "w");
+			if (!header_out_file)
+				flexfatal(_("fopen(headerfilename) failed"));
+
+			/* make branch for header file */
+			filter_apply_chain(chain->next, to_h, header_out_file);
+
+			/* cleanup */
+			if (fclose(to_h))
+				lerr(_("error closing output file 1 %s"),
+				(char *)chain->extra);
+
+			if (fclose(header_out_file))
+				lerr(_("error closing output file 2 %s"),
+				(char *)chain->extra);
+		}
 	}
 
 	fflush (to_c);
