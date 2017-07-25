@@ -3,7 +3,7 @@
 <!--
     xml2text.xsl - transform Bison XML Report into plain text.
 
-    Copyright (C) 2007-2013 Free Software Foundation, Inc.
+    Copyright (C) 2007-2015 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -350,12 +350,7 @@
     <xsl:if test="position() = $point + 1">
       <xsl:text> .</xsl:text>
     </xsl:if>
-    <xsl:if test="$itemset = 'true' and name(.) != 'empty'">
-      <xsl:apply-templates select="."/>
-    </xsl:if>
-    <xsl:if test="$itemset != 'true'">
-      <xsl:apply-templates select="."/>
-    </xsl:if>
+    <xsl:apply-templates select="."/>
     <xsl:if test="position() = last() and position() = $point">
       <xsl:text> .</xsl:text>
     </xsl:if>
