@@ -9,7 +9,7 @@ Go to http://sourceforge.net/projects/winflexbison/files/
 http://sourceforge.net/p/winflexbison/wiki/Visual%20Studio%20custom%20build%20rules/
 
 ## History
-see "bin/Release/README.txt"
+see [bin/Release/README.txt](https://raw.githubusercontent.com/lexxmark/winflexbison/master/bin/Release/README.txt)
 
 ## Example flex/bison files
 Go to https://github.com/meyerd/flex-bison-example
