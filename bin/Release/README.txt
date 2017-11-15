@@ -1,3 +1,13 @@
+NOTE:
+2.4.x versions include bison version 2.7
+2.5.x versions include bison version 3.0.x
+
+=======
+versions 2.4.10/2.5.11
+--------------
+upgrade win_flex to version 2.6.4
+fixed compilation warnings
+
 =======
 versions 2.4.9/2.5.10
 --------------
