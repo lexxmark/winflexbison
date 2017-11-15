@@ -30,22 +30,8 @@
 /*  IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED */
 /*  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR */
 /*  PURPOSE. */
-
 #include "flexdef.h"
 #include "tables.h"
-
-#if _MSC_VER < 1900
-int snprintf(char* str, size_t size, const char* format, ...)
-{
-    size_t count;
-    va_list ap;
-    va_start(ap, format);
-    count = _vscprintf(format, ap);
-    _vsnprintf_s(str, size, _TRUNCATE, format, ap);
-    va_end(ap);
-    return count;
-}
-#endif
 
 #define CMD_IF_TABLES_SER    "%if-tables-serialization"
 #define CMD_TABLES_YYDMAP    "%tables-yydmap"
@@ -156,9 +142,14 @@ void add_action (const char *new_text)
 void   *allocate_array (int size, size_t element_size)
 {
 	void *mem;
-	size_t  num_bytes = element_size * (size_t) size;
-
-	mem = malloc(num_bytes);
+#if HAVE_REALLOCARRAY
+	/* reallocarray has built-in overflow detection */
+	mem = reallocarray(NULL, (size_t) size, element_size);
+#else
+	size_t num_bytes = (size_t) size * element_size;
+	mem = (size && SIZE_MAX / (size_t) size < element_size) ? NULL :
+		malloc(num_bytes);
+#endif
 	if (!mem)
 		flexfatal (_
 			   ("memory allocation failed in allocate_array()"));
@@ -229,18 +220,17 @@ unsigned char clower (int c)
 	return (unsigned char) ((isascii (c) && isupper (c)) ? tolower (c) : c);
 }
 
-
 /*
 char *xstrdup(const char *s)
 {
 	char *s2;
 
-	if ((s2 = _strdup(s)) == NULL)
+	if ((s2 = strdup(s)) == NULL)
 		flexfatal (_("memory allocation failure in xstrdup()"));
 
 	return s2;
-}*/
-
+}
+*/
 
 /* cclcmp - compares two characters for use by qsort with '\0' sorting last. */
 
@@ -316,18 +306,6 @@ void flexfatal (const char *msg)
 }
 
 
-/* htoui - convert a hexadecimal digit string to an unsigned integer value */
-
-unsigned int htoui (unsigned char str[])
-{
-	unsigned int result;
-
-	(void) sscanf ((char *) str, "%x", &result);
-
-	return result;
-}
-
-
 /* lerr - report an error message */
 
 void lerr (const char *msg, ...)
@@ -362,7 +340,7 @@ void line_directive_out (FILE *output_file, int do_infile)
 {
 	char    directive[MAXLINE], filename[MAXLINE];
 	char   *s1, *s2, *s3;
-	static const char *line_fmt = "#line %d \"%s\"\n";
+	static const char line_fmt[] = "#line %d \"%s\"\n";
 
 	if (!gen_line_dirs)
 		return;
@@ -527,18 +505,14 @@ unsigned char myesc (unsigned char array[])
 			int     sptr = 1;
 
 			while (sptr <= 3 &&
-                               isascii (array[sptr]) &&
-			       isdigit (array[sptr]))
-				/* Don't increment inside loop control
-				 * because if isdigit() is a macro it might
-				 * expand into multiple increments ...
-				 */
+                               array[sptr] >= '0' && array[sptr] <= '7') {
 				++sptr;
+			}
 
 			c = array[sptr];
 			array[sptr] = '\0';
 
-			esc_char = (unsigned char) otoui (array + 1);
+			esc_char = (unsigned char) strtoul (array + 1, NULL, 8);
 
 			array[sptr] = c;
 
@@ -549,18 +523,18 @@ unsigned char myesc (unsigned char array[])
 		{		/* \x<hex> */
 			int     sptr = 2;
 
-			while (isascii (array[sptr]) &&
-			       isxdigit (array[sptr]))
+			while (sptr <= 3 && isxdigit (array[sptr])) {
 				/* Don't increment inside loop control
-				 * because if isdigit() is a macro it might
+				 * because if isxdigit() is a macro it might
 				 * expand into multiple increments ...
 				 */
 				++sptr;
+			}
 
 			c = array[sptr];
 			array[sptr] = '\0';
 
-			esc_char = (unsigned char) htoui (array + 2);
+			esc_char = (unsigned char) strtoul (array + 2, NULL, 16);
 
 			array[sptr] = c;
 
@@ -570,17 +544,6 @@ unsigned char myesc (unsigned char array[])
 	default:
 		return array[1];
 	}
-}
-
-
-/* otoui - convert an octal digit string to an unsigned integer value */
-
-unsigned int otoui (unsigned char str[])
-{
-	unsigned int result;
-
-	(void) sscanf ((char *) str, "%o", &result);
-	return result;
 }
 
 
@@ -696,9 +659,14 @@ char   *readable_form (int c)
 void   *reallocate_array (void *array, int size, size_t element_size)
 {
 	void *new_array;
-	size_t  num_bytes = element_size * (size_t) size;
-
-	new_array = realloc(array, num_bytes);
+#if HAVE_REALLOCARRAY
+	/* reallocarray has built-in overflow detection */
+	new_array = reallocarray(array, (size_t) size, element_size);
+#else
+	size_t num_bytes = (size_t) size * element_size;
+	new_array = (size && SIZE_MAX / (size_t) size < element_size) ? NULL :
+		realloc(array, num_bytes);
+#endif
 	if (!new_array)
 		flexfatal (_("attempt to increase array size failed"));
 
@@ -822,9 +790,6 @@ void skelout (void)
 			else if (cmd_match (CMD_OK_FOR_HEADER)) {
 				/* %e end linkage-only code. */
 				OUT_END_CODE ();
-			}
-			else if (buf[1] == '#') {
-				/* %# a comment in the skel. ignore. */
 			}
 			else {
 				flexfatal (_("bad line in skeleton file"));
