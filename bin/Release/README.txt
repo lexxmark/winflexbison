@@ -3,6 +3,11 @@ NOTE:
 2.5.x versions include bison version 3.0.x
 
 =======
+versions 2.4.11/2.5.12
+--------------
+migrate to Visual Studio 2017
+
+=======
 versions 2.4.10/2.5.11
 --------------
 upgrade win_flex to version 2.6.4
