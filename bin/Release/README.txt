@@ -3,7 +3,7 @@ NOTE:
 2.5.x versions include bison version 3.0.x
 
 =======
-versions 2.4.12/2.5.13
+versions 2.4.11/2.5.13
 --------------
 fixed VS 2017 compilation errors in location.cc
 
