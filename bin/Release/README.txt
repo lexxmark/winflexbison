@@ -3,6 +3,11 @@ NOTE:
 2.5.x versions include bison version 3.0.x
 
 =======
+versions 2.4.12/2.5.14
+--------------
+revert to Visual Studio 2015 due to false positive virus alarms for win_flex.exe
+
+=======
 versions 2.4.11/2.5.13
 --------------
 fixed VS 2017 compilation errors in location.cc
@@ -19,9 +24,14 @@ upgrade win_flex to version 2.6.4
 fixed compilation warnings
 
 =======
+versions 2.4.9/2.5.10
+--------------
+data folder was up to dated for bison 3.0.4
+
+=======
 versions 2.4.9/2.5.9
 --------------
-recovered win_flex --header-file option
+recovered --header-file win_flex option
 
 =======
 versions 2.4.8/2.5.8
