@@ -7,10 +7,10 @@
     <authors>Alex Zhondin (in addition to original authors of flex and bison)</authors>
     <owners>lexxmark</owners>
     <summary>Win flex-bison is a port Flex/Bison tools to the Windows platform</summary>
-    <description>flex - The Fast Lexical Analyzer (http://flex.sourceforge.net/) and bison - GNU parser generator (http://www.gnu.org/software/bison/)</description>
+    <description>flex - The Fast Lexical Analyzer (https://github.com/westes/flex) and bison - GNU parser generator (https://www.gnu.org/software/bison)</description>
     <projectUrl>http://sourceforge.net/projects/winflexbison/</projectUrl>
     <tags>flex bison</tags>
-    <licenseUrl>http://www.gnu.org/licenses/gpl-3.0-standalone.html</licenseUrl>
+    <licenseUrl>https://www.gnu.org/licenses/gpl-3.0-standalone.html</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
   </metadata>
   <files>
