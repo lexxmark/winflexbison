@@ -1,20 +1,47 @@
-These steps help you setup custom build rules for Visual Studio 2010 and up.
+
+How to setup custom build rules for Visual Studio 2010 and up.
 ---------------
-* First of all you should have 3 files:
-    * **win_flex_bison_custom_build.props**
-    * **win_flex_bison_custom_build.targets**
-    * **win_flex_bison_custom_build.xml**
 
+First of all you should have the necessary files.
+Custom Build rules are separated into a file triplet of `.xml`, `.targets` and `.props`.
 
-They are located in **custom_build_rules** sub-folder of the win_flex_bison archive. Or you can grab them [here](http://sourceforge.net/projects/winflexbison/files/win_flex_bison_custom_build_rules.zip/download)
+You find the custom build rules for win_flex_bison in the **custom_build_rules** directory of the win_flex_bison archive.
 
-Launch Visual Studio and open an VC++ project. Open context menu for project item in Solution Explorer panel and select "**Build Customizations...**" menu item.
-[[img src=1.png alt=1.png]]
+You may choose to install one of the following rule set
+
+* the combined rules - [alternative download][1]:
+    * [win_flex_bison_custom_build.props  ](win_flex_bison/win_flex_bison_custom_build.props)
+    * [win_flex_bison_custom_build.targets](win_flex_bison/win_flex_bison_custom_build.targets)
+    * [win_flex_bison_custom_build.xml    ](win_flex_bison/win_flex_bison_custom_build.xml)
+
+* flex only rules   - [alternative download][2]:
+    * [win_flex_custom_build.props](win_flex_only/win_flex_custom_build.props)
+    * [win_flex_custom_build.targets](win_flex_only/win_flex_custom_build.targets)
+    * [win_flex_custom_build.xml](win_flex_only/win_flex_custom_build.xml)
+
+* bison only rules  - [alternative download][3]:
+    * [win_bison_custom_build.props](win_bison_only/win_bison_custom_build.props)
+    * [win_bison_custom_build.targets](win_bison_only/win_bison_custom_build.targets)
+    * [win_bison_custom_build.xml](win_bison_only/win_bison_custom_build.xml)
+
+This documentation uses the combined rule-set but can be used for all rule-sets.
+
+[1]: https://sourceforge.net/projects/winflexbison/files/win_flex_bison_custom_build_rules.zip/download "Combined build rules for Bison and Flex"
+[2]: https://sourceforge.net/projects/winflexbison/files/win_flex_custom_build_rules.zip/download "Build rules for Flex only"
+[3]: https://sourceforge.net/projects/winflexbison/files/win_bison_custom_build_rules.zip/download "Build rules for Bison only"
+
+----
+
+Launch Visual Studio and open an VC++ project.
+Open context menu for project item in Solution Explorer panel and select "**Build Customizations...**" menu item.
+
+![Build Customizations in Solution Explorer](1.png)
 
 ----
 
 In popup dialog "Visual C++ Build Customization Files" press "**Find Existing...**" button.
-[[img src=2.png alt=2.png]]
+
+![Customization Files](2.png)
 
 ----
 
@@ -22,18 +49,23 @@ In Open File dialog select "**win_flex_bison_custom_build.targets**" file and pr
 
 ----
 
-You will see "Add Search Path?" message box, press "Yes"
-[[img src=3.png alt=3.png]]
+You will see "Add Search Path?" message box, press "Yes".
+
+![Adding Search Path](3.png)
 
 ----
 
-In "Visual C++ Build Customization Files" dialog check just added item **win_flex_bison_custom_build** and press "OK"
-[[img src=4.png alt=4.png]]
+In "Visual C++ Build Customization Files" dialog check just added item **win_flex_bison_custom_build** and press "OK".
+
+![activate custom build rule](4.png)
 
 ----
 
-Now you can add flex and bison files to the project and build.
-[[img src=5.png alt=5.png]]
+Now you can add flex and bison files to the project...
+
+![project with flex and bison files added](5.png)
+
+... and build.
 In build output you should see something like this:
 
 ~~~~
@@ -51,8 +83,12 @@ In build output you should see something like this:
 
 -----
 
-For **sample.y** bison file there are two output files: **sample.tab.h** and **sample.tab.cpp**. For **sample.l** flex file you'll got **sample.flex.cpp**. Now you can add them to the project and build. (*Don't forget to exclude cpp files from using precompiled headers*)
-[[img src=6.png alt=6.png]]
+For **sample.y** bison file there are two output files: **sample.tab.h** and **sample.tab.cpp**.
+For **sample.l** flex file you'll got **sample.flex.cpp**.
+
+Now you can add them to the project and build. (*Don't forget to exclude cpp files from using precompiled headers*)
+
+![Include generated files into Solution](6.png)
 
 ~~~~
 
@@ -83,7 +119,9 @@ If your flex/bison file is incorrect and you've got an error. But you don't see 
 ~~~~
 
 You can change Build Output Verbosity from "Minimal" to "Normal" in "Options" dialog
-[[img src=Verbosity.png alt=Verbosity.png]]
+
+![Verbosity](Verbosity.png)
+
 Then you will see more detailed output:
 
 ~~~~
@@ -105,17 +143,29 @@ Then you will see more detailed output:
 ----
 
 Also you can tune some flex/bison options in files properties dialog:
-[[img src=Properties.png alt=Properties.png]]
-[[img src=FlexProperties.png alt=FlexProperties.png]]
-[[img src=BisonProperties.png alt=BisonProperties.png]]
+
+![Opening File Properties](Properties.png)
+![Property Page for Flex sources](FlexProperties.png)
+![Property Page for Bison sources](BisonProperties.png)
 
 ----
 
 
-To debug your scanner or parser you can set break points right into **sample.y** or **sample.l** code
-[[img src=Flex_debuging.png alt=Flex_debuging.png]]
+To debug your scanner or parser you can set break points right into **sample.y** or **sample.l** code.
+
+![Debugging Flex source files](Flex_debuging.png)
+
+----
+
+
+To use the Visual C++ Code editor for Flex/Bison files instead of the text editor adjust your editor settings as follows:
+
+* click **Options** on the **Tools** menu, expand the **Text Editor** node and select **File Extension**
+* type extension **`l`** in the **Extension** field and choose **Microsoft Visual C++** in the **Editor** drop-down field, click **Add**
+* do the same for the extension **`y`**
+
+You now have syntax highlighting, code-completion and show definition options in your Flex/Bison source.
 
 ----
 
 Enjoy!
---------
