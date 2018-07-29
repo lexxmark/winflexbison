@@ -1,6 +1,6 @@
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2015 Free Software Foundation, Inc.
+# Copyright (C) 2002-2015, 2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 m4_define([b4_symbol_variant],
 [m4_pushdef([b4_dollar_dollar],
             [$2.$3< $][3 > (m4_shift3($@))])dnl
-  switch ($1)
+switch ($1)
     {
 b4_type_foreach([b4_type_action_])[]dnl
       default:

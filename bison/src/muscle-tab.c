@@ -1,6 +1,6 @@
 /* Muscle table manager for Bison.
 
-   Copyright (C) 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 2001-2015, 2018 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -468,13 +468,12 @@ muscle_percent_variable_update (char const *variable, location variable_loc,
              && STREQ (eq + 1, *value))
           : STREQ (c->obsolete, variable))
         {
-          char *res = NULL;
           char *old = define_directive (c->obsolete, *value);
           char *upd = define_directive (c->updated, *value);
           deprecated_directive (&variable_loc, old, upd);
           free (old);
           free (upd);
-          res = xstrdup (c->updated);
+          char *res = xstrdup (c->updated);
           {
             char *eq2 = strchr (res, '=');
             if (eq2)
@@ -507,7 +506,6 @@ muscle_percent_define_insert (char const *var, location variable_loc,
   if (how == MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE
       && muscle_find_const (name))
     {
-      location loc;
       muscle_percent_define_how how_old = atoi (muscle_find_const (how_name));
       unsigned i = 0;
       if (how_old == MUSCLE_PERCENT_DEFINE_F)
@@ -516,7 +514,7 @@ muscle_percent_define_insert (char const *var, location variable_loc,
                        _("%%define variable %s redefined"),
                        quote (variable));
       i += SUB_INDENT;
-      loc = muscle_percent_define_get_loc (variable);
+      location loc = muscle_percent_define_get_loc (variable);
       complain_indent (&loc, complaint, &i, _("previous definition"));
     }
 
@@ -651,7 +649,6 @@ muscle_percent_define_flag_if (char const *variable)
 
   if (muscle_percent_define_ifdef (variable))
     {
-      location loc;
       char *value = muscle_percent_define_get (variable);
       muscle_percent_define_check_kind (variable, muscle_keyword);
       if (value[0] == '\0' || STREQ (value, "true"))
@@ -661,7 +658,7 @@ muscle_percent_define_flag_if (char const *variable)
       else if (!muscle_find_const (invalid_boolean_name))
         {
           muscle_insert (invalid_boolean_name, "");
-          loc = muscle_percent_define_get_loc (variable);
+          location loc = muscle_percent_define_get_loc (variable);
           complain (&loc, complaint,
                     _("invalid value for %%define Boolean variable %s"),
                     quote (variable));

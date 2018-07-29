@@ -1,6 +1,6 @@
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2015 Free Software Foundation, Inc.
+# Copyright (C) 2002-2015, 2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 m4_pushdef([b4_copyright_years],
-           [2002-2015])
+           [2002-2015, 2018])
 
 # b4_position_define
 # ------------------
@@ -28,19 +28,18 @@ m4_define([b4_position_define],
   public:]m4_ifdef([b4_location_constructors], [[
     /// Construct a position.
     explicit position (]b4_percent_define_get([[filename_type]])[* f = YY_NULLPTR,
-                       unsigned int l = ]b4_location_initial_line[u,
-                       unsigned int c = ]b4_location_initial_column[u)
+                       unsigned l = ]b4_location_initial_line[u,
+                       unsigned c = ]b4_location_initial_column[u)
       : filename (f)
       , line (l)
       , column (c)
-    {
-    }
+    {}
 
 ]])[
     /// Initialization.
     void initialize (]b4_percent_define_get([[filename_type]])[* fn = YY_NULLPTR,
-                     unsigned int l = ]b4_location_initial_line[u,
-                     unsigned int c = ]b4_location_initial_column[u)
+                     unsigned l = ]b4_location_initial_line[u,
+                     unsigned c = ]b4_location_initial_column[u)
     {
       filename = fn;
       line = l;
@@ -69,15 +68,15 @@ m4_define([b4_position_define],
     /// File name to which this position refers.
     ]b4_percent_define_get([[filename_type]])[* filename;
     /// Current line number.
-    unsigned int line;
+    unsigned line;
     /// Current column number.
-    unsigned int column;
+    unsigned column;
 
   private:
     /// Compute max(min, lhs+rhs) (provided min <= lhs).
-    static unsigned int add_ (unsigned int lhs, int rhs, unsigned int min)
+    static unsigned add_ (unsigned lhs, int rhs, unsigned min)
     {
-      return (0 < rhs || static_cast<unsigned int>(-rhs) < lhs
+      return (0 < rhs || -static_cast<unsigned>(rhs) < lhs
               ? rhs + lhs
               : min);
     }
@@ -157,30 +156,27 @@ m4_define([b4_location_define],
     location (const position& b, const position& e)
       : begin (b)
       , end (e)
-    {
-    }
+    {}
 
     /// Construct a 0-width location in \a p.
     explicit location (const position& p = position ())
       : begin (p)
       , end (p)
-    {
-    }
+    {}
 
     /// Construct a 0-width location in \a f, \a l, \a c.
     explicit location (]b4_percent_define_get([[filename_type]])[* f,
-                       unsigned int l = ]b4_location_initial_line[u,
-                       unsigned int c = ]b4_location_initial_column[u)
+                       unsigned l = ]b4_location_initial_line[u,
+                       unsigned c = ]b4_location_initial_column[u)
       : begin (f, l, c)
       , end (f, l, c)
-    {
-    }
+    {}
 
 ])[
     /// Initialization.
     void initialize (]b4_percent_define_get([[filename_type]])[* f = YY_NULLPTR,
-                     unsigned int l = ]b4_location_initial_line[u,
-                     unsigned int c = ]b4_location_initial_column[u)
+                     unsigned l = ]b4_location_initial_line[u,
+                     unsigned c = ]b4_location_initial_column[u)
     {
       begin.initialize (f, l, c);
       end = begin;
@@ -278,7 +274,7 @@ m4_define([b4_location_define],
   inline std::basic_ostream<YYChar>&
   operator<< (std::basic_ostream<YYChar>& ostr, const location& loc)
   {
-    unsigned int end_col = 0 < loc.end.column ? loc.end.column - 1 : 0;
+    unsigned end_col = 0 < loc.end.column ? loc.end.column - 1 : 0;
     ostr << loc.begin;
     if (loc.end.filename
         && (!loc.begin.filename

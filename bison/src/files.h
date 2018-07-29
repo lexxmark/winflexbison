@@ -1,6 +1,6 @@
 /* File names and variables for bison,
 
-   Copyright (C) 1984, 1989, 2000-2002, 2006-2007, 2009-2015 Free
+   Copyright (C) 1984, 1989, 2000-2002, 2006-2007, 2009-2015, 2018 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.

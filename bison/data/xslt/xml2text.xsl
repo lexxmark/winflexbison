@@ -3,7 +3,7 @@
 <!--
     xml2text.xsl - transform Bison XML Report into plain text.
 
-    Copyright (C) 2007-2015 Free Software Foundation, Inc.
+    Copyright (C) 2007-2015, 2018 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 

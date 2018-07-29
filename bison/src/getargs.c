@@ -1,6 +1,6 @@
 /* Parse command line arguments for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015 Free Software
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -64,7 +64,7 @@ struct bison_language const *language = &valid_languages[0];
 
 /** Decode an option's key.
  *
- *  \param option   option being decoded.
+ *  \param opt      option being decoded.
  *  \param keys     array of valid subarguments.
  *  \param values   array of corresponding (int) values.
  *  \param all      the all value.
@@ -79,11 +79,11 @@ struct bison_language const *language = &valid_languages[0];
  *  flags from \c all.  Thus no-none = all and no-all = none.
  */
 static void
-flag_argmatch (const char *option,
-               const char * const keys[], const int values[],
+flag_argmatch (const char *opt,
+               const char *const keys[], const int values[],
                int all, int *flags, char *arg, size_t no)
 {
-  int value = XARGMATCH (option, arg + no, keys, values);
+  int value = XARGMATCH (opt, arg + no, keys, values);
 
   /* -rnone == -rno-all, and -rno-none == -rall.  */
   if (!value)
@@ -100,7 +100,7 @@ flag_argmatch (const char *option,
 
 /** Decode an option's set of keys.
  *
- *  \param option   option being decoded.
+ *  \param opt      option being decoded (e.g., --report).
  *  \param keys     array of valid subarguments.
  *  \param values   array of corresponding (int) values.
  *  \param all      the all value.
@@ -109,7 +109,7 @@ flag_argmatch (const char *option,
  *                  If 0, then activate all the flags.
  */
 static void
-flags_argmatch (const char *option,
+flags_argmatch (const char *opt,
                 const char * const keys[], const int values[],
                 int all, int *flags, char *args)
 {
@@ -117,7 +117,7 @@ flags_argmatch (const char *option,
     for (args = strtok (args, ","); args; args = strtok (NULL, ","))
       {
         size_t no = STRPREFIX_LIT ("no-", args) ? 3 : 0;
-        flag_argmatch (option, keys,
+        flag_argmatch (opt, keys,
                        values, all, flags, args, no);
       }
   else
@@ -248,7 +248,6 @@ static void usage (int) ATTRIBUTE_NORETURN;
 static void
 usage (int status)
 {
-  char *lc_messages = NULL;
   if (status != 0)
     fprintf (stderr, _("Try '%s --help' for more information.\n"),
              program_name);
@@ -364,7 +363,7 @@ FEATURE is a list of comma separated words that can include:\n\
       /* Don't output this redundant message for English locales.
          Note we still output for 'C' so that it gets included in the
          man page.  */
-      lc_messages = setlocale (LC_ALL, NULL);
+      const char *lc_messages = setlocale (LC_ALL, NULL);
       if (lc_messages && !STREQ (lc_messages, "en_"))
         /* TRANSLATORS: Replace LANG_CODE in this URL with your language
            code <http://translationproject.org/team/LANG_CODE.html> to

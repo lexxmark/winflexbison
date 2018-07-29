@@ -1,6 +1,6 @@
 /* IELR main implementation.
 
-   Copyright (C) 2009-2015 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -1032,9 +1032,9 @@ ielr_split_states (bitsetv follow_kernel_items, bitsetv always_follows,
      lookahead sets.  */
   if (!annotation_lists)
     {
-      state_list *node;
-	  timevar_push (TV_IELR_PHASE4);
+      timevar_push (TV_IELR_PHASE4);
       initialize_LA ();
+      state_list *node;
       for (node = first_state; node; node = node->next)
         if (!node->state->consistent)
           {

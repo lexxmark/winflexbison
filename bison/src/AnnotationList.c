@@ -1,6 +1,6 @@
 /* IELR's inadequacy annotation list.
 
-   Copyright (C) 2009-2015 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -228,14 +228,14 @@ AnnotationList__computePredecessorAnnotations (AnnotationList *self, state *s,
                                                  *annotations_obstackp)
 {
   state **predecessor;
-  bool potential_contribution = false;
-  bitset *lookaheads = NULL;
   for (predecessor = predecessors[s->number]; *predecessor; ++predecessor)
     {
       AnnotationList *annotation_node =
         AnnotationList__alloc_on_obstack (
           self->inadequacyNode->contributionCount, annotations_obstackp);
       annotation_node->inadequacyNode = self->inadequacyNode;
+      bool potential_contribution = false;
+      bitset *lookaheads = NULL;
       {
         ContributionIndex ci;
         for (ci = 0; ci < self->inadequacyNode->contributionCount; ++ci)

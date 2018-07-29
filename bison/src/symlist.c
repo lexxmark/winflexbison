@@ -1,7 +1,7 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2015 Free Software Foundation,
-   Inc.
+   Copyright (C) 2002, 2005-2007, 2009-2015, 2018 Free Software
+   Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -120,15 +120,12 @@ symbol_list_prepend (symbol_list *list, symbol_list *node)
 symbol_list *
 symbol_list_append (symbol_list *list, symbol_list *node)
 {
-  symbol_list *next = list;
-
   if (!list)
     return node;
-
+  symbol_list *next = list;
   while (next->next)
     next = next->next;
   next->next = node;
-
   return list;
 }
 

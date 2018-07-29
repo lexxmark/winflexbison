@@ -1,7 +1,7 @@
 /* Declaration for error-reporting function for Bison.
 
-   Copyright (C) 2000-2002, 2006, 2009-2015 Free Software Foundation,
-   Inc.
+   Copyright (C) 2000-2002, 2006, 2009-2015, 2018 Free Software
+   Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -107,8 +107,8 @@ typedef enum
 bool warning_is_unset (warnings flags);
 
 /** Make a complaint, with maybe a location.  */
-void complain (location const *loc, warnings flags, char const *message, ...)
-  __attribute__ ((__format__ (__printf__, 3, 4)));
+void complain (location const *loc, warnings flags, char const *message, ...);
+//  __attribute__ ((__format__ (__printf__, 3, 4)));
 
 /** Likewise, but with an \a argc/argv interface.  */
 void complain_args (location const *loc, warnings w, unsigned *indent,
@@ -116,8 +116,8 @@ void complain_args (location const *loc, warnings w, unsigned *indent,
 
 /** Make a complaint with location and some indentation.  */
 void complain_indent (location const *loc, warnings flags, unsigned *indent,
-                      char const *message, ...)
-  __attribute__ ((__format__ (__printf__, 4, 5)));
+                      char const *message, ...);
+ // __attribute__ ((__format__ (__printf__, 4, 5)));
 
 
 /** Report an obsolete syntax, suggest the updated one.  */
