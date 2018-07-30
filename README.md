@@ -20,6 +20,11 @@ NOTE:
 2.5.x versions include bison version 3.0.x
 
 =======
+versions 2.4.12/2.5.15
+--------------
+upgrade win_bison to version 3.0.5
+
+=======
 versions 2.4.12/2.5.14
 --------------
 revert to Visual Studio 2015 due to false positive virus alarms for win_flex.exe
