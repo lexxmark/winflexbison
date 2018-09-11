@@ -9,6 +9,10 @@ Main winflexbison repository for http://sourceforge.net/projects/winflexbison/
 ## Downloads
 Go to http://sourceforge.net/projects/winflexbison/files/
 
+## Build requirements
+  * Visual Studio 2013 or newer
+  * optional: CMake (when building with CMake)
+
 ## HowTo
 http://sourceforge.net/p/winflexbison/wiki/Visual%20Studio%20custom%20build%20rules/
 
@@ -103,7 +107,7 @@ Bison:
    8. Warnings (--warnings="...")
    9. Report (--report="...")
    10. Report File Name (--report-file="...")
-   
+
 Flex:
    1. Output File Name (--outfile="...")
    2. Header File Name (--header-file="...")
@@ -145,11 +149,11 @@ upgrade win_bison to version 3.0 and make temporary win_bison's files process un
 NOTE: There are several deprecated features were removed in bison 3.0 so this version can break your projects.
 Please see http://savannah.gnu.org/forum/forum.php?forum_id=7663
 For the reason of compatibility I don't change win_flex_bison-latest.zip to refer to win_flex_bison-2.5.zip file.
-It still refer to win_flex_bison-2.4.zip 
+It still refer to win_flex_bison-2.4.zip
 
 version 2.4
 --------------
-fix problem with "m4_syscmd is not implemented" message. Now win_bison should output correct 
+fix problem with "m4_syscmd is not implemented" message. Now win_bison should output correct
 diagnostic and error messages.
 
 version 2.3
@@ -181,4 +185,3 @@ fixed win_flex.exe parallel invocations (now all temporary files are process spe
 added FLEX_TMP_DIR environment variable support to redirect temporary files folder
 added '.exe' to program name in win_flex.exe --version output (CMake support)
 fixed win_bison.exe to use /data subfolder related to executable path rather than current working directory
-
