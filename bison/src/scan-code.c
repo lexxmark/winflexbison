@@ -296,6 +296,12 @@
 /* %if-c-only */
 #include "system.h"
 #include <stdio.h>
+// For Visual Studio 2013 we need this workaround
+#ifdef _MSC_VER
+	#if _MSC_VER < 1900
+		#define snprintf _snprintf
+	#endif
+#endif
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
