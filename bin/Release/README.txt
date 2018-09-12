@@ -82,7 +82,7 @@ Bison:
    8. Warnings (--warnings="...")
    9. Report (--report="...")
    10. Report File Name (--report-file="...")
-   
+
 Flex:
    1. Output File Name (--outfile="...")
    2. Header File Name (--header-file="...")
@@ -124,11 +124,11 @@ upgrade win_bison to version 3.0 and make temporary win_bison's files process un
 NOTE: There are several deprecated features were removed in bison 3.0 so this version can break your projects.
 Please see http://savannah.gnu.org/forum/forum.php?forum_id=7663
 For the reason of compatibility I don't change win_flex_bison-latest.zip to refer to win_flex_bison-2.5.zip file.
-It still refer to win_flex_bison-2.4.zip 
+It still refer to win_flex_bison-2.4.zip
 
 version 2.4
 --------------
-fix problem with "m4_syscmd is not implemented" message. Now win_bison should output correct 
+fix problem with "m4_syscmd is not implemented" message. Now win_bison should output correct
 diagnostic and error messages.
 
 version 2.3

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 project (winflexbison)
- 
+
 if(NOT MSVC)
    message( FATAL_ERROR "Visual Studio Build supported only" )
 endif()
@@ -31,3 +31,28 @@ endif()
 add_subdirectory(common)
 add_subdirectory(flex)
 add_subdirectory(bison)
+
+
+# CPACK
+set(INSTALL_FOLDERS "bin/Release/")
+install(DIRECTORY ${INSTALL_FOLDERS} DESTINATION "./")
+
+set(PACKAGE_GENERATORS_DEFAULT ZIP)
+
+set(CPACK_GENERATOR ${PACKAGE_GENERATORS_DEFAULT} CACHE STRING "List of CPack Generators which will be created by the 'PACKAGE' target. Default: ZIP")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Winflexbison - Flex and Bison for Windows")
+
+set(ENV_VERSION "$ENV{WINFLEXBISON_VERSION}")
+if(NOT ENV_VERSION)
+  set(CPACK_PACKAGE_VERSION "master" CACHE STRING "Complete version of the created package.")
+else()
+  set(CPACK_PACKAGE_VERSION "${ENV_VERSION}" CACHE STRING "Complete version of the created package.")
+endif()
+
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+set(CPACK_ARCHIVE_COMPONENT_INSTALL OFF)
+set(CPACK_MONOLITHIC_INSTALL ON)
+
+set(CPACK_PACKAGE_FILE_NAME "win_flex_bison-${CPACK_PACKAGE_VERSION}")
+
+include(CPack)
