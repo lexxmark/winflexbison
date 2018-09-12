@@ -1,3 +1,7 @@
+master [![Build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/master?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/master)
+
+bison2.7 [![Build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/bison2.7?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/bison2.7)
+
 ## WinFlexBison - Flex and Bison for Microsoft Windows
 
 Main winflexbison repository for http://sourceforge.net/projects/winflexbison/
