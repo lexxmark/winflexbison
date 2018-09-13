@@ -40,7 +40,7 @@ build:
   parallel: false
 
 after_build:
-  - cmake --build . --target package
+  - cmake --build . --config Release --target package
 
 artifacts:
   - path: build/win_flex_bison*.zip
