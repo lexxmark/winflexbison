@@ -25,6 +25,7 @@
 # include <string.h> /* strcmp */
 
 # include "uniqstr.h"
+# include "config.h"
 
 /* A boundary between two characters.  */
 typedef struct
