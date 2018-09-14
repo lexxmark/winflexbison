@@ -444,7 +444,7 @@ m4_define([b4_symbol_action],
                                 [m4_dquote(b4_symbol([$1], [type]))]),
                    [(*yylocationp)])dnl
     b4_symbol_case_([$1])[]dnl
-b4_syncline([b4_symbol([$1], [$2_line])], ["b4_symbol([$1], [$2_file])"])
+b4_syncline([b4_symbol([$1], [$2_line])], [b4_symbol([$1], [$2_file])])
       b4_symbol([$1], [$2])
 b4_syncline([@oline@], [@ofile@])
         break;

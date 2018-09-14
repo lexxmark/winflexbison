@@ -297,18 +297,18 @@ m4_define([b4_public_types_define],
   // basic_symbol.
   template <typename Base>
   ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol ()
-    : value ()
+    : value ()]b4_locations_if([
+    , location ()])[
   {}
 
   template <typename Base>
   ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol (const basic_symbol& other)
     : Base (other)
-    , value ()]b4_locations_if([
+    , value (]b4_variant_if([], [other.value])[)]b4_locations_if([
     , location (other.location)])[
-  {
-    ]b4_variant_if([b4_symbol_variant([other.type_get ()], [value], [copy],
-                                      [other.value])],
-                   [value = other.value;])[
+  {]b4_variant_if([
+    b4_symbol_variant([other.type_get ()], [value], [copy],
+                      [other.value])])[
   }
 
   template <typename Base>

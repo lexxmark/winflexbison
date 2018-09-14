@@ -31,7 +31,7 @@
  * This must remain unsigned so that the overflow check in
  * \c InadequacyList__new_conflict works properly.
  */
-typedef unsigned long long int InadequacyListNodeCount;
+typedef unsigned long long InadequacyListNodeCount;
 
 /**
  * For a conflict, each rule in the grammar can have at most one contributing

@@ -36,9 +36,7 @@ uniqstr uniqstr_new (char const *str);
    strings, use UNIQSTR_CONCAT, which is a convenient wrapper around
    this function.  */
 uniqstr uniqstr_vsprintf (char const *format, ...);
-//  __attribute__ ((__format__ (__printf__, 1, 2)));
-
-char* uniqstr_get_format (char const *aaa, ...);
+//  _GL_ATTRIBUTE_FORMAT_PRINTF (1, 2);
 
 /* Two uniqstr values have the same value iff they are the same.  */
 # define UNIQSTR_EQ(Ustr1, Ustr2) (!!((Ustr1) == (Ustr2)))
@@ -61,9 +59,6 @@ void uniqstr_assert (char const *str);
    checking.  Unfortunately, because of the missing format string in the
    macro invocation, the argument number reported by gcc for a bad
    argument type is 1 too large.  */
-
-#define UNIQSTR_CONCAT(...) uniqstr_vsprintf(uniqstr_get_format("aaaa", __VA_ARGS__, NULL), __VA_ARGS__)
-#if 0
 # define UNIQSTR_CONCAT(...)                                            \
   uniqstr_vsprintf (UNIQSTR_GEN_FORMAT (__VA_ARGS__,                    \
                                         "%s", "%s", "%s", "%s", "%s",   \
@@ -89,7 +84,6 @@ void uniqstr_assert (char const *str);
                             F16, F17, F18, F19, F20, ...)       \
   F1  F2  F3  F4  F5  F6  F7  F8  F9  F10                       \
   F11 F12 F13 F14 F15 F16 F17 F18 F19 F20
-#endif
 
 /*--------------------.
 | Table of uniqstrs.  |

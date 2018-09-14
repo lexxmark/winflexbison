@@ -55,29 +55,6 @@ uniqstr_new (char const *str)
   return res;
 }
 
-/* arg list should be with char* only and end with NULL */
-char*
-uniqstr_get_format (char const *aaa, ...)
-{
-  static char format[50] = {0};
-  char* arg = NULL;
-  int i = 0;
-  va_list args;
-
-  va_start (args, aaa);
-  arg = va_arg(args, char*);
-  while(arg) {
-	  format[i++] = '%';
-	  format[i++] = 's';
-	  arg = va_arg(args, char*);
-  }
-  va_end (args);
-
-  format[i] = 0;
-
-  return format;
-}
-
 uniqstr
 uniqstr_vsprintf (char const *format, ...)
 {

@@ -44,6 +44,20 @@ int   FLEX_PREFIX (lex_destroy) (void);
 
 #define last_string    FLEX_PREFIX (last_string)
 
+// Pacify warnings in yy_init_buffer (observed with Flex 2.6.4 and GCC
+// 7.3.0).
+//
+// ./src/scan-skel.c: In function 'skel_restart':
+// ./src/scan-skel.c:2035:20: error: potential null pointer dereference [-Werror=null-dereference]
+//   b->yy_fill_buffer = 1;
+//   ~~~~~~~~~~~~~~~~~~^~~
+// ./src/scan-skel.c:2031:19: error: potential null pointer dereference [-Werror=null-dereference]
+//   b->yy_input_file = file;
+//   ~~~~~~~~~~~~~~~~~^~~~~~
+#if defined __GNUC__ && 7 <= __GNUC__
+# pragma GCC diagnostic ignored "-Wnull-dereference"
+#endif
+
 /* It seems to be a nice "feature" of Flex that one cannot use yytext,
    yyleng etc. when a prefix is given, since there is no longer a
    #define, but rather the token is actually changed in the output.

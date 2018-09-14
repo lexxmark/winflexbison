@@ -135,7 +135,7 @@ typedef struct
 /* Is the TRANSITIONS->states[Num] labelled by the error token?  */
 
 # define TRANSITION_IS_ERROR(Transitions, Num) \
-  (TRANSITION_SYMBOL (Transitions, Num) == errtoken->number)
+  (TRANSITION_SYMBOL (Transitions, Num) == errtoken->content->number)
 
 /* When resolving a SR conflicts, if the reduction wins, the shift is
    disabled.  */

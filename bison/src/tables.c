@@ -83,7 +83,7 @@ int nvectors;
 
 static base_number **froms;
 static base_number **tos;
-static unsigned int **conflict_tos;
+static unsigned **conflict_tos;
 static size_t *tally;
 static base_number *width;
 
@@ -112,9 +112,9 @@ base_number *base = NULL;
 base_number base_ninf = 0;
 static base_number *pos = NULL;
 
-static unsigned int *conflrow;
-unsigned int *conflict_table;
-unsigned int *conflict_list;
+static unsigned *conflrow;
+unsigned *conflict_table;
+unsigned *conflict_list;
 int conflict_list_cnt;
 static int conflict_list_free;
 
@@ -290,7 +290,7 @@ action_row (state *s)
 
       /* Do not use any default reduction if there is a shift for
          error */
-      if (sym == errtoken->number)
+      if (sym == errtoken->content->number)
         nodefault = true;
     }
 
@@ -300,7 +300,7 @@ action_row (state *s)
   for (i = 0; i < errp->num; i++)
     {
       symbol *sym = errp->symbols[i];
-      actrow[sym->number] = ACTION_NUMBER_MINIMUM;
+      actrow[sym->content->number] = ACTION_NUMBER_MINIMUM;
     }
 
   /* Turn off default reductions where requested by the user.  See
@@ -394,7 +394,7 @@ save_row (state_number s)
       /* Allocate non defaulted actions.  */
       base_number *sp1 = froms[s] = xnmalloc (count, sizeof *sp1);
       base_number *sp2 = tos[s] = xnmalloc (count, sizeof *sp2);
-      unsigned int *sp3 = conflict_tos[s] =
+      unsigned *sp3 = conflict_tos[s] =
         nondeterministic_parser ? xnmalloc (count, sizeof *sp3) : NULL;
 
       /* Store non defaulted actions.  */
@@ -631,7 +631,7 @@ matching_state (vector_number vector)
       /* If VECTOR has GLR conflicts, return -1 */
       if (conflict_tos[i] != NULL)
         {
-          size_t j;
+          int j;
           for (j = 0; j < t; j += 1)
             if (conflict_tos[i][j] != 0)
               return -1;
@@ -647,7 +647,7 @@ matching_state (vector_number vector)
           else
             {
               bool match = true;
-              size_t k;
+              int k;
               for (k = 0; match && k < t; k++)
                 if (tos[j][k] != tos[i][k]
                     || froms[j][k] != froms[i][k]
@@ -670,7 +670,7 @@ pack_vector (vector_number vector)
   size_t t = tally[i];
   base_number *from = froms[i];
   base_number *to = tos[i];
-  unsigned int *conflict_to = conflict_tos[i];
+  unsigned *conflict_to = conflict_tos[i];
 
   aver (t != 0);
 
@@ -679,7 +679,7 @@ pack_vector (vector_number vector)
       bool ok = true;
       aver (res < table_size);
       {
-        size_t k;
+        int k;
         for (k = 0; ok && k < t; k++)
           {
             int loc = res + state_number_as_int (from[k]);
@@ -699,7 +699,7 @@ pack_vector (vector_number vector)
       if (ok)
         {
           int loc PACIFY_CC (= -1);
-          size_t k;
+          int k;
           for (k = 0; k < t; k++)
             {
               loc = res + state_number_as_int (from[k]);
