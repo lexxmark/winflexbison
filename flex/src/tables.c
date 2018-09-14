@@ -36,6 +36,8 @@
 #include "flexdef.h"
 #include "tables.h"
 
+#include <Winsock2.h>
+
 /** Convert size_t to t_flag.
  *  @param n in {1,2,4}
  *  @return YYTD_DATA*. 
@@ -275,14 +277,6 @@ int yytbl_writen (struct yytbl_writer *wr, void *v, int len)
 	return len;
 }
 
-#define SWAP_BYTE_ORDER_UINT(val)	(((val << 24) & 0xFF000000) |\
-									 ((val <<  8) & 0x00FF0000) |\
-									 ((val >>  8) & 0x0000FF00) |\
-									 ((val >> 24) & 0x000000FF))
-
-#define SWAP_BYTE_ORDER_USHORT(val) (((val << 8) & 0xFF00) |\
-									 ((val >> 8) & 0x00FF))
-
 /** Write four bytes in network byte order
  *  @param  wr  the table writer
  *  @param  v    a dword in host byte order
@@ -293,8 +287,7 @@ int yytbl_write32 (struct yytbl_writer *wr, flex_uint32_t v)
 	flex_uint32_t vnet;
 	int  bytes, rv;
 
-//	vnet = htonl (v);
-	vnet = SWAP_BYTE_ORDER_UINT (v);
+	vnet = htonl (v);
 	bytes = (int) sizeof (flex_uint32_t);
 	rv = (int) fwrite (&vnet, (size_t) bytes, 1, wr->out);
 	if (rv != 1)
@@ -313,8 +306,7 @@ int yytbl_write16 (struct yytbl_writer *wr, flex_uint16_t v)
 	flex_uint16_t vnet;
 	int  bytes, rv;
 
-//	vnet = htons (v);
-	vnet = SWAP_BYTE_ORDER_USHORT(v);
+	vnet = htons (v);
 	bytes = (int) sizeof (flex_uint16_t);
 	rv = (int) fwrite (&vnet, (size_t) bytes, 1, wr->out);
 	if (rv != 1)
