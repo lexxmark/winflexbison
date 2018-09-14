@@ -34,8 +34,15 @@ add_subdirectory(bison)
 
 
 # CPACK
-set(INSTALL_FOLDERS "bin/Release/")
-install(DIRECTORY ${INSTALL_FOLDERS} DESTINATION "./")
+install(DIRECTORY "bin/Release/" DESTINATION "./")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  install(DIRECTORY "bin/Debug/" DESTINATION "./")
+endif()
+
+install(DIRECTORY "custom_build_rules/" DESTINATION "./custom_build_rules/")
+install(DIRECTORY "bison/data/" DESTINATION "./data/")
+install(FILES "flex/src/FlexLexer.h" DESTINATION "./")
 
 set(PACKAGE_GENERATORS_DEFAULT ZIP)
 

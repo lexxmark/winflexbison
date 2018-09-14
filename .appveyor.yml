@@ -30,17 +30,18 @@ init:
 before_build:
   - if "%platform%"=="Win32" ( set "CMAKE_GENERATOR_NAME=Visual Studio %VSVERSION%" )
   - if "%platform%"=="x64" ( set "CMAKE_GENERATOR_NAME=Visual Studio %VSVERSION% Win64" )
-  - if "%APPVEYOR_REPO_TAG_NAME%"=="" ( set "APPVEYOR_REPO_TAG_NAME=dev" )
+  - set VSVERSIONSHORT=%VSVERSION:~3,4%
+  - if "%APPVEYOR_REPO_TAG_NAME%"=="" ( set "APPVEYOR_REPO_TAG_NAME=dev-%VSVERSIONSHORT%-%platform%-%configuration%" )
   - mkdir build
   - cd build
-  - cmake -G "%CMAKE_GENERATOR_NAME%" -DCPACK_PACKAGE_VERSION="%APPVEYOR_REPO_TAG_NAME%" ..
+  - cmake -G "%CMAKE_GENERATOR_NAME%" -DCPACK_PACKAGE_VERSION="%APPVEYOR_REPO_TAG_NAME%" -DCMAKE_BUILD_TYPE="%configuration%" ..
 
 build:
   project: "build\\winflexbison.sln"
   parallel: false
 
 after_build:
-  - cmake --build . --config Release --target package
+  - cmake --build . --target package
 
 artifacts:
   - path: build/win_flex_bison*.zip

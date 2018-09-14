@@ -275,7 +275,7 @@ bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
 	static char file_num = '0';
 	FILE* mid_out_file = NULL;
 	int r;
-	bool result;
+	bool result = true;
 
 	++file_num;
 	out_file_name[1] = file_num;
