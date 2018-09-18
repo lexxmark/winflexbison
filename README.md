@@ -10,7 +10,7 @@ Main winflexbison repository for https://sourceforge.net/projects/winflexbison/
 Go to http://sourceforge.net/projects/winflexbison/files/ or https://github.com/lexxmark/winflexbison/releases
 
 ## Changelog
-See the `changelog.md` file.
+See the [changelog.md](changelog.md) file.
 
 ## Build requirements
   * Visual Studio 2013 or newer
@@ -21,9 +21,6 @@ See the `changelog.md` file.
 
 ## HowTo
 https://sourceforge.net/p/winflexbison/wiki/Visual%20Studio%20custom%20build%20rules/
-
-## History
-see [bin/Release/README.txt](https://raw.githubusercontent.com/lexxmark/winflexbison/master/bin/Release/README.txt)
 
 ## Example flex/bison files
 Go to https://github.com/meyerd/flex-bison-example
