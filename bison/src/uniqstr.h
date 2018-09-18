@@ -60,7 +60,7 @@ void uniqstr_assert (char const *str);
    checking.  Unfortunately, because of the missing format string in the
    macro invocation, the argument number reported by gcc for a bad
    argument type is 1 too large.  */
-
+// start winflexbison insertion
 #define UNIQSTR_CONCAT(...) uniqstr_vsprintf(uniqstr_get_format("aaaa", __VA_ARGS__, NULL), __VA_ARGS__)
 #if 0
 # define UNIQSTR_CONCAT(...)                                            \
@@ -89,6 +89,7 @@ void uniqstr_assert (char const *str);
   F1  F2  F3  F4  F5  F6  F7  F8  F9  F10                       \
   F11 F12 F13 F14 F15 F16 F17 F18 F19 F20
 #endif
+// end winflexbison insertion
 
 /*--------------------.
 | Table of uniqstrs.  |

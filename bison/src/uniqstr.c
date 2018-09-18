@@ -27,9 +27,10 @@
 #include <stdarg.h>
 
 #include "uniqstr.h"
-
+// start winflexbison insertion
 #include <stdlib.h>
 #include <malloc.h>
+// end winflexbison insertion
 
 /*-----------------------.
 | A uniqstr hash table.  |
@@ -58,6 +59,7 @@ uniqstr_new (char const *str)
   return res;
 }
 
+// start winflexbison insertion
 /* arg list should be with char* only and end with NULL */
 char*
 uniqstr_get_format(char const *aaa, ...)
@@ -80,6 +82,7 @@ uniqstr_get_format(char const *aaa, ...)
 
 	return format;
 }
+// end winflexbison insertion
 
 uniqstr
 uniqstr_vsprintf (char const *format, ...)
