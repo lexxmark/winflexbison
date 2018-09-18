@@ -28,6 +28,9 @@
 
 #include "uniqstr.h"
 
+#include <stdlib.h>
+#include <malloc.h>
+
 /*-----------------------.
 | A uniqstr hash table.  |
 `-----------------------*/
@@ -55,6 +58,29 @@ uniqstr_new (char const *str)
   return res;
 }
 
+/* arg list should be with char* only and end with NULL */
+char*
+uniqstr_get_format(char const *aaa, ...)
+{
+	static char format[50] = { 0 };
+	char* arg = NULL;
+	int i = 0;
+	va_list args;
+
+	va_start(args, aaa);
+	arg = va_arg(args, char*);
+	while (arg) {
+		format[i++] = '%';
+		format[i++] = 's';
+		arg = va_arg(args, char*);
+	}
+	va_end(args);
+
+	format[i] = 0;
+
+	return format;
+}
+
 uniqstr
 uniqstr_vsprintf (char const *format, ...)
 {
@@ -67,7 +93,7 @@ uniqstr_vsprintf (char const *format, ...)
   length = vsnprintf (NULL, 0, format, args);
   va_end (args);
 
-  res = malloc(sizeof(char)*(length+1));
+  res = (char*)_malloca(sizeof(char)*(length+1));
   //char res[length + 1];
   va_start (args, format);
   vsprintf (res, format, args);
@@ -75,7 +101,7 @@ uniqstr_vsprintf (char const *format, ...)
 
   result = uniqstr_new (res);
 
-  free(res);
+  _freea(res);
 
   return result;//uniqstr_new (res);
 }
