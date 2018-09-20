@@ -709,7 +709,7 @@ output_skeleton (void)
   if (trace_flag & trace_muscles)
     muscles_output (stderr);
   {
-    m4_in = mkstempFILE(m4_in_file_name, "w+");
+    m4_in = mkstempFILE(m4_in_file_name, "wb+");
     if (!m4_in)
       error (EXIT_FAILURE, get_errno (),
              "fopen");
@@ -723,7 +723,7 @@ output_skeleton (void)
 
   /* Read and process m4's output.  */
   {
-    m4_out = mkstempFILE(m4_out_file_name, "w+");
+    m4_out = mkstempFILE(m4_out_file_name, "wb+");
     if (!m4_out)
       error (EXIT_FAILURE, get_errno (),
              "fopen");

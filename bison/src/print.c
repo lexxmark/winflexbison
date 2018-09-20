@@ -511,7 +511,7 @@ print_results (void)
 {
   /* We used to use just .out if SPEC_NAME_PREFIX (-p) was used, but
      that conflicts with Posix.  */
-  FILE *out = xfopen (spec_verbose_file, "w");
+  FILE *out = xfopen (spec_verbose_file, "wb");
 
   reduce_output (out);
   grammar_rules_partial_print (out,

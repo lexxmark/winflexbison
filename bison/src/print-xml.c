@@ -510,7 +510,7 @@ print_xml (void)
 {
   int level = 0;
 
-  FILE *out = xfopen (spec_xml_file, "w");
+  FILE *out = xfopen (spec_xml_file, "wb");
 
   fputs ("<?xml version=\"1.0\"?>\n\n", out);
   xml_printf (out, level,

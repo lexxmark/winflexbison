@@ -184,7 +184,7 @@ void
 print_graph (void)
 {
   state_number i;
-  FILE *fgraph = xfopen (spec_graph_file, "w");
+  FILE *fgraph = xfopen (spec_graph_file, "wb");
   start_graph (fgraph);
 
   /* Output nodes and edges. */
