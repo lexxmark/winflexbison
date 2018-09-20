@@ -434,7 +434,7 @@ void check_options (void)
 			snprintf (pname, nbytes, tablesfile_template, prefix);
 		}
 
-		if ((tablesout = fopen (tablesfilename, "w")) == NULL)
+		if ((tablesout = fopen (tablesfilename, "wb")) == NULL)
 			lerr (_("could not create %s"), tablesfilename);
 		free(pname);
 		tablesfilename = 0;
@@ -560,7 +560,7 @@ void flexend (int exit_status)
 				outfilename = outfile_path;
 			}
 
-			out = fopen(outfilename, "w+");
+			out = fopen(outfilename, "wb+");
 			if (out == NULL)
 				lerr(_("could not create %s"), outfilename);
 
@@ -1601,7 +1601,7 @@ void readin (void)
 	}
 
 	if (backing_up_report) {
-		backing_up_file = fopen (backing_name, "w");
+		backing_up_file = fopen (backing_name, "wb");
 		if (backing_up_file == NULL)
 			lerr (_
 				("could not create backing-up info file %s"),

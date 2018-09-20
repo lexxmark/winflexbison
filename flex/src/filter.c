@@ -288,7 +288,7 @@ bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
 	chain->in_file = in_file;
 	if (chain->next)
 	{
-		mid_out_file = mkstempFILE(out_file_name, "w+");
+		mid_out_file = mkstempFILE(out_file_name, "wb+");
 		if (!mid_out_file)
 			flexerror (_("fail create temp file"));
 
@@ -466,7 +466,7 @@ int filter_tee_header (struct filter *chain)
 		to_h = stdout;
         */
 		char tmp_file_name[256] = "~temp_header_file_XXXXXX";
-		to_h = mkstempFILE(tmp_file_name, "w+");
+		to_h = mkstempFILE(tmp_file_name, "wb+");
 		if (!to_h)
 			flexfatal (_("fopen(headerfilename) failed"));
 	}
@@ -529,7 +529,7 @@ int filter_tee_header (struct filter *chain)
 			if (fseek(to_h, 0, SEEK_SET))
 				flexerror(_("fseek failed"));
 
-			header_out_file = fopen((char *)chain->extra, "w");
+			header_out_file = fopen((char *)chain->extra, "wb");
 			if (!header_out_file)
 				flexfatal(_("fopen(headerfilename) failed"));
 
