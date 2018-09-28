@@ -2,11 +2,12 @@
 
 **NOTE**:
   * 2.4.x versions include bison version 2.7
-  * 2.5.x versions include bison version 3.0.x
+  * 2.5.x versions include bison version 3.x
   
 ### version 2.5.16
   * upgrade win_bison to version 3.1
   * write output flex/bison files in binary mode "wb" that means use '\n' EOL not '\r\n'
+  * documentation about how to use the custom build-rules is now included
 
 ### versions 2.4.12/2.5.15
   * upgrade win_bison to version 3.0.5
@@ -98,7 +99,7 @@ see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=542482
 ### version 2.5
   * upgrade win_bison to version 3.0 and make temporary win_bison's files process unique (so parallel invocations of win_bison are possible)
 
-**NOTE**: There are several deprecated features were removed in bison 3.0 so this version can break your projects.
+**NOTE**: Several deprecated features were removed in bison 3.0 so this version can break your projects.
 Please see http://savannah.gnu.org/forum/forum.php?forum_id=7663
 For the reason of compatibility I don't change win_flex_bison-latest.zip to refer to win_flex_bison-2.5.zip file.
 It still refer to win_flex_bison-2.4.zip
