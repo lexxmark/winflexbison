@@ -1253,7 +1253,6 @@ char *yytext;
 #define gram_wrap() 1
 
 #define FLEX_PREFIX(Id) gram_ ## Id
-#include "obstack.h"
 #include <src/flex-scanner.h>
 
 #include <src/complain.h>
@@ -1323,7 +1322,7 @@ gram_scanner_last_string_free (void)
 }
 
 static void handle_syncline (char *, location);
-static unsigned long int scan_integer (char const *p, int base, location loc);
+static unsigned long scan_integer (char const *p, int base, location loc);
 static int convert_ucn_to_byte (char const *hex_text);
 static void unexpected_eof (boundary, char const *);
 static void unexpected_newline (boundary, char const *);
@@ -2568,7 +2567,7 @@ case 101:
 YY_RULE_SETUP
 #line 594 "/Users/akim/src/gnu/bison/src/scan-gram.l"
 {
-    unsigned long int c = strtoul (yytext + 1, NULL, 8);
+    unsigned long c = strtoul (yytext + 1, NULL, 8);
     if (!c || UCHAR_MAX < c)
       complain (loc, complaint, _("invalid number after \\-escape: %s"),
                    yytext+1);
@@ -2581,7 +2580,7 @@ YY_RULE_SETUP
 #line 603 "/Users/akim/src/gnu/bison/src/scan-gram.l"
 {
     verify (UCHAR_MAX < ULONG_MAX);
-    unsigned long int c = strtoul (yytext + 2, NULL, 16);
+    unsigned long c = strtoul (yytext + 2, NULL, 16);
     if (!c || UCHAR_MAX < c)
       complain (loc, complaint, _("invalid number after \\-escape: %s"),
                    yytext+1);
@@ -4086,11 +4085,11 @@ no_cr_read (FILE *fp, char *buf, size_t size)
 | Scan NUMBER for a base-BASE integer at location LOC.  |
 `------------------------------------------------------*/
 
-static unsigned long int
+static unsigned long
 scan_integer (char const *number, int base, location loc)
 {
   verify (INT_MAX < ULONG_MAX);
-  unsigned long int num = strtoul (number, NULL, base);
+  unsigned long num = strtoul (number, NULL, base);
 
   if (INT_MAX < num)
     {
@@ -4113,7 +4112,7 @@ static int
 convert_ucn_to_byte (char const *ucn)
 {
   verify (UCHAR_MAX <= INT_MAX);
-  unsigned long int code = strtoul (ucn + 2, NULL, 16);
+  unsigned long code = strtoul (ucn + 2, NULL, 16);
 
   /* FIXME: Currently we assume Unicode-compatible unibyte characters
      on ASCII hosts (i.e., Latin-1 on hosts with 8-bit bytes).  On
@@ -4168,7 +4167,7 @@ static void
 handle_syncline (char *args, location loc)
 {
   char *file;
-  unsigned long int lineno = strtoul (args, &file, 10);
+  unsigned long lineno = strtoul (args, &file, 10);
   if (INT_MAX <= lineno)
     {
       complain (&loc, Wother, _("line number overflow"));

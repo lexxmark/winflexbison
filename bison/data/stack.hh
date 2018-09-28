@@ -29,14 +29,14 @@ m4_define([b4_stack_define],
     // Hide our reversed order.
     typedef typename S::reverse_iterator iterator;
     typedef typename S::const_reverse_iterator const_iterator;
+    typedef typename S::size_type size_type;
 
     stack ()
-      : seq_ ()
     {
       seq_.reserve (200);
     }
 
-    stack (unsigned n)
+    stack (size_type n)
       : seq_ (n)
     {}
 
@@ -44,7 +44,7 @@ m4_define([b4_stack_define],
     ///
     /// Index 0 returns the topmost element.
     T&
-    operator[] (unsigned i)
+    operator[] (size_type i)
     {
       return seq_[seq_.size () - 1 - i];
     }
@@ -53,7 +53,7 @@ m4_define([b4_stack_define],
     ///
     /// Index 0 returns the topmost element.
     const T&
-    operator[] (unsigned i) const
+    operator[] (size_type i) const
     {
       return seq_[seq_.size () - 1 - i];
     }
@@ -69,7 +69,7 @@ m4_define([b4_stack_define],
     }
 
     void
-    pop (unsigned n = 1)
+    pop (size_type n = 1)
     {
       for (; n; --n)
         seq_.pop_back ();
@@ -81,7 +81,7 @@ m4_define([b4_stack_define],
       seq_.clear ();
     }
 
-    typename S::size_type
+    size_type
     size () const
     {
       return seq_.size ();
@@ -111,20 +111,21 @@ m4_define([b4_stack_define],
   class slice
   {
   public:
-    slice (const S& stack, unsigned range)
+    typedef typename S::size_type size_type;
+    slice (const S& stack, size_type range)
       : stack_ (stack)
       , range_ (range)
     {}
 
     const T&
-    operator [] (unsigned i) const
+    operator[] (size_type i) const
     {
       return stack_[range_ - i];
     }
 
   private:
     const S& stack_;
-    unsigned range_;
+    size_type range_;
   };
 ]])
 

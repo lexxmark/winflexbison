@@ -107,7 +107,7 @@ b4_dollar_pushdef([yysym.value],
                                 [m4_dquote(b4_symbol([$1], [type]))]),
                    [yysym.location])dnl
       b4_symbol_case_([$1])
-b4_syncline([b4_symbol([$1], [$2_line])], ["b4_symbol([$1], [$2_file])"])
+b4_syncline([b4_symbol([$1], [$2_line])], [b4_symbol([$1], [$2_file])])
         b4_symbol([$1], [$2])
 b4_syncline([@oline@], [@ofile@])
         break;
@@ -159,6 +159,7 @@ m4_define([b4_shared_declarations],
 ]b4_variant_if([b4_variant_includes])[
 
 ]b4_attribute_define[
+]b4_null_define[
 ]b4_YYDEBUG_define[
 
 ]b4_namespace_open[
@@ -314,7 +315,7 @@ b4_location_define])])[
       typedef basic_symbol<by_state> super_type;
       /// Construct an empty symbol.
       stack_symbol_type ();
-      /// Copy construct.
+      /// Copy construct (for efficiency).
       stack_symbol_type (const stack_symbol_type& that);
       /// Steal the contents from \a sym to build this.
       stack_symbol_type (state_type s, symbol_type& sym);
@@ -423,6 +424,15 @@ m4_if(b4_prefix, [yy], [],
 # endif
 # ifndef YY_
 #  define YY_(msgid) msgid
+# endif
+#endif
+
+// Whether we are compiled with exception support.
+#ifndef YY_EXCEPTIONS
+# if defined __GNUC__ && !defined __EXCEPTIONS
+#  define YY_EXCEPTIONS 0
+# else
+#  define YY_EXCEPTIONS 1
 # endif
 #endif
 
@@ -584,11 +594,10 @@ m4_if(b4_prefix, [yy], [],
   }
 
   ]b4_parser_class_name[::stack_symbol_type::stack_symbol_type (state_type s, symbol_type& that)
-    : super_type (s]b4_locations_if([, that.location])[)
-  {
-    ]b4_variant_if([b4_symbol_variant([that.type_get ()],
-                                      [value], [move], [that.value])],
-                   [[value = that.value;]])[
+    : super_type (s]b4_variant_if([], [, that.value])[]b4_locations_if([, that.location])[)
+  {]b4_variant_if([
+    b4_symbol_variant([that.type_get ()],
+                      [value], [move], [that.value])])[
     // that is emptied.
     that.type = empty_symbol;
   }
@@ -728,9 +737,9 @@ m4_if(b4_prefix, [yy], [],
     /// The return value of parse ().
     int yyresult;
 
-    // FIXME: This shoud be completely indented.  It is not yet to
-    // avoid gratuitous conflicts when merging into the master branch.
+#if YY_EXCEPTIONS
     try
+#endif // YY_EXCEPTIONS
       {
     YYCDEBUG << "Starting parse" << std::endl;
 
@@ -759,7 +768,6 @@ b4_dollar_popdef])[]dnl
 
     // Backup.
   yybackup:
-
     // Try to take a decision without lookahead.
     yyn = yypact_[yystack_[0].state];
     if (yy_pact_value_is_default_ (yyn))
@@ -769,17 +777,21 @@ b4_dollar_popdef])[]dnl
     if (yyla.empty ())
       {
         YYCDEBUG << "Reading a token: ";
+#if YY_EXCEPTIONS
         try
+#endif // YY_EXCEPTIONS
           {]b4_token_ctor_if([[
             symbol_type yylookahead (]b4_lex[);
             yyla.move (yylookahead);]], [[
             yyla.type = yytranslate_ (]b4_lex[);]])[
           }
+#if YY_EXCEPTIONS
         catch (const syntax_error& yyexc)
           {
             error (yyexc);
             goto yyerrlab1;
           }
+#endif // YY_EXCEPTIONS
       }
     YY_SYMBOL_PRINT ("Next token is", yyla);
 
@@ -849,7 +861,9 @@ b4_dollar_popdef])[]dnl
 
       // Perform the reduction.
       YY_REDUCE_PRINT (yyn);
+#if YY_EXCEPTIONS
       try
+#endif // YY_EXCEPTIONS
         {
           switch (yyn)
             {
@@ -858,11 +872,13 @@ b4_dollar_popdef])[]dnl
               break;
             }
         }
+#if YY_EXCEPTIONS
       catch (const syntax_error& yyexc)
         {
           error (yyexc);
           YYERROR;
         }
+#endif // YY_EXCEPTIONS
       YY_SYMBOL_PRINT ("-> $$ =", yylhs);
       yypop_ (yylen);
       yylen = 0;
@@ -987,12 +1003,13 @@ b4_dollar_popdef])[]dnl
 
     return yyresult;
   }
+#if YY_EXCEPTIONS
     catch (...)
       {
         YYCDEBUG << "Exception caught: cleaning lookahead and stack"
                  << std::endl;
         // Do not try to display the values of the reclaimed symbols,
-        // as their printer might throw an exception.
+        // as their printers might throw an exception.
         if (!yyla.empty ())
           yy_destroy_ (YY_NULLPTR, yyla);
 
@@ -1003,6 +1020,7 @@ b4_dollar_popdef])[]dnl
           }
         throw;
       }
+#endif // YY_EXCEPTIONS
   }
 
   void

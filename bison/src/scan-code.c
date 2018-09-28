@@ -2683,9 +2683,7 @@ static variant *
 variant_add (uniqstr id, location id_loc, unsigned symbol_index,
              char *cp, char *cp_end, bool explicit_bracketing)
 {
-  char *prefix_end;
-
-  prefix_end = find_prefix_end (id, cp, cp_end);
+  char *prefix_end = find_prefix_end (id, cp, cp_end);
   if (prefix_end &&
       (prefix_end == cp_end ||
        (!explicit_bracketing && is_dot_or_dash (*prefix_end))))
@@ -2727,8 +2725,6 @@ show_sub_message (warnings warning,
                      var->id, at_spec);
   else
     {
-      static struct obstack msg_buf;
-      const char *tail = explicit_bracketing ? "" : cp + strlen (var->id);
       const char *id;
       location id_loc;
 
@@ -2743,7 +2739,10 @@ show_sub_message (warnings warning,
           id_loc = var->loc;
         }
 
+      const char *tail = explicit_bracketing ? "" : cp + strlen (var->id);
+
       /* Create the explanation message. */
+      static struct obstack msg_buf;
       obstack_init (&msg_buf);
 
       obstack_printf (&msg_buf, _("possibly meant: %c"), dollar_or_at);
@@ -2782,9 +2781,7 @@ show_sub_messages (warnings warning,
                    int midrule_rhs_index, char dollar_or_at,
                    unsigned indent)
 {
-  unsigned i;
-
-  for (i = 0; i < variant_count; ++i)
+  for (unsigned i = 0; i < variant_count; ++i)
     show_sub_message (warning | silent,
                       cp, explicit_bracketing,
                       midrule_rhs_index, dollar_or_at,
@@ -2802,24 +2799,17 @@ show_sub_messages (warnings warning,
 /* Parse named or positional reference. In case of positional
    references, can return negative values for $-n "deep" stack
    accesses. */
-static long int
+static long
 parse_ref (char *cp, symbol_list *rule, int rule_length,
            int midrule_rhs_index, char *text, location text_loc,
            char dollar_or_at)
 {
-  symbol_list *l;
-  char *cp_end;
-  bool explicit_bracketing;
-  unsigned i;
-  unsigned valid_variants = 0;
-  unsigned valid_variant_index = 0;
-
   if ('$' == *cp)
     return LHS_REF;
 
   if (c_isdigit (*cp) || (*cp == '-' && c_isdigit (* (cp + 1))))
     {
-      long int num = strtol (cp, &cp, 10);
+      long num = strtol (cp, &cp, 10);
       if (1 - INT_MAX + rule_length <= num && num <= rule_length)
         return num;
       else
@@ -2829,6 +2819,9 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
           return INVALID_REF;
         }
     }
+
+  char *cp_end;
+  bool explicit_bracketing;
 
   if ('[' == *cp)
     {
@@ -2860,16 +2853,17 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
   /* Add all relevant variants. */
   {
     unsigned symbol_index;
+    symbol_list *l;
     variant_count = 0;
     for (symbol_index = 0, l = rule; !symbol_list_null (l);
          ++symbol_index, l = l->next)
       {
-        variant *var;
         if (l->content_type != SYMLIST_SYMBOL)
           continue;
 
-        var = variant_add (l->content.sym->tag, l->sym_loc,
-                           symbol_index, cp, cp_end, explicit_bracketing);
+        variant *var
+          = variant_add (l->content.sym->tag, l->sym_loc,
+                         symbol_index, cp, cp_end, explicit_bracketing);
         if (var && l->named_ref)
           var->hidden_by = l->named_ref;
 
@@ -2880,7 +2874,9 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
   }
 
   /* Check errors. */
-  for (i = 0; i < variant_count; ++i)
+  unsigned valid_variants = 0;
+  unsigned valid_variant_index = 0;
+  for (unsigned i = 0; i < variant_count; ++i)
     {
       variant *var = &variant_table[i];
       unsigned symbol_index = var->symbol_index;
@@ -3017,11 +3013,8 @@ fetch_type_name (char *cp, char const **type_name,
 static void
 handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
 {
-  char const *type_name = NULL;
-  char *cp = text + 1;
   symbol_list *effective_rule;
   int effective_rule_length;
-  int n;
 
   if (rule->midrule_parent_rule)
     {
@@ -3035,10 +3028,11 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
     }
 
   /* Get the type name if explicit. */
-  cp = fetch_type_name (cp, &type_name, dollar_loc);
+  char const *type_name = NULL;
+  char *cp = fetch_type_name (text + 1, &type_name, dollar_loc);
 
-  n = parse_ref (cp, effective_rule, effective_rule_length,
-                 rule->midrule_parent_rhs_index, text, dollar_loc, '$');
+  int n = parse_ref (cp, effective_rule, effective_rule_length,
+                     rule->midrule_parent_rhs_index, text, dollar_loc, '$');
 
   /* End type_name. */
   if (type_name)
@@ -3113,10 +3107,8 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
 static void
 handle_action_at (symbol_list *rule, char *text, location at_loc)
 {
-  char *cp = text + 1;
   symbol_list *effective_rule;
   int effective_rule_length;
-  int n;
 
   if (rule->midrule_parent_rule)
     {
@@ -3131,8 +3123,8 @@ handle_action_at (symbol_list *rule, char *text, location at_loc)
 
   muscle_percent_define_ensure("locations", at_loc, true);
 
-  n = parse_ref (cp, effective_rule, effective_rule_length,
-                       rule->midrule_parent_rhs_index, text, at_loc, '@');
+  int n = parse_ref (text + 1, effective_rule, effective_rule_length,
+                     rule->midrule_parent_rhs_index, text, at_loc, '@');
   switch (n)
     {
     case INVALID_REF:
@@ -3160,7 +3152,6 @@ handle_action_at (symbol_list *rule, char *text, location at_loc)
 static char const *
 translate_action (code_props *self, int sc_context)
 {
-  char *res;
   static bool initialized = false;
   if (!initialized)
     {
@@ -3171,7 +3162,7 @@ translate_action (code_props *self, int sc_context)
 
   loc->start = loc->end = self->location.start;
   yy_switch_to_buffer (yy_scan_string (self->code));
-  res = code_lex (self, sc_context);
+  char *res = code_lex (self, sc_context);
   yy_delete_buffer (YY_CURRENT_BUFFER);
 
   return res;
@@ -3212,7 +3203,8 @@ code_props_symbol_action_init (code_props *self, char const *code,
 void
 code_props_rule_action_init (code_props *self, char const *code,
                              location code_loc, symbol_list *rule,
-                             named_ref *name, bool is_predicate)
+                             named_ref *name, uniqstr type,
+                             bool is_predicate)
 {
   code_props_none_init (self);
   self->kind = CODE_PROPS_RULE_ACTION;
@@ -3220,6 +3212,7 @@ code_props_rule_action_init (code_props *self, char const *code,
   self->location = code_loc;
   self->rule = rule;
   self->named_ref = name;
+  self->type = type;
   self->is_predicate = is_predicate;
 }
 
