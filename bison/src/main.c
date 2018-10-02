@@ -18,6 +18,9 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include <io.h>
+#include <fcntl.h>
+
 #include <config.h>
 #include "system.h"
 
@@ -131,6 +134,10 @@ main (int argc, char *argv[])
     else
       set_quoting_style (&quote_quoting_options, locale_quoting_style);
   }
+
+  (void)_setmode(_fileno(stdout), _O_BINARY);
+  (void)_setmode(_fileno(stderr), _O_BINARY);
+
 
   atexit (close_stdout);
 

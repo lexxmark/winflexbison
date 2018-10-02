@@ -38,6 +38,7 @@
 #include "tables.h"
 #include "parse.h"
 #include <io.h>
+#include <fcntl.h>
 
 static char flex_version[] = "2.6.4";//FLEX_VERSION;
 
@@ -171,6 +172,9 @@ int flex_main (int argc, char *argv[])
         return exit_status - 1;
     }
 #endif
+
+	(void)_setmode(_fileno(stdout), _O_BINARY);
+	(void)_setmode(_fileno(stderr), _O_BINARY);
 
 	flexinit (argc, argv);
 
