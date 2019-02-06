@@ -1,6 +1,6 @@
 /* Definitions for symtab.c and callers, part of Bison.
 
-   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2015, 2018 Free
+   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2015, 2018-2019 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -40,7 +40,7 @@ typedef enum
 {
   unknown_sym,          /**< Undefined.  */
   token_sym,            /**< Terminal. */
-  nterm_sym             /**< Non-terminal. */
+  nterm_sym             /**< Nonterminal. */
 } symbol_class;
 
 
@@ -68,7 +68,7 @@ typedef enum
     undeclared,
     /** Used by %destructor/%printer but not defined (warning).  */
     used,
-    /** Used in the gramar (rules) but not defined (error).  */
+    /** Used in the grammar (rules) but not defined (error).  */
     needed,
     /** Defined with %type or %token (good).  */
     declared,
@@ -137,6 +137,10 @@ struct sym_content
   location prec_location;
   int prec;
   assoc assoc;
+
+  /** The user specified token number.
+
+      E.g., %token FOO 42.*/
   int user_token_number;
 
   symbol_class class;
@@ -212,7 +216,10 @@ code_props *symbol_code_props_get (symbol *sym, code_props_type kind);
     Do nothing if invoked with \c undef_assoc as \c assoc.  */
 void symbol_precedence_set (symbol *sym, int prec, assoc a, location loc);
 
-/** Set the \c class associated with \c sym.  */
+/** Set the \c class associated with \c sym.
+
+    Whether \c declaring means whether this class definition comes
+    from %nterm or %token.  */
 void symbol_class_set (symbol *sym, symbol_class class, location loc,
                        bool declaring);
 
@@ -241,6 +248,8 @@ extern symbol *startsymbol;
 /** The location of the \c \%start declaration.  */
 extern location startsymbol_location;
 
+/** Whether a symbol declared with a type tag.  */
+extern bool tag_seen;
 
 
 /*-------------------.
@@ -307,7 +316,7 @@ typedef struct {
   /** The key, name of the semantic type.  */
   uniqstr tag;
 
-  /** The location of its first occurence.  */
+  /** The location of its first occurrence.  */
   location location;
 
   /** Its status : "undeclared", "used" or "declared".

@@ -1,6 +1,6 @@
 # Java skeleton for Bison -*- autoconf -*-
 
-# Copyright (C) 2007-2015, 2018 Free Software Foundation, Inc.
+# Copyright (C) 2007-2015, 2018-2019 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-m4_include(b4_pkgdatadir/[java.m4])
+m4_include(b4_skeletonsdir/[java.m4])
 
 b4_defines_if([b4_fatal([%s: %%defines does not make sense in Java],
               [b4_skeleton])])
@@ -82,28 +82,20 @@ m4_define([b4_define_state],[[
     ]b4_yystype[ yylval = null;
 ]])
 
-b4_output_begin([b4_parser_file_name])
-b4_copyright([Skeleton implementation for Bison LALR(1) parsers in Java],
-             [2007-2015, 2018])
-
-b4_percent_define_ifdef([package], [package b4_percent_define_get([package]);
-])[/* First part of user declarations.  */
-]b4_user_pre_prologue
-b4_user_post_prologue
-b4_percent_code_get([[imports]])
+b4_output_begin([b4_parser_file_name])[
+]b4_copyright([Skeleton implementation for Bison LALR(1) parsers in Java],
+             [2007-2015, 2018])[
+]b4_percent_define_ifdef([package], [package b4_percent_define_get([package]);[
+]])[
+]b4_user_pre_prologue[
+]b4_user_post_prologue[
+]b4_percent_code_get([[imports]])
 [/**
  * A Bison parser, automatically generated from <tt>]m4_bpatsubst(b4_file_name, [^"\(.*\)"$], [\1])[</tt>.
  *
  * @@author LALR (1) parser skeleton written by Paolo Bonzini.
  */
-]b4_percent_define_get3([annotations], [], [ ])dnl
-b4_public_if([public ])dnl
-b4_abstract_if([abstract ])dnl
-b4_final_if([final ])dnl
-b4_strictfp_if([strictfp ])dnl
-[class ]b4_parser_class_name[]dnl
-b4_percent_define_get3([extends], [ extends ])dnl
-b4_percent_define_get3([implements], [ implements ])[
+]b4_parser_class_declaration[
 {
   ]b4_identification[
 ]b4_error_verbose_if([[
@@ -188,7 +180,7 @@ b4_locations_if([[
 
   /**
    * Communication interface between the scanner and the Bison-generated
-   * parser <tt>]b4_parser_class_name[</tt>.
+   * parser <tt>]b4_parser_class[</tt>.
    */
   public interface Lexer {
     /** Token returned by the scanner to signal the end of its input.  */
@@ -248,7 +240,7 @@ b4_lexer_if([[
   /**
    * Instantiates the Bison-generated parser.
    */
-  public ]b4_parser_class_name (b4_parse_param_decl([b4_lex_param_decl])[) ]b4_maybe_throws([b4_init_throws])[
+  public ]b4_parser_class (b4_parse_param_decl([b4_lex_param_decl])[) ]b4_maybe_throws([b4_init_throws])[
   {
     ]b4_percent_code_get([[init]])[
     this.yylexer = new YYLexer(]b4_lex_param_call[);
@@ -260,7 +252,7 @@ b4_lexer_if([[
    * Instantiates the Bison-generated parser.
    * @@param yylexer The scanner that will supply tokens to the parser.
    */
-  b4_lexer_if([[protected]], [[public]]) b4_parser_class_name[ (]b4_parse_param_decl([[Lexer yylexer]])[) ]b4_maybe_throws([b4_init_throws])[
+  b4_lexer_if([[protected]], [[public]]) b4_parser_class[ (]b4_parse_param_decl([[Lexer yylexer]])[) ]b4_maybe_throws([b4_init_throws])[
   {
     ]b4_percent_code_get([[init]])[
     this.yylexer = yylexer;
@@ -390,8 +382,7 @@ b4_lexer_if([[
     }
 
     // Print the state stack on the debug stream.
-    public void print (java.io.PrintStream out)
-    {
+    public void print (java.io.PrintStream out) {
       out.print ("Stack now");
 
       for (int i = 0; i <= height; i++)
@@ -585,8 +576,7 @@ b4_define_state])[
     /* Initialize the stack.  */
     yystack.push (yystate, yylval ]b4_locations_if([, yylloc])[);
 ]m4_ifdef([b4_initial_action], [
-b4_dollar_pushdef([yylval], [], [yylloc])dnl
-    /* User initialization code.  */
+b4_dollar_pushdef([yylval], [], [], [yylloc])dnl
     b4_user_initial_action
 b4_dollar_popdef[]dnl
 ])[
@@ -596,8 +586,7 @@ b4_dollar_popdef[]dnl
       {
         push_parse_initialize ();
 ]m4_ifdef([b4_initial_action], [
-b4_dollar_pushdef([yylval], [], [yylloc])dnl
-    /* User initialization code.  */
+b4_dollar_pushdef([yylval], [], [], [yylloc])dnl
     b4_user_initial_action
 b4_dollar_popdef[]dnl
 ])[
@@ -1036,11 +1025,12 @@ b4_both_if([[
     for (int yyi = 0; yyi < yynrhs; yyi++)
       yy_symbol_print ("   $" + (yyi + 1) + " =",
                        yystos_[yystack.stateAt(yynrhs - (yyi + 1))],
-                       ]b4_rhs_value(yynrhs, yyi + 1)b4_locations_if([,
+                       ]b4_rhs_data(yynrhs, yyi + 1)b4_locations_if([,
                        b4_rhs_location(yynrhs, yyi + 1)])[);
   }
 
-  /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
+  /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
+     as returned by yylex, with out-of-bounds checking.  */
   ]b4_integral_parser_table_define([translate_table], [b4_translate])[
 
   private static final ]b4_int_type_for([b4_translate])[ yytranslate_ (int t)
@@ -1068,4 +1058,4 @@ b4_percent_code_get[]dnl
 }
 
 b4_epilogue[]dnl
-b4_output_end()
+b4_output_end

@@ -1,6 +1,6 @@
 /* Match rules with nonterminals for bison,
 
-   Copyright (C) 1984, 1989, 2000-2003, 2005, 2009-2015, 2018 Free
+   Copyright (C) 1984, 1989, 2000-2003, 2005, 2009-2015, 2018-2019 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -69,12 +69,12 @@ derives_compute (void)
 
   /* DSET[NTERM - NTOKENS] -- A linked list of the numbers of the rules
      whose LHS is NTERM.  */
-  rule_list **dset = (rule_list **)xcalloc (nvars, sizeof *dset);
+  rule_list **dset = xcalloc (nvars, sizeof *dset);
 
   /* DELTS[RULE] -- There are NRULES rule number to attach to nterms.
      Instead of performing NRULES allocations for each, have an array
      indexed by rule numbers.  */
-  rule_list *delts = (rule_list *)xnmalloc (nrules, sizeof *delts);
+  rule_list *delts = xnmalloc (nrules, sizeof *delts);
 
   for (r = nrules - 1; r >= 0; --r)
     {
@@ -89,8 +89,8 @@ derives_compute (void)
   /* DSET contains what we need under the form of a linked list.  Make
      it a single array.  */
 
-  derives = (rule***)xnmalloc (nvars, sizeof *derives);
-  q = (rule**)xnmalloc (nvars + nrules, sizeof *q);
+  derives = xnmalloc (nvars, sizeof *derives);
+  q = xnmalloc (nvars + nrules, sizeof *q);
 
   for (i = ntokens; i < nsyms; i++)
     {

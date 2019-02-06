@@ -1,8 +1,8 @@
                                                             -*- Autoconf -*-
 
-# Java language support for Bison
+# D language support for Bison
 
-# Copyright (C) 2007-2015, 2018 Free Software Foundation, Inc.
+# Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-m4_include(b4_pkgdatadir/[c-like.m4])
+
+# b4_comment(TEXT)
+# ----------------
+m4_define([b4_comment], [/* m4_bpatsubst([$1], [
+], [
+   ])  */])
 
 
 # b4_list2(LIST1, LIST2)
@@ -36,38 +41,27 @@ m4_define([b4_percent_define_get3],
                 [$2[]b4_percent_define_get([$1])[]$3], [$4])])
 
 
-
 # b4_flag_value(BOOLEAN-FLAG)
 # ---------------------------
 m4_define([b4_flag_value], [b4_flag_if([$1], [true], [false])])
 
 
-# b4_public_if(TRUE, FALSE)
-# -------------------------
-b4_percent_define_default([[public]], [[false]])
-m4_define([b4_public_if],
-[b4_percent_define_flag_if([public], [$1], [$2])])
-
-
-# b4_abstract_if(TRUE, FALSE)
+# b4_parser_class_declaration
 # ---------------------------
-b4_percent_define_default([[abstract]], [[false]])
-m4_define([b4_abstract_if],
-[b4_percent_define_flag_if([abstract], [$1], [$2])])
+# The declaration of the parser class ("class YYParser"), with all its
+# qualifiers/annotations.
+b4_percent_define_default([[api.parser.abstract]], [[false]])
+b4_percent_define_default([[api.parser.final]],    [[false]])
+b4_percent_define_default([[api.parser.public]],   [[false]])
 
-
-# b4_final_if(TRUE, FALSE)
-# ---------------------------
-b4_percent_define_default([[final]], [[false]])
-m4_define([b4_final_if],
-[b4_percent_define_flag_if([final], [$1], [$2])])
-
-
-# b4_strictfp_if(TRUE, FALSE)
-# ---------------------------
-b4_percent_define_default([[strictfp]], [[false]])
-m4_define([b4_strictfp_if],
-[b4_percent_define_flag_if([strictfp], [$1], [$2])])
+m4_define([b4_parser_class_declaration],
+[b4_percent_define_get3([api.parser.annotations], [], [ ])dnl
+b4_percent_define_flag_if([api.parser.public],   [public ])dnl
+b4_percent_define_flag_if([api.parser.abstract], [abstract ])dnl
+b4_percent_define_flag_if([api.parser.final],    [final ])dnl
+[class ]b4_parser_class[]dnl
+b4_percent_define_get3([api.parser.extends], [ extends ])dnl
+b4_percent_define_get3([api.parser.implements], [ implements ])])
 
 
 # b4_lexer_if(TRUE, FALSE)
@@ -76,14 +70,32 @@ m4_define([b4_lexer_if],
 [b4_percent_code_ifdef([[lexer]], [$1], [$2])])
 
 
+# b4_position_type_if(TRUE, FALSE)
+# --------------------------------
+m4_define([b4_position_type_if],
+[b4_percent_define_ifdef([[position_type]], [$1], [$2])])
+
+
+# b4_location_type_if(TRUE, FALSE)
+# --------------------------------
+m4_define([b4_location_type_if],
+[b4_percent_define_ifdef([[location_type]], [$1], [$2])])
+
+
+# b4_locations_if(TRUE, FALSE)
+# ----------------------------
+m4_define([b4_locations_if],
+[m4_if(b4_locations_flag, 1, [$1], [$2])])
+
+
 # b4_identification
 # -----------------
 m4_define([b4_identification],
-[  /** Version number for the Bison executable that generated this parser.  */
-  public static final String bisonVersion = "b4_version";
+[/** Version number for the Bison executable that generated this parser.  */
+  public static immutable string yy_bison_version = "b4_version";
 
   /** Name of the skeleton that generated this parser.  */
-  public static final String bisonSkeleton = b4_skeleton;
+  public static immutable string yy_bison_skeleton = b4_skeleton;
 ])
 
 
@@ -103,7 +115,7 @@ m4_define([b4_int_type],
 # b4_int_type_for(NAME)
 # ---------------------
 # Return the smallest int type able to handle numbers ranging from
-# 'NAME_min' to 'NAME_max' (included).
+# `NAME_min' to `NAME_max' (included).
 m4_define([b4_int_type_for],
 [b4_int_type($1_min, $1_max)])
 
@@ -112,106 +124,67 @@ m4_define([b4_int_type_for],
 m4_define([b4_null], [null])
 
 
-# b4_typed_parser_table_define(TYPE, NAME, DATA, COMMENT)
-# -------------------------------------------------------
-m4_define([b4_typed_parser_table_define],
-[m4_ifval([$4], [b4_comment([$4])
-  ])dnl
-[private static final ]$1[ yy$2_[] = yy$2_init();
-  private static final ]$1[[] yy$2_init()
-  {
-    return new ]$1[[]
-    {
-  ]$3[
-    };
-  }]])
-
-
 # b4_integral_parser_table_define(NAME, DATA, COMMENT)
 #-----------------------------------------------------
+# Define "yy<TABLE-NAME>" whose contents is CONTENT.
 m4_define([b4_integral_parser_table_define],
-[b4_typed_parser_table_define([b4_int_type_for([$2])], [$1], [$2], [$3])])
+[m4_ifvaln([$3], [b4_comment([$3], [  ])])dnl
+private static immutable b4_int_type_for([$2])[[]] yy$1_ =
+@{
+  $2
+@};dnl
+])
 
 
 ## ------------------------- ##
 ## Assigning token numbers.  ##
 ## ------------------------- ##
 
-# b4_token_enum(TOKEN-NUM)
-# ------------------------
+# b4_token_enum(TOKEN-NAME, TOKEN-NUMBER)
+# ---------------------------------------
 # Output the definition of this token as an enum.
 m4_define([b4_token_enum],
-[b4_token_format([    /** Token number, to be returned by the scanner.  */
-    static final int %s = %s;
+[b4_token_format([  %s = %s,
 ], [$1])])
 
-# b4_token_enums
-# --------------
-# Output the definition of the tokens (if there are) as enums.
+# b4_token_enums(LIST-OF-PAIRS-TOKEN-NAME-TOKEN-NUMBER)
+# -----------------------------------------------------
+# Output the definition of the tokens as enums.
 m4_define([b4_token_enums],
-[b4_any_token_visible_if([/* Tokens.  */
-b4_symbol_foreach([b4_token_enum])])])
+[/* Tokens.  */
+public enum YYTokenType {
+
+  /** Token returned by the scanner to signal the end of its input.  */
+  EOF = 0,
+b4_symbol_foreach([b4_token_enum])
+}
+])
 
 # b4-case(ID, CODE)
 # -----------------
-# We need to fool Java's stupid unreachable code detection.
-m4_define([b4_case], [  case $1:
-  if (yyn == $1)
-    $2;
-  break;
-    ])
-
-# b4_predicate_case(LABEL, CONDITIONS)
-# ------------------------------------
-m4_define([b4_predicate_case], [  case $1:
-     if (! ($2)) YYERROR;
-    break;
-    ])
-
-
-## -------- ##
-## Checks.  ##
-## -------- ##
-
-b4_percent_define_check_kind([[api.value.type]],    [code], [deprecated])
-
-b4_percent_define_check_kind([[annotations]],       [code], [deprecated])
-b4_percent_define_check_kind([[extends]],           [code], [deprecated])
-b4_percent_define_check_kind([[implements]],        [code], [deprecated])
-b4_percent_define_check_kind([[init_throws]],       [code], [deprecated])
-b4_percent_define_check_kind([[lex_throws]],        [code], [deprecated])
-b4_percent_define_check_kind([[parser_class_name]], [code], [deprecated])
-b4_percent_define_check_kind([[throws]],            [code], [deprecated])
-
+m4_define([b4_case], [    case $1:
+$2
+      break;])
 
 
 ## ---------------- ##
 ## Default values.  ##
 ## ---------------- ##
 
-m4_define([b4_yystype], [b4_percent_define_get([[api.value.type]])])
-b4_percent_define_default([[api.value.type]], [[Object]])
+m4_define([b4_yystype], [b4_percent_define_get([[stype]])])
+b4_percent_define_default([[stype]], [[YYSemanticType]])])
 
 # %name-prefix
 m4_define_default([b4_prefix], [[YY]])
 
-b4_percent_define_default([[parser_class_name]], [b4_prefix[]Parser])
-m4_define([b4_parser_class_name], [b4_percent_define_get([[parser_class_name]])])
+b4_percent_define_default([[api.parser.class]], [b4_prefix[]YYParser])])
+m4_define([b4_parser_class], [b4_percent_define_get([[api.parser.class]])])
 
-b4_percent_define_default([[lex_throws]], [[java.io.IOException]])
-m4_define([b4_lex_throws], [b4_percent_define_get([[lex_throws]])])
+#b4_percent_define_default([[location_type]], [Location])])
+m4_define([b4_location_type], b4_percent_define_ifdef([[location_type]],[b4_percent_define_get([[location_type]])],[YYLocation]))
 
-b4_percent_define_default([[throws]], [])
-m4_define([b4_throws], [b4_percent_define_get([[throws]])])
-
-b4_percent_define_default([[init_throws]], [])
-m4_define([b4_init_throws], [b4_percent_define_get([[init_throws]])])
-
-b4_percent_define_default([[api.location.type]], [Location])
-m4_define([b4_location_type], [b4_percent_define_get([[api.location.type]])])
-
-b4_percent_define_default([[api.position.type]], [Position])
-m4_define([b4_position_type], [b4_percent_define_get([[api.position.type]])])
+#b4_percent_define_default([[position_type]], [Position])])
+m4_define([b4_position_type], b4_percent_define_ifdef([[position_type]],[b4_percent_define_get([[position_type]])],[YYPosition]))
 
 
 ## ----------------- ##
@@ -219,21 +192,34 @@ m4_define([b4_position_type], [b4_percent_define_get([[api.position.type]])])
 ## ----------------- ##
 
 
-# b4_lhs_value([TYPE])
-# --------------------
-# Expansion of $<TYPE>$.
-m4_define([b4_lhs_value], [yyval])
+# b4_symbol_value(VAL, [SYMBOL-NUM], [TYPE-TAG])
+# ----------------------------------------------
+# See README.  FIXME: factor in c-like?
+m4_define([b4_symbol_value],
+[m4_ifval([$3],
+          [($1.$3)],
+          [m4_ifval([$2],
+                    [b4_symbol_if([$2], [has_type],
+                                  [($1.b4_symbol([$2], [type]))],
+                                  [$1])],
+                    [$1])])])
+
+# b4_lhs_value(SYMBOL-NUM, [TYPE])
+# --------------------------------
+# See README.
+m4_define([b4_lhs_value],
+[b4_symbol_value([yyval], [$1], [$2])])
 
 
-# b4_rhs_value(RULE-LENGTH, NUM, [TYPE])
-# --------------------------------------
-# Expansion of $<TYPE>NUM, where the current rule has RULE-LENGTH
-# symbols on RHS.
+# b4_rhs_value(RULE-LENGTH, POS, SYMBOL-NUM, [TYPE])
+# --------------------------------------------------
+# See README.
 #
 # In this simple implementation, %token and %type have class names
 # between the angle brackets.
 m4_define([b4_rhs_value],
-[(m4_ifval($3, [($3)])[](yystack.valueAt ($1-($2))))])
+[b4_symbol_value([(yystack.valueAt (b4_subtract([$1], [$2])))], [$3], [$4])])
+
 
 # b4_lhs_location()
 # -----------------
@@ -242,12 +228,12 @@ m4_define([b4_lhs_location],
 [(yyloc)])
 
 
-# b4_rhs_location(RULE-LENGTH, NUM)
+# b4_rhs_location(RULE-LENGTH, POS)
 # ---------------------------------
-# Expansion of @NUM, where the current rule has RULE-LENGTH symbols
+# Expansion of @POS, where the current rule has RULE-LENGTH symbols
 # on RHS.
 m4_define([b4_rhs_location],
-[yystack.locationAt ($1-($2))])
+[yystack.locationAt ([$1], [$2])])
 
 
 # b4_lex_param
@@ -257,12 +243,12 @@ m4_define([b4_rhs_location],
 # it to be single quoted.  Same for b4_parse_param.
 
 # TODO: should be in bison.m4
-m4_define_default([b4_lex_param], [[]])
-m4_define([b4_lex_param], b4_lex_param)
-m4_define([b4_parse_param], b4_parse_param)
+m4_define_default([b4_lex_param], [[]]))
+m4_define([b4_lex_param], b4_lex_param))
+m4_define([b4_parse_param], b4_parse_param))
 
 # b4_lex_param_decl
-# -----------------
+# -------------------
 # Extra formal arguments of the constructor.
 m4_define([b4_lex_param_decl],
 [m4_ifset([b4_lex_param],
@@ -290,7 +276,7 @@ m4_define([b4_parse_param_decl],
 
 
 # b4_lex_param_call
-# -----------------
+# -------------------
 # Delegating the lexer parameters to the lexer constructor.
 m4_define([b4_lex_param_call],
           [m4_ifset([b4_lex_param],
@@ -331,12 +317,4 @@ m4_define([b4_var_decls],
           [m4_map_sep([b4_var_decl], [
 ], [$@])])
 m4_define([b4_var_decl],
-          [    protected final $1;])
-
-
-
-# b4_maybe_throws(THROWS)
-# -----------------------
-# Expand to either an empty string or "throws THROWS".
-m4_define([b4_maybe_throws],
-          [m4_ifval($1, [throws $1])])
+          [    protected $1;])

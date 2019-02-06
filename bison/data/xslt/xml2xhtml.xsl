@@ -3,7 +3,7 @@
 <!--
     xml2html.xsl - transform Bison XML Report into XHTML.
 
-    Copyright (C) 2007-2015, 2018 Free Software Foundation, Inc.
+    Copyright (C) 2007-2015, 2018-2019 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -38,6 +38,7 @@
 <xsl:template match="/">
   <html>
     <head>
+      <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
       <title>
         <xsl:value-of select="bison-xml-report/filename"/>
         <xsl:text> - GNU Bison XML Automaton Report</xsl:text>

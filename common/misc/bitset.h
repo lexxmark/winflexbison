@@ -1,6 +1,7 @@
 /* Generic bitsets.
 
-   Copyright (C) 2002-2004, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2002-2004, 2009-2015, 2018 Free Software Foundation,
+   Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -33,13 +34,13 @@
 
 /* Attributes used to select a bitset implementation.  */
 enum bitset_attr {BITSET_FIXED = 1,    /* Bitset size fixed.  */
-		  BITSET_VARIABLE = 2, /* Bitset size variable.  */
-		  BITSET_DENSE = 4,    /* Bitset dense.  */
-		  BITSET_SPARSE = 8,   /* Bitset sparse.  */
-		  BITSET_FRUGAL = 16,  /* Prefer most compact.  */
-		  BITSET_GREEDY = 32}; /* Prefer fastest at memory expense.  */
+                  BITSET_VARIABLE = 2, /* Bitset size variable.  */
+                  BITSET_DENSE = 4,    /* Bitset dense.  */
+                  BITSET_SPARSE = 8,   /* Bitset sparse.  */
+                  BITSET_FRUGAL = 16,  /* Prefer most compact.  */
+                  BITSET_GREEDY = 32}; /* Prefer fastest at memory expense.  */
 
-typedef unsigned int bitset_attrs;
+typedef unsigned bitset_attrs;
 
 /* The contents of the union should be considered to be private.
    While I would like to make this union opaque, it needs to be
@@ -49,26 +50,26 @@ union bitset_union
 {
   /* This must be the first member of every other structure that is a
      member of this union.  */
-  struct bbitset_struct b;	        /* Base bitset data.  */
+  struct bbitset_struct b;              /* Base bitset data.  */
 
   struct abitset_struct
   {
     struct bbitset_struct b;
-    bitset_word words[1];		/* The array of bits.  */
+    bitset_word words[1];               /* The array of bits.  */
   } a;
 
   struct ebitset_struct
   {
     struct bbitset_struct b;
-    bitset_windex size;			/* Number of elements.  */
-    struct ebitset_elt_struct **elts;	/* Expanding array of ptrs to elts.  */
+    bitset_windex size;                 /* Number of elements.  */
+    struct ebitset_elt_struct **elts;   /* Expanding array of ptrs to elts.  */
   } e;
 
   struct lbitset_struct
   {
     struct bbitset_struct b;
-    struct lbitset_elt_struct *head;	/* First element in linked list.  */
-    struct lbitset_elt_struct *tail;	/* Last element in linked list.  */
+    struct lbitset_elt_struct *head;    /* First element in linked list.  */
+    struct lbitset_elt_struct *tail;    /* Last element in linked list.  */
   } l;
 
   struct bitset_stats_struct
@@ -80,7 +81,7 @@ union bitset_union
   struct vbitset_struct
   {
     struct bbitset_struct b;
-    bitset_windex size;			/* Allocated size of array.  */
+    bitset_windex size;                 /* Allocated size of array.  */
   } v;
 
 };
@@ -116,7 +117,7 @@ extern void bitset_free (bitset);
 /* Create a bitset of desired type and size using an obstack.  The
    bitset is zeroed.  */
 extern bitset bitset_obstack_alloc (struct obstack *bobstack,
-				    bitset_bindex, enum bitset_type);
+                                    bitset_bindex, enum bitset_type);
 
 /* Free bitset allocated on obstack.  */
 extern void bitset_obstack_free (bitset);
@@ -132,7 +133,7 @@ extern const char *bitset_type_name_get (bitset);
 
 
 /* Set bit BITNO in bitset BSET.  */
-static void
+static inline void
 bitset_set (bitset bset, bitset_bindex bitno)
 {
   bitset_windex windex = bitno / BITSET_WORD_BITS;
@@ -146,7 +147,7 @@ bitset_set (bitset bset, bitset_bindex bitno)
 
 
 /* Reset bit BITNO in bitset BSET.  */
-static void
+static inline void
 bitset_reset (bitset bset, bitset_bindex bitno)
 {
   bitset_windex windex = bitno / BITSET_WORD_BITS;
@@ -160,7 +161,7 @@ bitset_reset (bitset bset, bitset_bindex bitno)
 
 
 /* Test bit BITNO in bitset BSET.  */
-static bool
+static inline bool
 bitset_test (bitset bset, bitset_bindex bitno)
 {
   bitset_windex windex = bitno / BITSET_WORD_BITS;
@@ -309,17 +310,17 @@ extern void bitset_dump (FILE *, bitset);
 
    BITSET_FOR_EACH (iter, src, i, 0)
    {
-      printf ("%lu ", (unsigned long int) i);
+      printf ("%lu ", (unsigned long) i);
    };
 */
-#define BITSET_FOR_EACH(ITER, BSET, INDEX, MIN)				      \
-  for (ITER.next = (MIN), ITER.num = BITSET_LIST_SIZE;			      \
-       (ITER.num == BITSET_LIST_SIZE)					      \
-       && (ITER.num = bitset_list (BSET, ITER.list,			      \
-				   BITSET_LIST_SIZE, &ITER.next));)	      \
-    for (ITER.i = 0;							      \
-	 ITER.i < ITER.num && ((INDEX) = ITER.list[ITER.i], 1);		      \
-	 ITER.i++)
+#define BITSET_FOR_EACH(ITER, BSET, INDEX, MIN)                               \
+  for (ITER.next = (MIN), ITER.num = BITSET_LIST_SIZE;                        \
+       (ITER.num == BITSET_LIST_SIZE)                                         \
+       && (ITER.num = bitset_list (BSET, ITER.list,                           \
+                                   BITSET_LIST_SIZE, &ITER.next));)           \
+    for (ITER.i = 0;                                                          \
+         ITER.i < ITER.num && ((INDEX) = ITER.list[ITER.i], 1);               \
+         ITER.i++)
 
 
 /* Loop over all elements of BSET, in reverse order starting with
@@ -331,17 +332,17 @@ extern void bitset_dump (FILE *, bitset);
 
    BITSET_FOR_EACH_REVERSE (iter, src, i, 0)
    {
-      printf ("%lu ", (unsigned long int) i);
+      printf ("%lu ", (unsigned long) i);
    };
 */
-#define BITSET_FOR_EACH_REVERSE(ITER, BSET, INDEX, MIN)			      \
-  for (ITER.next = (MIN), ITER.num = BITSET_LIST_SIZE;			      \
-       (ITER.num == BITSET_LIST_SIZE)					      \
-       && (ITER.num = bitset_list_reverse (BSET, ITER.list,		      \
-					   BITSET_LIST_SIZE, &ITER.next));)   \
-    for (ITER.i = 0;							      \
-	 ITER.i < ITER.num && ((INDEX) = ITER.list[ITER.i], 1);		      \
-	 ITER.i++)
+#define BITSET_FOR_EACH_REVERSE(ITER, BSET, INDEX, MIN)                       \
+  for (ITER.next = (MIN), ITER.num = BITSET_LIST_SIZE;                        \
+       (ITER.num == BITSET_LIST_SIZE)                                         \
+       && (ITER.num = bitset_list_reverse (BSET, ITER.list,                   \
+                                           BITSET_LIST_SIZE, &ITER.next));)   \
+    for (ITER.i = 0;                                                          \
+         ITER.i < ITER.num && ((INDEX) = ITER.list[ITER.i], 1);               \
+         ITER.i++)
 
 
 /* Define set operations in terms of logical operations.  */

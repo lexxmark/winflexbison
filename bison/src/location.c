@@ -1,6 +1,7 @@
 /* Locations for Bison
 
-   Copyright (C) 2002, 2005-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005-2015, 2018-2019 Free Software Foundation,
+   Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -137,7 +138,7 @@ location_print (location loc, FILE *out)
 }
 
 
-/* Persistant data used by location_caret to avoid reopening and rereading the
+/* Persistent data used by location_caret to avoid reopening and rereading the
    same file all over for each error.  */
 struct caret_info
 {
@@ -208,11 +209,18 @@ location_caret (location loc, FILE *out)
           /* Print the carets (at least one), with the same indent as above.*/
           fprintf (out, " %*s", loc.start.column - 1, "");
           for (i = loc.start.column; i == loc.start.column || i < (int)len; ++i)
-            putc ('^', out);
+            putc (i == loc.start.column ? '^' : '~', out);
           }
         putc ('\n', out);
       }
   }
+}
+
+bool
+location_empty (location loc)
+{
+  return !loc.start.file && !loc.start.line && !loc.start.column
+    && !loc.end.file && !loc.end.line && !loc.end.column;
 }
 
 void

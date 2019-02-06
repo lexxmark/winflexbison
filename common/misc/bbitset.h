@@ -1,7 +1,7 @@
 /* Base bitset stuff.
 
-   Copyright (C) 2002-2004, 2006, 2009-2011 Free Software Foundation,
-   Inc.
+   Copyright (C) 2002-2004, 2006, 2009-2015, 2018 Free Software
+   Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -21,7 +21,7 @@
 #ifndef _BBITSET_H
 #define _BBITSET_H
 
-//#include "libiberty.h"
+#include "libiberty.h"
 
 #include <stdbool.h>
 #include <limits.h>
@@ -32,9 +32,9 @@
                   Memory for bit array and bitset structure allocated
                   contiguously.
    BITSET_LIST:   Linked list of arrays of bits (variable size, least storage
-		  for large very sparse sets).
+                  for large very sparse sets).
    BITSET_TABLE:  Expandable table of pointers to arrays of bits
-		  (variable size, less storage for large sparse sets).
+                  (variable size, less storage for large sparse sets).
                   Faster than BITSET_LIST for random access.
    BITSET_VARRAY: Variable array of bits (variable size, fast for
                   dense bitsets).
@@ -42,7 +42,7 @@
                   statistics and/or better run-time checking.
 */
 enum bitset_type {BITSET_ARRAY, BITSET_LIST, BITSET_TABLE, BITSET_VARRAY,
-		  BITSET_TYPE_NUM, BITSET_STATS};
+                  BITSET_TYPE_NUM, BITSET_STATS};
 #define BITSET_TYPE_NAMES {"abitset", "lbitset", "ebitset", "vbitset"}
 
 extern const char * const bitset_type_names[];
@@ -50,8 +50,8 @@ extern const char * const bitset_type_names[];
 enum bitset_alloc_type {BITSET_MALLOC, BITSET_OBALLOC};
 
 /* Data type used to store a word of bits.  */
-typedef unsigned long int bitset_word;
-#define BITSET_WORD_BITS ((unsigned int) (CHAR_BIT * sizeof (bitset_word)))
+typedef unsigned long bitset_word;
+#define BITSET_WORD_BITS ((unsigned) (CHAR_BIT * sizeof (bitset_word)))
 
 /* Bit index.  In theory we might need a type wider than size_t, but
    in practice we lose at most a factor of CHAR_BIT by going with
@@ -78,19 +78,19 @@ typedef size_t bitset_windex;
 #define BITSET_LIST_SIZE 1024
 
 enum bitset_ops {BITSET_OP_ZERO, BITSET_OP_ONES,
-		 BITSET_OP_COPY, BITSET_OP_NOT,
-		 BITSET_OP_EMPTY_P, BITSET_OP_EQUAL_P,
-		 BITSET_OP_SUBSET_P, BITSET_OP_DISJOINT_P,
-		 BITSET_OP_AND, BITSET_OP_OR, BITSET_OP_XOR, BITSET_OP_ANDN,
-		 BITSET_OP_OR_AND, BITSET_OP_AND_OR, BITSET_OP_ANDN_OR};
+                 BITSET_OP_COPY, BITSET_OP_NOT,
+                 BITSET_OP_EMPTY_P, BITSET_OP_EQUAL_P,
+                 BITSET_OP_SUBSET_P, BITSET_OP_DISJOINT_P,
+                 BITSET_OP_AND, BITSET_OP_OR, BITSET_OP_XOR, BITSET_OP_ANDN,
+                 BITSET_OP_OR_AND, BITSET_OP_AND_OR, BITSET_OP_ANDN_OR};
 
 struct bbitset_struct
 {
   const struct bitset_vtable *vtable;
-  bitset_windex cindex;		/* Cache word index.  */
-  bitset_windex csize;		/* Cache size in words.  */
-  bitset_word *cdata;		/* Cache data pointer.  */
-  bitset_bindex n_bits;		/* Number of bits.  */
+  bitset_windex cindex;         /* Cache word index.  */
+  bitset_windex csize;          /* Cache size in words.  */
+  bitset_word *cdata;           /* Cache data pointer.  */
+  bitset_bindex n_bits;         /* Number of bits.  */
   /* Perhaps we could sacrifice another word to indicate
      that the bitset is known to be zero, that a bit has been set
      in the cache, and that a bit has been cleared in the cache.
@@ -148,9 +148,9 @@ struct bitset_vtable
   bool (*or_and_cmp) (bitset, bitset, bitset, bitset);
 
   bitset_bindex (*list) (bitset, bitset_bindex *, bitset_bindex,
-			 bitset_bindex *);
+                         bitset_bindex *);
   bitset_bindex (*list_reverse) (bitset, bitset_bindex *, bitset_bindex,
-				 bitset_bindex *);
+                                 bitset_bindex *);
   void (*free) (bitset);
   enum bitset_type type;
 };

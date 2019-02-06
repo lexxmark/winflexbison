@@ -1,7 +1,7 @@
 /* Keep a unique copy of strings.
 
-   Copyright (C) 2002-2005, 2009-2015, 2018 Free Software Foundation,
-   Inc.
+   Copyright (C) 2002-2005, 2009-2015, 2018-2019 Free Software
+   Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -59,54 +59,37 @@ uniqstr_new (char const *str)
   return res;
 }
 
-// start winflexbison insertion
-/* arg list should be with char* only and end with NULL */
-char*
-uniqstr_get_format(char const *aaa, ...)
-{
-	static char format[50] = { 0 };
-	char* arg = NULL;
-	int i = 0;
-	va_list args;
-
-	va_start(args, aaa);
-	arg = va_arg(args, char*);
-	while (arg) {
-		format[i++] = '%';
-		format[i++] = 's';
-		arg = va_arg(args, char*);
-	}
-	va_end(args);
-
-	format[i] = 0;
-
-	return format;
-}
-// end winflexbison insertion
-
 uniqstr
-uniqstr_vsprintf (char const *format, ...)
+uniqstr_concat (int nargs, ...)
 {
-  char *res = NULL;
   va_list args;
-  size_t length;
-  uniqstr result;
 
-  va_start (args, format);
-  length = vsnprintf (NULL, 0, format, args);
+  va_start (args, nargs);
+  size_t reslen = 0;
+  for (int i = 0; i < nargs; i++)
+    reslen += strlen (va_arg (args, char const *));
   va_end (args);
 
-  res = (char*)_malloca(sizeof(char)*(length+1));
-  //char res[length + 1];
-  va_start (args, format);
-  vsprintf (res, format, args);
+  char *str = xmalloc (reslen + 1);
+  char *p = str;
+
+  va_start (args, nargs);
+  for (int i = 0; i < nargs; i++)
+    {
+      char const *arg = va_arg (args, char const *);
+      size_t arglen = strlen (arg);
+      memcpy (p, arg, arglen);
+      p += arglen;
+    }
   va_end (args);
 
-  result = uniqstr_new (res);
-
-  _freea(res);
-
-  return result;//uniqstr_new (res);
+  *p = '\0';
+  uniqstr res = hash_insert (uniqstrs_table, str);
+  if (!res)
+    xalloc_die ();
+  if (res != str)
+    free (str);
+  return res;
 }
 
 /*------------------------------.
