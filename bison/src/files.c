@@ -97,7 +97,6 @@ static char *header_extension = NULL;
 | Return a newly allocated string composed of the concatenation of |
 | STR1, and STR2.                                                  |
 `-----------------------------------------------------------------*/
-extern char* stpcpy(char* d, const char* s);
 
 static char *
 concat2 (char const *str1, char const *str2)
@@ -105,8 +104,8 @@ concat2 (char const *str1, char const *str2)
   size_t len = strlen (str1) + strlen (str2);
   char *res = xmalloc (len + 1);
   char *cp;
-  cp = stpcpy (res, str1);
-  cp = stpcpy (cp, str2);
+  cp = _stpcpy (res, str1);
+  cp = _stpcpy (cp, str2);
   return res;
 }
 

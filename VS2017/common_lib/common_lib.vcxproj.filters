@@ -300,6 +300,36 @@
     <ClInclude Include="..\..\common\misc\xstrndup.h">
       <Filter>Header Files\misc</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\misc\arg-nonnull.h">
+      <Filter>Header Files\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\concat-filename.h">
+      <Filter>Header Files\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\filename.h">
+      <Filter>Header Files\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\gethrxtime.h">
+      <Filter>Header Files\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\libiberty.h">
+      <Filter>Header Files\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\path-join.h">
+      <Filter>Header Files\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\relocatable.h">
+      <Filter>Header Files\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\timespec.h">
+      <Filter>Header Files\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\xtime.h">
+      <Filter>Header Files\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\m4\lib\gl_array_list.h">
+      <Filter>Header Files\m4\lib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\m4\lib\clean-temp.c">
@@ -544,6 +574,30 @@
     </ClCompile>
     <ClCompile Include="..\..\common\m4\symtab.c">
       <Filter>Source Files\m4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\concat-filename.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\gethrxtime.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\path-join.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\relocatable.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\timespec.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\xconcat-filename.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\xtime.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\m4\lib\gl_array_list.c">
+      <Filter>Source Files\m4\lib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

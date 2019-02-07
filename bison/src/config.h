@@ -11,5 +11,5 @@
 #define RENAME_OPEN_FILE_WORKS 1
 
 #define ssize_t ptrdiff_t
-//#define inline
-//#define const
+
+extern char* _stpcpy(char *yydest, const char *yysrc);

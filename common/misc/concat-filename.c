@@ -27,13 +27,24 @@
 
 #include "filename.h"
 
+char* _stpcpy(char *yydest, const char *yysrc)
+{
+	char *yyd = yydest;
+	const char *yys = yysrc;
+
+	while ((*yyd++ = *yys++) != '\0')
+		continue;
+
+	return yyd - 1;
+}
+
 /* Concatenate a directory filename, a relative filename and an optional
    suffix.  The directory may end with the directory separator.  The second
    argument may not start with the directory separator (it is relative).
    Return a freshly allocated filename.  Return NULL and set errno
    upon memory allocation failure.  */
 char *
-xconcatenated_filename (const char *directory, const char *filename,
+concatenated_filename (const char *directory, const char *filename,
                        const char *suffix)
 {
   char *result;
@@ -66,8 +77,8 @@ xconcatenated_filename (const char *directory, const char *filename,
       if (need_slash)
         *p++ = '/';
     }
-  p = stpcpy (p, filename);
+  p = _stpcpy (p, filename);
   if (suffix != NULL)
-    stpcpy (p, suffix);
+    _stpcpy (p, suffix);
   return result;
 }

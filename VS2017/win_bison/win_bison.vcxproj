@@ -110,6 +110,7 @@ xcopy "$(ProjectDir)..\..\bison\data\*" "$(TargetDir)\data" /s /i /y</Command>
     <ClCompile Include="..\..\bison\src\conflicts.c" />
     <ClCompile Include="..\..\bison\src\derives.c" />
     <ClCompile Include="..\..\bison\src\files.c" />
+    <ClCompile Include="..\..\bison\src\fixits.c" />
     <ClCompile Include="..\..\bison\src\getargs.c" />
     <ClCompile Include="..\..\bison\src\gram.c" />
     <ClCompile Include="..\..\bison\src\graphviz.c" />
@@ -149,6 +150,7 @@ xcopy "$(ProjectDir)..\..\bison\data\*" "$(TargetDir)\data" /s /i /y</Command>
     <ClInclude Include="..\..\bison\src\conflicts.h" />
     <ClInclude Include="..\..\bison\src\derives.h" />
     <ClInclude Include="..\..\bison\src\files.h" />
+    <ClInclude Include="..\..\bison\src\fixits.h" />
     <ClInclude Include="..\..\bison\src\flex-scanner.h" />
     <ClInclude Include="..\..\bison\src\getargs.h" />
     <ClInclude Include="..\..\bison\src\gram.h" />

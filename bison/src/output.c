@@ -686,7 +686,6 @@ output_skeleton (void)
 //  pid_t pid;
   int i = 0;
   {
-    char const *argv[10];
     argv[i++] = m4;
 
     /* When POSIXLY_CORRECT is set, GNU M4 1.6 and later disable GNU

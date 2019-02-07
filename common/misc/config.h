@@ -15,13 +15,4 @@
 //#define _USE_32BIT_TIME_T
 #define HAVE_LONG_LONG_INT 1
 
-inline char* _stpcpy(char *yydest, const char *yysrc)
-{
-	char *yyd = yydest;
-	const char *yys = yysrc;
-
-	while ((*yyd++ = *yys++) != '\0')
-		continue;
-
-	return yyd - 1;
-}
+extern char* _stpcpy(char *yydest, const char *yysrc);
