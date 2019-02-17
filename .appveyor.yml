@@ -11,17 +11,10 @@ platform:
 environment:
   # VS VERSION IN CMAKE STYLE
   matrix:
+    - VSVERSION: "16 2019"
     - VSVERSION: "15 2017"
     - VSVERSION: "14 2015"
-    - VSVERSION: "12 2013"
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-
-matrix:
-  exclude:
-    - VSVERSION: "12 2013"
-      platform: x64
-    - VSVERSION: "12 2013"
-      configuration: Debug
+       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
 init:
   - cmake --version
