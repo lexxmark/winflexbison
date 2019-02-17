@@ -11,7 +11,6 @@ platform:
 environment:
   # VS VERSION IN CMAKE STYLE
   matrix:
-    - VSVERSION: "16 2019"
     - VSVERSION: "15 2017"
     - VSVERSION: "14 2015"
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
