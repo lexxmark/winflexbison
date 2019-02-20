@@ -4,6 +4,9 @@
   * 2.4.x versions include bison version 2.7
   * 2.5.x versions include bison version 3.x
   
+### version 2.5.17
+  * upgrade win_bison to version 3.3.1
+
 ### version 2.5.16
   * upgrade win_bison to version 3.1
   * write output flex/bison files in binary mode "wb" that means use '\n' EOL not '\r\n'

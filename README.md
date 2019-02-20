@@ -13,11 +13,11 @@ Go to http://sourceforge.net/projects/winflexbison/files/ or https://github.com/
 See the [changelog.md](changelog.md) file.
 
 ## Build requirements
-  * Visual Studio 2013 or newer
+  * Visual Studio 2015 or newer
   * optional: CMake (when building with CMake)
   * **NOTE**:
     * 2.4.x versions include bison version 2.7
-    * 2.5.x versions include bison version 3.0.x
+    * 2.5.x versions include bison version 3.x.x
 
 ## HowTo
 https://sourceforge.net/p/winflexbison/wiki/Visual%20Studio%20custom%20build%20rules/
