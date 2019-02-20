@@ -1,7 +1,7 @@
 /* Declaration for error-reporting function for Bison.
 
-   Copyright (C) 2000-2002, 2004-2006, 2009-2015, 2018 Free Software
-   Foundation, Inc.
+   Copyright (C) 2000-2002, 2004-2006, 2009-2015, 2018-2019 Free
+   Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 
 #include "complain.h"
 #include "files.h"
+#include "fixits.h"
 #include "getargs.h"
 #include "quote.h"
 
@@ -83,7 +84,7 @@ static const char * const warnings_args[] =
   0
 };
 
-static const int warnings_types[] =
+static const warnings warnings_types[] =
 {
   Wnone,
   Wmidrule_values,
@@ -114,8 +115,7 @@ warning_argmatch (char const *arg, size_t no, size_t err)
       no = !no;
     }
 
-  size_t b;
-  for (b = 0; b < warnings_size; ++b)
+  for (size_t b = 0; b < warnings_size; ++b)
     if (value & 1 << b)
       {
         if (err && no)
@@ -176,8 +176,7 @@ complain_init (void)
   warnings warnings_default =
     Wconflicts_sr | Wconflicts_rr | Wdeprecated | Wother;
 
-  size_t b;
-  for (b = 0; b < warnings_size; ++b)
+  for (size_t b = 0; b < warnings_size; ++b)
     {
       warnings_flag[b] = (1 << b & warnings_default
                           ? severity_warning
@@ -204,8 +203,7 @@ warning_severity (warnings flags)
     {
       /* Diagnostics about warnings.  */
       severity res = severity_disabled;
-      size_t b;
-      for (b = 0; b < warnings_size; ++b)
+      for (size_t b = 0; b < warnings_size; ++b)
         if (flags & 1 << b)
           {
             res = res < warnings_flag[b] ? warnings_flag[b] : res;
@@ -225,8 +223,7 @@ warning_severity (warnings flags)
 bool
 warning_is_unset (warnings flags)
 {
-  size_t b;
-  for (b = 0; b < warnings_size; ++b)
+  for (size_t b = 0; b < warnings_size; ++b)
     if (flags & 1 << b && warnings_flag[b] != severity_unset)
       return false;
   return true;
@@ -238,8 +235,7 @@ static void
 warnings_print_categories (warnings warn_flags, FILE *f)
 {
   /* Display only the first match, the second is "-Wall".  */
-  size_t i;
-  for (i = 0; warnings_args[i]; ++i)
+  for (size_t i = 0; warnings_args[i]; ++i)
     if (warn_flags & warnings_types[i])
       {
         severity s = warning_severity (warnings_types[i]);
@@ -283,15 +279,18 @@ error_message (const location *loc, warnings flags, const char *prefix,
         *indent_ptr = pos;
       else if (*indent_ptr > pos)
         fprintf (stderr, "%*s", *indent_ptr - pos, "");
-      indent_ptr = 0;
+      indent_ptr = NULL;
     }
 
   if (prefix)
     fprintf (stderr, "%s: ", prefix);
 
   vfprintf (stderr, message, args);
-  if (! (flags & silent))
+  /* Print the type of warning, only if this is not a sub message
+     (in which case the prefix is null).  */
+  if (! (flags & silent) && prefix)
     warnings_print_categories (flags, stderr);
+
   {
     size_t l = strlen (message);
     if (l < 2 || message[l - 2] != ':' || message[l - 1] != ' ')
@@ -379,6 +378,14 @@ complain_args (location const *loc, warnings w, unsigned *indent,
   }
 }
 
+
+void
+bison_directive (location const *loc, char const *directive)
+{
+  complain (loc, Wyacc,
+            _("POSIX Yacc does not support %s"), directive);
+}
+
 void
 deprecated_directive (location const *loc, char const *old, char const *upd)
 {
@@ -390,6 +397,9 @@ deprecated_directive (location const *loc, char const *old, char const *upd)
     complain (loc, Wdeprecated,
               _("deprecated directive: %s, use %s"),
               quote (old), quote_n (1, upd));
+  /* Register updates only if -Wdeprecated is enabled.  */
+  if (warnings_flag[warning_deprecated] != severity_disabled)
+    fixits_register (loc, upd);
 }
 
 void
@@ -397,7 +407,24 @@ duplicate_directive (char const *directive,
                      location first, location second)
 {
   unsigned i = 0;
-  complain (&second, complaint, _("only one %s allowed per rule"), directive);
+  if (feature_flag & feature_caret)
+    complain_indent (&second, Wother, &i, _("duplicate directive"));
+  else
+    complain_indent (&second, Wother, &i, _("duplicate directive: %s"), quote (directive));
   i += SUB_INDENT;
-  complain_indent (&first, complaint, &i, _("previous declaration"));
+  complain_indent (&first, Wother, &i, _("previous declaration"));
+  fixits_register (&second, "");
+}
+
+void
+duplicate_rule_directive (char const *directive,
+                          location first, location second)
+{
+  unsigned i = 0;
+  complain_indent (&second, complaint, &i,
+                   _("only one %s allowed per rule"), directive);
+  i += SUB_INDENT;
+  complain_indent (&first, complaint, &i,
+                   _("previous declaration"));
+  fixits_register (&second, "");
 }

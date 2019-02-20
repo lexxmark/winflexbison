@@ -1,6 +1,7 @@
 /* Print an xml on generated parser, for Bison,
 
-   Copyright (C) 2007, 2009-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009-2015, 2018-2019 Free Software Foundation,
+   Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -454,17 +455,6 @@ xml_printf (FILE *out, int level, char const *fmt, ...)
   fputc ('\n', out);
 }
 
-char* stpcpy(char* d, const char* s)
-{
-	// go to end of line
-	while (*d != 0) ++d;
-	// copy substring
-	while (*s != 0) { *d = *s; ++d; ++s; }
-	// terminate string
-	*d = 0;
-	return d;
-}
-
 static char const *
 xml_escape_string (struct escape_buf *buf, char const *str)
 {
@@ -483,10 +473,10 @@ xml_escape_string (struct escape_buf *buf, char const *str)
     switch (*str)
       {
       default: *p++ = *str; break;
-      case '&': p = stpcpy (p, "&amp;" ); break;
-      case '<': p = stpcpy (p, "&lt;"  ); break;
-      case '>': p = stpcpy (p, "&gt;"  ); break;
-      case '"': p = stpcpy (p, "&quot;"); break;
+      case '&': p = _stpcpy (p, "&amp;" ); break;
+      case '<': p = _stpcpy (p, "&lt;"  ); break;
+      case '>': p = _stpcpy (p, "&gt;"  ); break;
+      case '"': p = _stpcpy (p, "&quot;"); break;
       }
 
   *p = '\0';

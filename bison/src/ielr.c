@@ -1,6 +1,6 @@
 /* IELR main implementation.
 
-   Copyright (C) 2009-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018-2019 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -50,7 +50,7 @@ ielr_compute_ritem_sees_lookahead_set (void)
 {
   bitset result = bitset_create (nritems, BITSET_FIXED);
   unsigned i = nritems-1;
-  while (i>0)
+  while (0 < i)
     {
       --i;
       while (!item_number_is_rule_number (ritem[i])
@@ -59,7 +59,7 @@ ielr_compute_ritem_sees_lookahead_set (void)
         bitset_set (result, i--);
       if (!item_number_is_rule_number (ritem[i]) && ISVAR (ritem[i]))
         bitset_set (result, i--);
-      while (!item_number_is_rule_number (ritem[i]) && i>0)
+      while (!item_number_is_rule_number (ritem[i]) && 0 < i)
         --i;
     }
   if (trace_flag & trace_ielr)
@@ -97,8 +97,8 @@ static void
 ielr_compute_internal_follow_edges (bitset ritem_sees_lookahead_set,
                                     goto_number ***edgesp, int **edge_countsp)
 {
-  *edgesp = (goto_number**)xnmalloc (ngotos, sizeof **edgesp);
-  *edge_countsp = (int*)xnmalloc (ngotos, sizeof **edge_countsp);
+  *edgesp = xnmalloc (ngotos, sizeof **edgesp);
+  *edge_countsp = xnmalloc (ngotos, sizeof **edge_countsp);
   {
     bitset sources = bitset_create (ngotos, BITSET_FIXED);
     for (goto_number i = 0; i < ngotos; ++i)
@@ -205,8 +205,7 @@ ielr_compute_follow_kernel_items (bitset ritem_sees_lookahead_set,
     {
       size_t nitems = states[from_state[i]]->nitems;
       item_number *items = states[from_state[i]]->items;
-      size_t j;
-      for (j = 0; j < nitems; ++j)
+      for (size_t j = 0; j < nitems; ++j)
         /* If this item has this goto and if all subsequent symbols in this
            RHS (if any) are nullable nonterminals, then record this item as
            one whose lookahead set is included in this goto's follows.  */
@@ -298,11 +297,8 @@ ielr_compute_predecessors (void)
   for (state_number i = 0; i < nstates; ++i)
     predecessor_counts[i] = 0;
   for (state_number i = 0; i < nstates; ++i)
-    {
-      int j;
-      for (j = 0; j < states[i]->transitions->num; ++j)
-        ++predecessor_counts[states[i]->transitions->states[j]->number];
-    }
+    for (int j = 0; j < states[i]->transitions->num; ++j)
+      ++predecessor_counts[states[i]->transitions->states[j]->number];
   for (state_number i = 0; i < nstates; ++i)
     {
       result[i] = xnmalloc (predecessor_counts[i]+1, sizeof *result[i]);
@@ -530,7 +526,8 @@ ielr_compute_annotation_lists (bitsetv follow_kernel_items,
   free (annotation_counts);
 }
 
-typedef struct state_list {
+typedef struct state_list
+{
   struct state_list *next;
   state *state;
   /** Has this state been recomputed as a successor of another state?  */
@@ -683,7 +680,6 @@ ielr_compute_state (bitsetv follow_kernel_items, bitsetv always_follows,
 {
   state_list *lr0_isocore = t->state_list->lr0Isocore;
   state_list **this_isocorep;
-  bool has_lookaheads;
 
   /* Determine whether there's an isocore of t with which these lookaheads can
      be merged.  */
@@ -750,7 +746,7 @@ ielr_compute_state (bitsetv follow_kernel_items, bitsetv always_follows,
       }
   }
 
-  has_lookaheads = false;
+  bool has_lookaheads = false;
   for (size_t i = 0; i < lr0_isocore->state->nitems; ++i)
     if (!bitset_empty_p (lookaheads[i]))
       {
@@ -894,10 +890,9 @@ ielr_compute_state (bitsetv follow_kernel_items, bitsetv always_follows,
       (*last_statep)->lookaheads = NULL;
       if (has_lookaheads)
         {
-          size_t i;
           (*last_statep)->lookaheads =
             xnmalloc (t->nitems, sizeof (*last_statep)->lookaheads);
-          for (i = 0; i < t->nitems; ++i)
+          for (size_t i = 0; i < t->nitems; ++i)
             {
               if (bitset_empty_p (lookaheads[i]))
                 (*last_statep)->lookaheads[i] = NULL;
@@ -929,7 +924,7 @@ ielr_compute_state (bitsetv follow_kernel_items, bitsetv always_follows,
  *     compatibility or, if <tt>annotation_lists = NULL</tt>, the canonical
  *     LR(1) state compatibility test was used.
  *   - If <tt>annotation_lists = NULL</tt>, reduction lookahead sets were
- *     computed in all states.  TV_IELR_PHASE4 was pushed while they were
+ *     computed in all states.  tv_ielr_phase4 was pushed while they were
  *     computed from item lookahead sets.
  */
 static void
@@ -1004,7 +999,7 @@ ielr_split_states (bitsetv follow_kernel_items, bitsetv always_follows,
      lookahead sets.  */
   if (!annotation_lists)
     {
-      timevar_push (TV_IELR_PHASE4);
+      timevar_push (tv_ielr_phase4);
       initialize_LA ();
       for (state_list *node = first_state; node; node = node->next)
         if (!node->state->consistent)
@@ -1037,7 +1032,7 @@ ielr_split_states (bitsetv follow_kernel_items, bitsetv always_follows,
                   }
               }
           }
-      timevar_pop (TV_IELR_PHASE4);
+      timevar_pop (tv_ielr_phase4);
     }
 
   /* Free state list.  */
@@ -1046,8 +1041,7 @@ ielr_split_states (bitsetv follow_kernel_items, bitsetv always_follows,
       state_list *node = first_state;
       if (node->lookaheads)
         {
-          size_t i;
-          for (i = 0; i < node->state->nitems; ++i)
+          for (size_t i = 0; i < node->state->nitems; ++i)
             if (node->lookaheads[i])
               bitset_free (node->lookaheads[i]);
           free (node->lookaheads);
@@ -1080,7 +1074,7 @@ ielr (void)
   }
 
   /* Phase 0: LALR(1).  */
-  timevar_push (TV_LALR);
+  timevar_push (tv_lalr);
   if (lr_type == LR_TYPE__CANONICAL_LR)
     set_goto_map ();
   else
@@ -1088,10 +1082,10 @@ ielr (void)
   if (lr_type == LR_TYPE__LALR)
     {
       bitsetv_free (goto_follows);
-      timevar_pop (TV_LALR);
+      timevar_pop (tv_lalr);
       return;
     }
-  timevar_pop (TV_LALR);
+  timevar_pop (tv_lalr);
 
   {
     bitsetv follow_kernel_items;
@@ -1104,14 +1098,14 @@ ielr (void)
     {
       /* Phase 1: Compute Auxiliary Tables.  */
       state ***predecessors;
-      timevar_push (TV_IELR_PHASE1);
+      timevar_push (tv_ielr_phase1);
       ielr_compute_auxiliary_tables (
         &follow_kernel_items, &always_follows,
         lr_type == LR_TYPE__CANONICAL_LR ? NULL : &predecessors);
-      timevar_pop (TV_IELR_PHASE1);
+      timevar_pop (tv_ielr_phase1);
 
       /* Phase 2: Compute Annotations.  */
-      timevar_push (TV_IELR_PHASE2);
+      timevar_push (tv_ielr_phase2);
       if (lr_type != LR_TYPE__CANONICAL_LR)
         {
           obstack_init (&annotations_obstack);
@@ -1125,11 +1119,11 @@ ielr (void)
           bitsetv_free (goto_follows);
           lalr_free ();
         }
-      timevar_pop (TV_IELR_PHASE2);
+      timevar_pop (tv_ielr_phase2);
     }
 
     /* Phase 3: Split States.  */
-    timevar_push (TV_IELR_PHASE3);
+    timevar_push (tv_ielr_phase3);
     {
       state_number nstates_lr0 = nstates;
       ielr_split_states (follow_kernel_items, always_follows,
@@ -1144,11 +1138,11 @@ ielr (void)
     free (annotation_lists);
     bitsetv_free (follow_kernel_items);
     bitsetv_free (always_follows);
-    timevar_pop (TV_IELR_PHASE3);
+    timevar_pop (tv_ielr_phase3);
   }
 
   /* Phase 4: Compute Reduction Lookaheads.  */
-  timevar_push (TV_IELR_PHASE4);
+  timevar_push (tv_ielr_phase4);
   free (goto_map);
   free (from_state);
   free (to_state);
@@ -1163,5 +1157,5 @@ ielr (void)
       lalr ();
       bitsetv_free (goto_follows);
     }
-  timevar_pop (TV_IELR_PHASE4);
+  timevar_pop (tv_ielr_phase4);
 }

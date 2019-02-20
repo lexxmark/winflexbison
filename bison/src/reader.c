@@ -1,7 +1,7 @@
 /* Input parser for Bison
 
    Copyright (C) 1984, 1986, 1989, 1992, 1998, 2000-2003, 2005-2007,
-   2009-2015, 2018 Free Software Foundation, Inc.
+   2009-2015, 2018-2019 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -44,9 +44,6 @@ merger_list *merge_functions;
 
 /* Was %union seen?  */
 bool union_seen = false;
-
-/* Was a tag seen?  */
-bool tag_seen = false;
 
 /* Should rules have a default precedence?  */
 bool default_prec = true;
@@ -114,13 +111,11 @@ record_merge_function_type (int merger, uniqstr type, location declaration_loc)
   if (merger <= 0)
     return;
 
-  int merger_find;
-  merger_list *merge_function;
-
   if (type == NULL)
     type = uniqstr_new ("");
 
-  merger_find = 1;
+  merger_list *merge_function;
+  int merger_find = 1;
   for (merge_function = merge_functions;
        merge_function != NULL && merger_find != merger;
        merge_function = merge_function->next)
@@ -253,8 +248,8 @@ grammar_current_rule_begin (symbol *lhs, location loc,
 /*----------------------------------------------------------------------.
 | A symbol should be used if either:                                    |
 |   1. It has a destructor.                                             |
-|   2. The symbol is a mid-rule symbol (i.e., the generated LHS         |
-|      replacing a mid-rule action) that was assigned to or used, as in |
+|   2. The symbol is a midrule symbol (i.e., the generated LHS          |
+|      replacing a midrule action) that was assigned to or used, as in  |
 |      "exp: { $$ = 1; } { $$ = $1; }".                                 |
 `----------------------------------------------------------------------*/
 
@@ -275,13 +270,14 @@ symbol_should_be_used (symbol_list const *s, bool *midrule_warning)
   return false;
 }
 
-/*----------------------------------------------------------------.
-| Check that the rule R is properly defined.  For instance, there |
-| should be no type clash on the default action.                  |
-`----------------------------------------------------------------*/
+/*-----------------------------------------------------------------.
+| Check that the rule R is properly defined.  For instance, there  |
+| should be no type clash on the default action.  Possibly install |
+| the default action.                                              |
+`-----------------------------------------------------------------*/
 
 static void
-grammar_rule_check (const symbol_list *r)
+grammar_rule_check_and_complete (symbol_list *r)
 {
   /* Type check.
 
@@ -303,6 +299,23 @@ grammar_rule_check (const symbol_list *r)
             complain (&r->location, Wother,
                       _("type clash on default action: <%s> != <%s>"),
                       lhs_type, rhs_type);
+          else
+            {
+              /* Install the default action only for C++.  */
+              const bool is_cxx =
+                STREQ (language->language, "c++")
+                || (skeleton && (STREQ (skeleton, "glr.cc")
+                                 || STREQ (skeleton, "lalr1.cc")));
+              if (is_cxx)
+                {
+                  code_props_rule_action_init (&r->action_props, "{ $$ = $1; }",
+                                               r->location, r,
+                                               /* name */ NULL,
+                                               /* type */ NULL,
+                                               /* is_predicate */ false);
+                  code_props_translate_code (&r->action_props);
+                }
+            }
         }
       /* Warn if there is no default for $$ but we need one.  */
       else
@@ -373,9 +386,9 @@ grammar_current_rule_end (location loc)
 
 
 /*-------------------------------------------------------------------.
-| The previous action turns out to be a mid-rule action.  Attach it  |
+| The previous action turns out to be a midrule action.  Attach it   |
 | to the current rule, i.e., create a dummy symbol, attach it this   |
-| mid-rule action, and append this dummy nonterminal to the current  |
+| midrule action, and append this dummy nonterminal to the current   |
 | rule.                                                              |
 `-------------------------------------------------------------------*/
 
@@ -412,6 +425,11 @@ grammar_midrule_action (void)
                                current_rule->action_props.is_predicate);
   code_props_none_init (&current_rule->action_props);
 
+  midrule->expected_sr_conflicts = current_rule->expected_sr_conflicts;
+  midrule->expected_rr_conflicts = current_rule->expected_rr_conflicts;
+  current_rule->expected_sr_conflicts = -1;
+  current_rule->expected_rr_conflicts = -1;
+
   if (previous_rule_end)
     previous_rule_end->next = midrule;
   else
@@ -439,18 +457,18 @@ grammar_current_rule_prec_set (symbol *precsym, location loc)
 {
   /* POSIX says that any identifier is a nonterminal if it does not
      appear on the LHS of a grammar rule and is not defined by %token
-     or by one of the directives that assigns precedence to a token.  We
-     ignore this here because the only kind of identifier that POSIX
-     allows to follow a %prec is a token and because assuming it's a
-     token now can produce more logical error messages.  Nevertheless,
-     grammar_rule_check does obey what we believe is the real intent of
-     POSIX here: that an error be reported for any identifier that
-     appears after %prec but that is not defined separately as a
-     token.  */
+     or by one of the directives that assigns precedence to a token.
+     We ignore this here because the only kind of identifier that
+     POSIX allows to follow a %prec is a token and because assuming
+     it's a token now can produce more logical error messages.
+     Nevertheless, grammar_rule_check_and_complete does obey what we
+     believe is the real intent of POSIX here: that an error be
+     reported for any identifier that appears after %prec but that is
+     not defined separately as a token.  */
   symbol_class_set (precsym, token_sym, loc, false);
   if (current_rule->ruleprec)
-    duplicate_directive ("%prec",
-                         current_rule->ruleprec->location, loc);
+    duplicate_rule_directive ("%prec",
+                              current_rule->ruleprec->location, loc);
   else
     current_rule->ruleprec = precsym;
 }
@@ -465,8 +483,8 @@ grammar_current_rule_empty_set (location loc)
   if (warning_is_unset (Wempty_rule))
     warning_argmatch ("empty-rule", 0, 0);
   if (current_rule->percent_empty_loc.start.file)
-    duplicate_directive ("%empty",
-                         current_rule->percent_empty_loc, loc);
+    duplicate_rule_directive ("%empty",
+                              current_rule->percent_empty_loc, loc);
   else
     current_rule->percent_empty_loc = loc;
 }
@@ -483,8 +501,8 @@ grammar_current_rule_dprec_set (int dprec, location loc)
     complain (&loc, complaint, _("%s must be followed by positive number"),
               "%dprec");
   else if (current_rule->dprec != 0)
-    duplicate_directive ("%dprec",
-                         current_rule->dprec_location, loc);
+    duplicate_rule_directive ("%dprec",
+                              current_rule->dprec_location, loc);
   else
     {
       current_rule->dprec = dprec;
@@ -502,8 +520,8 @@ grammar_current_rule_merge_set (uniqstr name, location loc)
     complain (&loc, Wother, _("%s affects only GLR parsers"),
               "%merge");
   if (current_rule->merger != 0)
-    duplicate_directive ("%merge",
-                         current_rule->merger_declaration_location, loc);
+    duplicate_rule_directive ("%merge",
+                              current_rule->merger_declaration_location, loc);
   else
     {
       current_rule->merger = get_merge_function (name);
@@ -512,7 +530,7 @@ grammar_current_rule_merge_set (uniqstr name, location loc)
 }
 
 /* Attach SYM to the current rule.  If needed, move the previous
-   action as a mid-rule action.  */
+   action as a midrule action.  */
 
 void
 grammar_current_rule_symbol_append (symbol *sym, location loc,
@@ -555,6 +573,27 @@ grammar_current_rule_predicate_append (const char *pred, location loc)
                                /* is_predicate */ true);
 }
 
+/* Set the expected number of shift-reduce (reduce-reduce) conflicts for
+ * the current rule.  If a midrule is encountered later, the count
+ * is transferred to it and reset in the current rule to -1. */
+
+void
+grammar_current_rule_expect_sr (int count, location loc)
+{
+  (void) loc;
+  current_rule->expected_sr_conflicts = count;
+}
+
+void
+grammar_current_rule_expect_rr (int count, location loc)
+{
+  if (! glr_parser)
+    complain (&loc, Wother, _("%s affects only GLR parsers"),
+              "%expect-rr");
+  else
+    current_rule->expected_rr_conflicts = count;
+}
+
 
 /*---------------------------------------------------------------.
 | Convert the rules into the representation using RRHS, RLHS and |
@@ -565,50 +604,51 @@ static void
 packgram (void)
 {
   unsigned itemno = 0;
-  rule_number ruleno = 0;
-
   ritem = xnmalloc (nritems + 1, sizeof *ritem);
-
   /* This sentinel is used by build_relations in gram.c.  */
   *ritem++ = 0;
 
+  rule_number ruleno = 0;
   rules = xnmalloc (nrules, sizeof *rules);
 
   for (symbol_list *p = grammar; p; p = p->next)
     {
-      symbol *ruleprec = p->ruleprec;
-      record_merge_function_type (p->merger, p->content.sym->content->type_name,
-                                  p->merger_declaration_location);
-      rules[ruleno].user_number = ruleno;
-      rules[ruleno].number = ruleno;
-      rules[ruleno].lhs = p->content.sym->content;
-      rules[ruleno].rhs = ritem + itemno;
-      rules[ruleno].prec = NULL;
-      rules[ruleno].dprec = p->dprec;
-      rules[ruleno].merger = p->merger;
-      rules[ruleno].precsym = NULL;
-      rules[ruleno].location = p->location;
-      rules[ruleno].useful = true;
-      rules[ruleno].action = p->action_props.code;
-      rules[ruleno].action_location = p->action_props.location;
-      rules[ruleno].is_predicate = p->action_props.is_predicate;
-
+      symbol_list *lhs = p;
+      record_merge_function_type (lhs->merger, lhs->content.sym->content->type_name,
+                                  lhs->merger_declaration_location);
       /* If the midrule's $$ is set or its $n is used, remove the '$' from the
          symbol name so that it's a user-defined symbol so that the default
          %destructor and %printer apply.  */
-      if (p->midrule_parent_rule
-          && (p->action_props.is_value_used
-              || (symbol_list_n_get (p->midrule_parent_rule,
-                                     p->midrule_parent_rhs_index)
+      if (lhs->midrule_parent_rule
+          && (lhs->action_props.is_value_used
+              || (symbol_list_n_get (lhs->midrule_parent_rule,
+                                     lhs->midrule_parent_rhs_index)
                   ->action_props.is_value_used)))
-        p->content.sym->tag += 1;
+        lhs->content.sym->tag += 1;
 
       /* Don't check the generated rule 0.  It has no action, so some rhs
          symbols may appear unused, but the parsing algorithm ensures that
          %destructor's are invoked appropriately.  */
       if (p != grammar)
-        grammar_rule_check (p);
+        grammar_rule_check_and_complete (p);
 
+      rules[ruleno].user_number = ruleno;
+      rules[ruleno].number = ruleno;
+      rules[ruleno].lhs = lhs->content.sym->content;
+      rules[ruleno].rhs = ritem + itemno;
+      rules[ruleno].prec = NULL;
+      rules[ruleno].dprec = lhs->dprec;
+      rules[ruleno].merger = lhs->merger;
+      rules[ruleno].precsym = NULL;
+      rules[ruleno].location = lhs->location;
+      rules[ruleno].useful = true;
+      rules[ruleno].action = lhs->action_props.code;
+      rules[ruleno].action_location = lhs->action_props.location;
+      rules[ruleno].is_predicate = lhs->action_props.is_predicate;
+      rules[ruleno].expected_sr_conflicts = p->expected_sr_conflicts;
+      rules[ruleno].expected_rr_conflicts = p->expected_rr_conflicts;
+
+      /* Traverse the rhs.  */
       {
         size_t rule_length = 0;
         for (p = p->next; p->content.sym; p = p->next)
@@ -633,11 +673,12 @@ packgram (void)
 
       /* If this rule has a %prec,
          the specified symbol's precedence replaces the default.  */
-      if (ruleprec)
+      if (lhs->ruleprec)
         {
-          rules[ruleno].precsym = ruleprec->content;
-          rules[ruleno].prec = ruleprec->content;
+          rules[ruleno].precsym = lhs->ruleprec->content;
+          rules[ruleno].prec = lhs->ruleprec->content;
         }
+
       /* An item ends by the rule number (negated).  */
       ritem[itemno++] = rule_number_as_item_number (ruleno);
       aver (itemno < ITEM_NUMBER_MAX);
@@ -700,11 +741,10 @@ prepare_percent_define_front_end_variables (void)
   /* Set %define front-end variable defaults.  */
   muscle_percent_define_default ("lr.keep-unreachable-state", "false");
   {
-    char *lr_type;
     /* IELR would be a better default, but LALR is historically the
        default.  */
     muscle_percent_define_default ("lr.type", "lalr");
-    lr_type = muscle_percent_define_get ("lr.type");
+    char *lr_type = muscle_percent_define_get ("lr.type");
     if (STRNEQ (lr_type, "canonical-lr"))
       muscle_percent_define_default ("lr.default-reduction", "most");
     else
@@ -797,12 +837,13 @@ check_and_convert_grammar (void)
      symbols_pack above) so that token types are set correctly before the rule
      action type checking.
 
-     Before invoking grammar_rule_check (in packgram below) on any rule, make
-     sure all actions have already been scanned in order to set 'used' flags.
-     Otherwise, checking that a midrule's $$ should be set will not always work
-     properly because the check must forward-reference the midrule's parent
-     rule.  For the same reason, all the 'used' flags must be set before
-     checking whether to remove '$' from any midrule symbol name (also in
+     Before invoking grammar_rule_check_and_complete (in packgram
+     below) on any rule, make sure all actions have already been
+     scanned in order to set 'used' flags.  Otherwise, checking that a
+     midrule's $$ should be set will not always work properly because
+     the check must forward-reference the midrule's parent rule.  For
+     the same reason, all the 'used' flags must be set before checking
+     whether to remove '$' from any midrule symbol name (also in
      packgram).  */
   for (symbol_list *sym = grammar; sym; sym = sym->next)
     code_props_translate_code (&sym->action_props);

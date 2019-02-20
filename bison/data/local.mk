@@ -1,4 +1,5 @@
-## Copyright (C) 2002, 2005-2015, 2018 Free Software Foundation, Inc.
+## Copyright (C) 2002, 2005-2015, 2018-2019 Free Software Foundation,
+## Inc.
 
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,23 +15,33 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 dist_pkgdata_DATA =                             \
-  data/README                                   \
-  data/bison.m4                                 \
-  data/c++-skel.m4                              \
-  data/c++.m4                                   \
-  data/c-like.m4                                \
-  data/c-skel.m4                                \
-  data/c.m4                                     \
-  data/glr.c                                    \
-  data/glr.cc                                   \
-  data/java-skel.m4                             \
-  data/java.m4                                  \
-  data/lalr1.cc                                 \
-  data/lalr1.java                               \
-  data/location.cc                              \
-  data/stack.hh                                 \
-  data/variant.hh                               \
-  data/yacc.c
+  data/README
+
+skeletonsdir = $(pkgdatadir)/skeletons
+dist_skeletons_DATA =                           \
+  data/skeletons/bison.m4                       \
+  data/skeletons/c++-skel.m4                    \
+  data/skeletons/c++.m4                         \
+  data/skeletons/c-like.m4                      \
+  data/skeletons/c-skel.m4                      \
+  data/skeletons/c.m4                           \
+  data/skeletons/glr.c                          \
+  data/skeletons/glr.cc                         \
+  data/skeletons/java-skel.m4                   \
+  data/skeletons/java.m4                        \
+  data/skeletons/lalr1.cc                       \
+  data/skeletons/lalr1.java                     \
+  data/skeletons/location.cc                    \
+  data/skeletons/stack.hh                       \
+  data/skeletons/variant.hh                     \
+  data/skeletons/yacc.c
+
+# Experimental support for the D language.
+dist_skeletons_DATA +=                          \
+  data/skeletons/README-D.txt                   \
+  data/skeletons/d-skel.m4                      \
+  data/skeletons/d.m4                           \
+  data/skeletons/lalr1.d
 
 m4sugardir = $(pkgdatadir)/m4sugar
 dist_m4sugar_DATA =                             \

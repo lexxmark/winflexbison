@@ -1,11 +1,11 @@
                                                              -*- C -*-
 # Yacc compatible skeleton for Bison
 
-# Copyright (C) 1984, 1989-1990, 2000-2015, 2018 Free Software
+# Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software
 # Foundation, Inc.
 
 m4_pushdef([b4_copyright_years],
-           [1984, 1989-1990, 2000-2015, 2018])
+           [1984, 1989-1990, 2000-2015, 2018-2019])
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ m4_define([b4_lac_flag],
           [m4_if(b4_percent_define_get([[parse.lac]]),
                  [none], [[0]], [[1]])])
 
-m4_include(b4_pkgdatadir/[c.m4])
+m4_include(b4_skeletonsdir/[c.m4])
 
 ## ---------------- ##
 ## Default values.  ##
@@ -128,19 +128,18 @@ m4_define([b4_int_type],
 ## ----------------- ##
 
 
-# b4_lhs_value([TYPE])
-# --------------------
-# Expansion of $<TYPE>$.
+# b4_lhs_value(SYMBOL-NUM, [TYPE])
+# --------------------------------
+# See README.
 m4_define([b4_lhs_value],
-[b4_symbol_value(yyval, [$1])])
+[b4_symbol_value(yyval, [$1], [$2])])
 
 
-# b4_rhs_value(RULE-LENGTH, NUM, [TYPE])
-# --------------------------------------
-# Expansion of $<TYPE>NUM, where the current rule has RULE-LENGTH
-# symbols on RHS.
+# b4_rhs_value(RULE-LENGTH, POS, [SYMBOL-NUM], [TYPE])
+# ----------------------------------------------------
+# See README.
 m4_define([b4_rhs_value],
-          [b4_symbol_value([yyvsp@{b4_subtract([$2], [$1])@}], [$3])])
+[b4_symbol_value([yyvsp@{b4_subtract([$2], [$1])@}], [$3], [$4])])
 
 
 ## ----------- ##
@@ -154,12 +153,12 @@ m4_define([b4_lhs_location],
 [(yyloc)])
 
 
-# b4_rhs_location(RULE-LENGTH, NUM)
+# b4_rhs_location(RULE-LENGTH, POS)
 # ---------------------------------
-# Expansion of @NUM, where the current rule has RULE-LENGTH symbols
+# Expansion of @POS, where the current rule has RULE-LENGTH symbols
 # on RHS.
 m4_define([b4_rhs_location],
-          [(yylsp@{b4_subtract([$2], [$1])@})])
+[(yylsp@{b4_subtract([$2], [$1])@})])
 
 
 ## -------------- ##
@@ -237,11 +236,11 @@ m4_define([b4_declare_parser_state_variables], [b4_pure_if([[
     YYSIZE_T yyes_capacity;]])])
 
 
-# b4_declare_yyparse_push_
+# _b4_declare_yyparse_push
 # ------------------------
 # Declaration of yyparse (and dependencies) when using the push parser
 # (including in pull mode).
-m4_define([b4_declare_yyparse_push_],
+m4_define([_b4_declare_yyparse_push],
 [[#ifndef YYPUSH_MORE_DEFINED
 # define YYPUSH_MORE_DEFINED
 enum { YYPUSH_MORE = 4 };
@@ -265,18 +264,18 @@ b4_function_declare([b4_prefix[pstate_delete]], [[void]],
                    [[b4_prefix[pstate *ps]], [[ps]]])dnl
 ])
 
-# b4_declare_yyparse_
+# _b4_declare_yyparse
 # -------------------
 # When not the push parser.
-m4_define([b4_declare_yyparse_],
+m4_define([_b4_declare_yyparse],
 [b4_function_declare(b4_prefix[parse], [int], b4_parse_param)])
 
 
 # b4_declare_yyparse
 # ------------------
 m4_define([b4_declare_yyparse],
-[b4_push_if([b4_declare_yyparse_push_],
-            [b4_declare_yyparse_])[]dnl
+[b4_push_if([_b4_declare_yyparse_push],
+            [_b4_declare_yyparse])[]dnl
 ])
 
 
@@ -299,9 +298,8 @@ m4_define([b4_shared_declarations],
 ## Output files.  ##
 ## -------------- ##
 
-b4_output_begin([b4_parser_file_name])
-b4_copyright([Bison implementation for Yacc-like parsers in C])[
-
+b4_output_begin([b4_parser_file_name])[
+]b4_copyright([Bison implementation for Yacc-like parsers in C])[
 /* C LALR(1) parser skeleton written by Richard Stallman, by
    simplifying the original so-called "semantic" parser.  */
 
@@ -312,8 +310,9 @@ b4_copyright([Bison implementation for Yacc-like parsers in C])[
    define necessary library symbols; they are noted "INFRINGES ON
    USER NAME SPACE" below.  */
 
-]b4_identification
-b4_percent_code_get([[top]])[]dnl
+]b4_disclaimer[
+]b4_identification[
+]b4_percent_code_get([[top]])[]dnl
 m4_if(b4_api_prefix, [yy], [],
 [[/* Substitute the type names.  */
 #define YYSTYPE         ]b4_api_PREFIX[STYPE]b4_locations_if([[
@@ -335,9 +334,7 @@ m4_if(b4_api_prefix, [yy], [],
 #define yychar          ]b4_prefix[char]b4_locations_if([[
 #define yylloc          ]b4_prefix[lloc]])]))[
 
-/* Copy the first part of user declarations.  */
 ]b4_user_pre_prologue[
-
 ]b4_null_define[
 
 /* Enabling verbose error messages.  */
@@ -354,9 +351,8 @@ m4_if(b4_api_prefix, [yy], [],
 ]])dnl
 b4_shared_declarations[
 
-/* Copy the second part of user declarations.  */
-]b4_user_post_prologue
-b4_percent_code_get[]dnl
+]b4_user_post_prologue[
+]b4_percent_code_get[]dnl
 
 [#ifdef short
 # undef short
@@ -565,16 +561,16 @@ union yyalloc
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  ]b4_states_number[
 
-/* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
-   by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  ]b4_undef_token_number[
 #define YYMAXUTOK   ]b4_user_token_number_max[
 
+/* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
+   as returned by yylex, with out-of-bounds checking.  */
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
 
 /* YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to TOKEN-NUM
-   as returned by yylex, without out-of-bounds checking.  */
+   as returned by yylex.  */
 static const ]b4_int_type_for([b4_translate])[ yytranslate[] =
 {
   ]b4_translate[
@@ -627,23 +623,23 @@ static const ]b4_int_type_for([b4_toknum])[ yytoknum[] =
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
-#define YYBACKUP(Token, Value)                                  \
-do                                                              \
-  if (yychar == YYEMPTY)                                        \
-    {                                                           \
-      yychar = (Token);                                         \
-      yylval = (Value);                                         \
-      YYPOPSTACK (yylen);                                       \
-      yystate = *yyssp;                                         \]b4_lac_if([[
-      YY_LAC_DISCARD ("YYBACKUP");                              \]])[
-      goto yybackup;                                            \
-    }                                                           \
-  else                                                          \
-    {                                                           \
-      yyerror (]b4_yyerror_args[YY_("syntax error: cannot back up")); \
-      YYERROR;                                                  \
-    }                                                           \
-while (0)
+#define YYBACKUP(Token, Value)                                    \
+  do                                                              \
+    if (yychar == YYEMPTY)                                        \
+      {                                                           \
+        yychar = (Token);                                         \
+        yylval = (Value);                                         \
+        YYPOPSTACK (yylen);                                       \
+        yystate = *yyssp;                                         \]b4_lac_if([[
+        YY_LAC_DISCARD ("YYBACKUP");                              \]])[
+        goto yybackup;                                            \
+      }                                                           \
+    else                                                          \
+      {                                                           \
+        yyerror (]b4_yyerror_args[YY_("syntax error: cannot back up")); \
+        YYERROR;                                                  \
+      }                                                           \
+  while (0)
 
 /* Error token number */
 #define YYTERROR        1
@@ -791,7 +787,7 @@ yy_lac_stack_realloc (YYSIZE_T *yycapacity, YYSIZE_T yyadd,
                       yytype_int16 **yytop, yytype_int16 *yytop_empty)
 {
   YYSIZE_T yysize_old =
-    *yytop == yytop_empty ? 0 : *yytop - *yybottom + 1;
+    (YYSIZE_T) (*yytop == yytop_empty ? 0 : *yytop - *yybottom + 1);
   YYSIZE_T yysize_new = yysize_old + yyadd;
   if (*yycapacity < yysize_new)
     {
@@ -957,7 +953,7 @@ yy_lac (yytype_int16 *yyesa, yytype_int16 **yyes,
         YYDPRINTF ((stderr, " R%d", yyrule - 1));
         if (yyesp != yyes_prev)
           {
-            YYSIZE_T yysize = yyesp - *yyes + 1;
+            YYSIZE_T yysize = (YYSIZE_T) (yyesp - *yyes + 1);
             if (yylen < yysize)
               {
                 yyesp -= yylen;
@@ -973,15 +969,14 @@ yy_lac (yytype_int16 *yyesa, yytype_int16 **yyes,
           yyesp = yyes_prev -= yylen;
       }
       {
-        int yystate;
+        yytype_int16 yystate;
         {
-          int yylhs = yyr1[yyrule] - YYNTOKENS;
-          yystate = yypgoto[yylhs] + *yyesp;
-          if (yystate < 0 || YYLAST < yystate
-              || yycheck[yystate] != *yyesp)
-            yystate = yydefgoto[yylhs];
-          else
-            yystate = yytable[yystate];
+          const int yylhs = yyr1[yyrule] - YYNTOKENS;
+          const int yyi = yypgoto[yylhs] + *yyesp;
+          yystate = ((yytype_int16)
+                     (0 <= yyi && yyi <= YYLAST && yycheck[yyi] == *yyesp
+                      ? yytable[yyi]
+                      : yydefgoto[yylhs]));
         }
         if (yyesp == yyes_prev)
           {
@@ -1001,7 +996,7 @@ yy_lac (yytype_int16 *yyesa, yytype_int16 **yyes,
               }
             *++yyesp = yystate;
           }
-        YYDPRINTF ((stderr, " G%d", yystate));
+        YYDPRINTF ((stderr, " G%d", (int) yystate));
       }
     }
 }]])[
@@ -1071,7 +1066,10 @@ yytnamerr (char *yyres, const char *yystr)
           case '\\':
             if (*++yyp != '\\')
               goto do_not_strip_quotes;
-            /* Fall through.  */
+            else
+              goto append;
+
+          append:
           default:
             if (yyres)
               yyres[yyn] = *yyp;
@@ -1089,7 +1087,7 @@ yytnamerr (char *yyres, const char *yystr)
   if (! yyres)
     return yystrlen (yystr);
 
-  return yystpcpy (yyres, yystr) - yyres;
+  return (YYSIZE_T) (yystpcpy (yyres, yystr) - yyres);
 }
 # endif
 
@@ -1188,10 +1186,10 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                 yyarg[yycount++] = yytname[yyx];
                 {
                   YYSIZE_T yysize1 = yysize + yytnamerr (YY_NULLPTR, yytname[yyx]);
-                  if (! (yysize <= yysize1
-                         && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
+                  if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
+                    yysize = yysize1;
+                  else
                     return 2;
-                  yysize = yysize1;
                 }
               }
         }]b4_lac_if([[
@@ -1219,9 +1217,10 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
 
   {
     YYSIZE_T yysize1 = yysize + yystrlen (yyformat);
-    if (! (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
+    if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
+      yysize = yysize1;
+    else
       return 2;
-    yysize = yysize1;
   }
 
   if (*yymsg_alloc < yysize)
@@ -1279,13 +1278,10 @@ b4_function_define([[yyparse]], [[int]], b4_parse_param)[
 ]b4_function_define([[yypull_parse]], [[int]],
   [[[yypstate *yyps]], [[yyps]]]m4_ifset([b4_parse_param], [,
   b4_parse_param]))[
-{
-  int yystatus;
-  yypstate *yyps_local;]b4_pure_if([[
-  int yychar;
-  YYSTYPE yylval;]b4_locations_if([[
+{]b4_pure_if([b4_locations_if([[
   static YYLTYPE yyloc_default][]b4_yyloc_default[;
   YYLTYPE yylloc = yyloc_default;]])])[
+  yypstate *yyps_local;
   if (yyps)
     yyps_local = yyps;
   else
@@ -1299,8 +1295,10 @@ b4_function_define([[yyparse]], [[int]], b4_parse_param)[
           return 2;
         }
     }
-  do {
-    yychar = ]b4_lex[;
+  int yystatus;
+  do {]b4_pure_if([[
+    YYSTYPE yylval;
+    int ]])[yychar = ]b4_lex[;
     yystatus =
       yypush_parse (yyps_local]b4_pure_if([[, yychar, &yylval]b4_locations_if([[, &yylloc]])])m4_ifset([b4_parse_param], [, b4_args(b4_parse_param)])[);
   } while (yystatus == YYPUSH_MORE);
@@ -1431,9 +1429,8 @@ b4_function_define([[yyparse]], [[int]], b4_parse_param)[
   yynerrs = 0;
   yychar = YYEMPTY; /* Cause a token to be read.  */
 ]m4_ifdef([b4_initial_action], [
-b4_dollar_pushdef([m4_define([b4_dollar_dollar_used])yylval], [],
+b4_dollar_pushdef([m4_define([b4_dollar_dollar_used])yylval], [], [],
                   [b4_push_if([b4_pure_if([*])yypushed_loc], [yylloc])])dnl
-/* User initialization code.  */
 b4_user_initial_action
 b4_dollar_popdef[]dnl
 m4_ifdef([b4_dollar_dollar_used],[[  yyvsp[0] = yylval;
@@ -1442,23 +1439,31 @@ b4_locations_if([[  yylsp[0] = ]b4_push_if([b4_pure_if([*])yypushed_loc], [yyllo
 ]])dnl
 [  goto yysetstate;
 
+
 /*------------------------------------------------------------.
-| yynewstate -- Push a new state, which is found in yystate.  |
+| yynewstate -- push a new state, which is found in yystate.  |
 `------------------------------------------------------------*/
- yynewstate:
+yynewstate:
   /* In all cases, when you get here, the value and location stacks
      have just been pushed.  So pushing a state here evens the stacks.  */
   yyssp++;
 
- yysetstate:
-  *yyssp = yystate;
+
+/*--------------------------------------------------------------------.
+| yynewstate -- set current state (the top of the stack) to yystate.  |
+`--------------------------------------------------------------------*/
+yysetstate:
+  *yyssp = (yytype_int16) yystate;
 
   if (yyss + yystacksize - 1 <= yyssp)
+#if !defined yyoverflow && !defined YYSTACK_RELOCATE
+    goto yyexhaustedlab;
+#else
     {
       /* Get the current used size of the three stacks, in elements.  */
-      YYSIZE_T yysize = yyssp - yyss + 1;
+      YYSIZE_T yysize = (YYSIZE_T) (yyssp - yyss + 1);
 
-#ifdef yyoverflow
+# if defined yyoverflow
       {
         /* Give user a chance to reallocate the stack.  Use copies of
            these so that the &'s don't force the real ones into
@@ -1476,15 +1481,11 @@ b4_locations_if([[  yylsp[0] = ]b4_push_if([b4_pure_if([*])yypushed_loc], [yyllo
                     &yyvs1, yysize * sizeof (*yyvsp),]b4_locations_if([
                     &yyls1, yysize * sizeof (*yylsp),])[
                     &yystacksize);
-]b4_locations_if([
-        yyls = yyls1;])[
         yyss = yyss1;
-        yyvs = yyvs1;
+        yyvs = yyvs1;]b4_locations_if([
+        yyls = yyls1;])[
       }
-#else /* no yyoverflow */
-# ifndef YYSTACK_RELOCATE
-      goto yyexhaustedlab;
-# else
+# else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
         goto yyexhaustedlab;
@@ -1501,12 +1502,11 @@ b4_locations_if([[  yylsp[0] = ]b4_push_if([b4_pure_if([*])yypushed_loc], [yyllo
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);]b4_locations_if([
         YYSTACK_RELOCATE (yyls_alloc, yyls);])[
-#  undef YYSTACK_RELOCATE
+# undef YYSTACK_RELOCATE
         if (yyss1 != yyssa)
           YYSTACK_FREE (yyss1);
       }
 # endif
-#endif /* no yyoverflow */
 
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;]b4_locations_if([
@@ -1518,6 +1518,7 @@ b4_locations_if([[  yylsp[0] = ]b4_push_if([b4_pure_if([*])yypushed_loc], [yyllo
       if (yyss + yystacksize - 1 <= yyssp)
         YYABORT;
     }
+#endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
 
   YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
@@ -1526,11 +1527,11 @@ b4_locations_if([[  yylsp[0] = ]b4_push_if([b4_pure_if([*])yypushed_loc], [yyllo
 
   goto yybackup;
 
+
 /*-----------.
 | yybackup.  |
 `-----------*/
 yybackup:
-
   /* Do appropriate processing given the current state.  Read a
      lookahead token if we need one and don't already have one.  */
 
@@ -1628,7 +1629,7 @@ yydefault:
 
 
 /*-----------------------------.
-| yyreduce -- Do a reduction.  |
+| yyreduce -- do a reduction.  |
 `-----------------------------*/
 yyreduce:
   /* yyn is the number of a rule to reduce with.  */
@@ -1653,7 +1654,7 @@ yyreduce:
     int yychar_backup = yychar;
     switch (yyn)
       {
-        ]b4_user_actions[
+]b4_user_actions[
         default: break;
       }
     if (yychar_backup != yychar)
@@ -1687,14 +1688,13 @@ yyreduce:
   /* Now 'shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
      number reduced by.  */
-
-  yyn = yyr1[yyn];
-
-  yystate = yypgoto[yyn - YYNTOKENS] + *yyssp;
-  if (0 <= yystate && yystate <= YYLAST && yycheck[yystate] == *yyssp)
-    yystate = yytable[yystate];
-  else
-    yystate = yydefgoto[yyn - YYNTOKENS];
+  {
+    const int yylhs = yyr1[yyn] - YYNTOKENS;
+    const int yyi = yypgoto[yylhs] + *yyssp;
+    yystate = (0 <= yyi && yyi <= YYLAST && yycheck[yyi] == *yyssp
+               ? yytable[yyi]
+               : yydefgoto[yylhs]);
+  }
 
   goto yynewstate;
 
@@ -1780,12 +1780,10 @@ yyerrlab:
 | yyerrorlab -- error raised explicitly by YYERROR.  |
 `---------------------------------------------------*/
 yyerrorlab:
-
-  /* Pacify compilers like GCC when the user code never invokes
-     YYERROR and the label yyerrorlab therefore never appears in user
-     code.  */
-  if (/*CONSTCOND*/ 0)
-     goto yyerrorlab;
+  /* Pacify compilers when the user code never invokes YYERROR and the
+     label yyerrorlab therefore never appears in user code.  */
+  if (0)
+    YYERROR;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYERROR.  */
@@ -1856,12 +1854,14 @@ yyacceptlab:
   yyresult = 0;
   goto yyreturn;
 
+
 /*-----------------------------------.
 | yyabortlab -- YYABORT comes here.  |
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
   goto yyreturn;
+
 
 #if ]b4_lac_if([[1]], [[!defined yyoverflow || YYERROR_VERBOSE]])[
 /*-------------------------------------------------.
@@ -1873,6 +1873,10 @@ yyexhaustedlab:
   /* Fall through.  */
 #endif
 
+
+/*-----------------------------------------------------.
+| yyreturn -- parsing is finished, return the result.  |
+`-----------------------------------------------------*/
 yyreturn:
   if (yychar != YYEMPTY)
     {
@@ -1900,6 +1904,10 @@ yyreturn:
     YYSTACK_FREE (yyes);]])b4_push_if([[
   yyps->yynew = 1;
 
+
+/*-----------------------------------------.
+| yypushreturn -- ask for the next token.  |
+`-----------------------------------------*/
 yypushreturn:]])[
 #if YYERROR_VERBOSE
   if (yymsg != yymsgbuf)
@@ -1908,12 +1916,12 @@ yypushreturn:]])[
   return yyresult;
 }
 ]b4_epilogue[]dnl
-b4_output_end()
+b4_output_end
 
-b4_defines_if(
-[b4_output_begin([b4_spec_defines_file])[
+b4_defines_if([[
+]b4_output_begin([b4_spec_defines_file])[
 ]b4_copyright([Bison interface for Yacc-like parsers in C])[
-
+]b4_disclaimer[
 ]b4_shared_declarations[
-]b4_output_end()
-])# b4_defines_if
+]b4_output_end[
+]])# b4_defines_if

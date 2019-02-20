@@ -2,7 +2,7 @@
 
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2018 Free Software Foundation, Inc.
+# Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,13 +22,22 @@ b4_percent_define_ifdef([[api.value.union.name]],
   [b4_complain_at(b4_percent_define_get_loc([[api.value.union.name]]),
                   [named %union is invalid in C++])])
 
-m4_include(b4_pkgdatadir/[c.m4])
+m4_include(b4_skeletonsdir/[c.m4])
+
+b4_percent_define_check_kind([api.namespace], [code], [deprecated])
+b4_percent_define_check_kind([api.parser.class], [code], [deprecated])
+
+
+## ----- ##
+## C++.  ##
+## ----- ##
 
 # b4_comment(TEXT, [PREFIX])
 # --------------------------
 # Put TEXT in comment. Prefix all the output lines with PREFIX.
 m4_define([b4_comment],
-[b4_comment_([$1], [$2// ], [$2// ])])
+[_b4_comment([$1], [$2// ], [$2// ])])
+
 
 # b4_inline(hh|cc)
 # ----------------
@@ -40,18 +49,54 @@ m4_define([b4_inline],
   ]],
   [m4_fatal([$0: invalid argument: $1])])])
 
-## -------- ##
-## Checks.  ##
-## -------- ##
 
-b4_percent_define_check_kind([api.namespace], [code], [deprecated])
-b4_percent_define_check_kind([parser_class_name], [code], [deprecated])
+# b4_cxx_portability
+# ------------------
+m4_define([b4_cxx_portability],
+[#if defined __cplusplus
+# define YY_CPLUSPLUS __cplusplus
+#else
+# define YY_CPLUSPLUS 199711L
+#endif
+
+// Support move semantics when possible.
+#if 201103L <= YY_CPLUSPLUS
+# define YY_MOVE           std::move
+# define YY_MOVE_OR_COPY   move
+# define YY_MOVE_REF(Type) Type&&
+# define YY_RVREF(Type)    Type&&
+# define YY_COPY(Type)     Type
+#else
+# define YY_MOVE
+# define YY_MOVE_OR_COPY   copy
+# define YY_MOVE_REF(Type) Type&
+# define YY_RVREF(Type)    const Type&
+# define YY_COPY(Type)     const Type&
+#endif
+
+// Support noexcept when possible.
+#if 201103L <= YY_CPLUSPLUS
+# define YY_NOEXCEPT noexcept
+# define YY_NOTHROW
+#else
+# define YY_NOEXCEPT
+# define YY_NOTHROW throw ()
+#endif
+
+// Support constexpr when possible.
+#if 201703 <= YY_CPLUSPLUS
+# define YY_CONSTEXPR constexpr
+#else
+# define YY_CONSTEXPR
+#endif[]dnl
+])
+
 
 ## ---------------- ##
 ## Default values.  ##
 ## ---------------- ##
 
-b4_percent_define_default([[parser_class_name]], [[parser]])
+b4_percent_define_default([[api.parser.class]], [[parser]])
 
 # Don't do that so that we remember whether we're using a user
 # request, or the default value.
@@ -88,7 +133,7 @@ m4_if(m4_bregexp(b4_namespace_ref, [^[	 ]*$]), [-1], [],
                 [[namespace reference is empty]])])
 
 # Instead of assuming the C++ compiler will do it, Bison should reject any
-# invalid b4_namepsace_ref that would be converted to a valid
+# invalid b4_namespace_ref that would be converted to a valid
 # b4_namespace_open.  The problem is that Bison doesn't always output
 # b4_namespace_ref to uncommented code but should reserve the ability to do so
 # in future releases without risking breaking any existing user grammars.
@@ -171,7 +216,18 @@ m4_define([b4_public_types_declare],
     /// Syntax errors thrown from user actions.
     struct syntax_error : std::runtime_error
     {
-      syntax_error (]b4_locations_if([const location_type& l, ])[const std::string& m);]b4_locations_if([
+      syntax_error (]b4_locations_if([const location_type& l, ])[const std::string& m)
+        : std::runtime_error (m)]b4_locations_if([
+        , location (l)])[
+      {}
+
+      syntax_error (const syntax_error& s)
+        : std::runtime_error (s.what ())]b4_locations_if([
+        , location (s.location)])[
+      {}
+
+      ~syntax_error () YY_NOEXCEPT YY_NOTHROW;]b4_locations_if([
+
       location_type location;])[
     };
 
@@ -192,11 +248,18 @@ m4_define([b4_public_types_declare],
 
     /// Internal symbol number for tokens (subsumed by symbol_number_type).
     typedef ]b4_int_type_for([b4_translate])[ token_number_type;
+]])
 
-    /// A complete symbol.
+
+# b4_symbol_type_define
+# ---------------------
+# Define symbol_type, the external type for symbols used for symbol
+# constructors.
+m4_define([b4_symbol_type_define],
+[[    /// A complete symbol.
     ///
     /// Expects its Base type to provide access to the symbol type
-    /// via type_get().
+    /// via type_get ().
     ///
     /// Provide access to semantic value]b4_locations_if([ and location])[.
     template <typename Base>
@@ -206,30 +269,57 @@ m4_define([b4_public_types_declare],
       typedef Base super_type;
 
       /// Default constructor.
-      basic_symbol ();
+      basic_symbol ()
+        : value ()]b4_locations_if([
+        , location ()])[
+      {}
+
+#if 201103L <= YY_CPLUSPLUS
+      /// Move constructor.
+      basic_symbol (basic_symbol&& that);
+#endif
 
       /// Copy constructor.
-      basic_symbol (const basic_symbol& other);
-]b4_variant_if([[
+      basic_symbol (const basic_symbol& that);]b4_variant_if([[
+
       /// Constructor for valueless symbols, and symbols from each type.
-]b4_type_foreach([b4_basic_symbol_constructor_declare])], [[
+]b4_type_foreach([b4_basic_symbol_constructor_define])], [[
       /// Constructor for valueless symbols.
       basic_symbol (typename Base::kind_type t]b4_locations_if([,
-                    const location_type& l])[);]])[
+                    YY_MOVE_REF (location_type) l])[);
 
       /// Constructor for symbols with semantic value.
       basic_symbol (typename Base::kind_type t,
-                    const semantic_type& v]b4_locations_if([,
-                    const location_type& l])[);
-
+                    YY_RVREF (semantic_type) v]b4_locations_if([,
+                    YY_RVREF (location_type) l])[);
+]])[
       /// Destroy the symbol.
-      ~basic_symbol ();
+      ~basic_symbol ()
+      {
+        clear ();
+      }
 
       /// Destroy contents, and record that is empty.
-      void clear ();
+      void clear ()
+      {]b4_variant_if([[
+        // User destructor.
+        symbol_number_type yytype = this->type_get ();
+        basic_symbol<Base>& yysym = *this;
+        (void) yysym;
+        switch (yytype)
+        {
+]b4_symbol_foreach([b4_symbol_destructor])dnl
+[       default:
+          break;
+        }
+
+        // Type destructor.
+]b4_symbol_variant([[yytype]], [[value]], [[template destroy]])])[
+        Base::clear ();
+      }
 
       /// Whether empty.
-      bool empty () const;
+      bool empty () const YY_NOEXCEPT;
 
       /// Destructive move, \a s is emptied into this.
       void move (basic_symbol& s);
@@ -241,8 +331,10 @@ m4_define([b4_public_types_declare],
       location_type location;])[
 
     private:
+#if YY_CPLUSPLUS < 201103L
       /// Assignment operator.
-      basic_symbol& operator= (const basic_symbol& other);
+      basic_symbol& operator= (const basic_symbol& that);
+#endif
     };
 
     /// Type access provider for token (enum) based symbols.
@@ -251,8 +343,13 @@ m4_define([b4_public_types_declare],
       /// Default constructor.
       by_type ();
 
+#if 201103L <= YY_CPLUSPLUS
+      /// Move constructor.
+      by_type (by_type&& that);
+#endif
+
       /// Copy constructor.
-      by_type (const by_type& other);
+      by_type (const by_type& that);
 
       /// The symbol type as needed by the constructor.
       typedef token_type kind_type;
@@ -268,10 +365,10 @@ m4_define([b4_public_types_declare],
 
       /// The (internal) type number (corresponding to \a type).
       /// \a empty when empty.
-      symbol_number_type type_get () const;
+      symbol_number_type type_get () const YY_NOEXCEPT;
 
       /// The token.
-      token_type token () const;
+      token_type token () const YY_NOEXCEPT;
 
       /// The symbol type.
       /// \a empty_symbol when empty.
@@ -280,140 +377,130 @@ m4_define([b4_public_types_declare],
     };
 
     /// "External" symbols: returned by the scanner.
-    typedef basic_symbol<by_type> symbol_type;
+    struct symbol_type : basic_symbol<by_type>
+    {]b4_variant_if([[
+      /// Superclass.
+      typedef basic_symbol<by_type> super_type;
 
-]b4_symbol_constructor_declare])
+      /// Empty symbol.
+      symbol_type () {}
+
+      /// Constructor for valueless symbols, and symbols from each type.
+]b4_type_foreach([_b4_token_constructor_define])dnl
+    ])[};
+]])
 
 
 # b4_public_types_define(hh|cc)
 # -----------------------------
 # Provide the implementation needed by the public types.
 m4_define([b4_public_types_define],
-[  b4_inline([$1])b4_parser_class_name[::syntax_error::syntax_error (]b4_locations_if([const location_type& l, ])[const std::string& m)
-    : std::runtime_error (m)]b4_locations_if([
-    , location (l)])[
-  {}
-
-  // basic_symbol.
+[[  // basic_symbol.
+#if 201103L <= YY_CPLUSPLUS
   template <typename Base>
-  ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol ()
-    : value ()]b4_locations_if([
-    , location ()])[
-  {}
-
-  template <typename Base>
-  ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol (const basic_symbol& other)
-    : Base (other)
-    , value (]b4_variant_if([], [other.value])[)]b4_locations_if([
-    , location (other.location)])[
+  ]b4_parser_class[::basic_symbol<Base>::basic_symbol (basic_symbol&& that)
+    : Base (std::move (that))
+    , value (]b4_variant_if([], [std::move (that.value)]))b4_locations_if([
+    , location (std::move (that.location))])[
   {]b4_variant_if([
-    b4_symbol_variant([other.type_get ()], [value], [copy],
-                      [other.value])])[
-  }
+    b4_symbol_variant([this->type_get ()], [value], [move],
+                      [std::move (that.value)])
+  ])[}
+#endif
 
   template <typename Base>
-  ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol (]b4_join(
-          [typename Base::kind_type t],
-          [const semantic_type& v],
-          b4_locations_if([const location_type& l]))[)
-    : Base (t)
-    , value (]b4_variant_if([], [v])[)]b4_locations_if([
-    , location (l)])[
-  {]b4_variant_if([[
-    (void) v;
-    ]b4_symbol_variant([this->type_get ()], [value], [copy], [v])])[}
+  ]b4_parser_class[::basic_symbol<Base>::basic_symbol (const basic_symbol& that)
+    : Base (that)
+    , value (]b4_variant_if([], [that.value]))b4_locations_if([
+    , location (that.location)])[
+  {]b4_variant_if([
+    b4_symbol_variant([this->type_get ()], [value], [copy],
+                      [YY_MOVE (that.value)])
+  ])[}
 
-]b4_variant_if([[
-  // Implementation of basic_symbol constructor for each type.
-]b4_type_foreach([b4_basic_symbol_constructor_define])], [[
+]b4_variant_if([], [[
   /// Constructor for valueless symbols.
   template <typename Base>
-  ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol (]b4_join(
+  ]b4_parser_class[::basic_symbol<Base>::basic_symbol (]b4_join(
           [typename Base::kind_type t],
-          b4_locations_if([const location_type& l]))[)
+          b4_locations_if([YY_MOVE_REF (location_type) l]))[)
     : Base (t)
     , value ()]b4_locations_if([
     , location (l)])[
-  {}]])[
+  {}
 
   template <typename Base>
-  ]b4_parser_class_name[::basic_symbol<Base>::~basic_symbol ()
-  {
-    clear ();
-  }
-
-  template <typename Base>
-  void
-  ]b4_parser_class_name[::basic_symbol<Base>::clear ()
+  ]b4_parser_class[::basic_symbol<Base>::basic_symbol (]b4_join(
+          [typename Base::kind_type t],
+          [YY_RVREF (semantic_type) v],
+          b4_locations_if([YY_RVREF (location_type) l]))[)
+    : Base (t)
+    , value (]b4_variant_if([], [YY_MOVE (v)])[)]b4_locations_if([
+    , location (YY_MOVE (l))])[
   {]b4_variant_if([[
-    // User destructor.
-    symbol_number_type yytype = this->type_get ();
-    basic_symbol<Base>& yysym = *this;
-    (void) yysym;
-    switch (yytype)
-    {
-]b4_symbol_foreach([b4_symbol_destructor])dnl
-[   default:
-      break;
-    }
-
-    // Type destructor.
-  ]b4_symbol_variant([[yytype]], [[value]], [[template destroy]])])[
-    Base::clear ();
-  }
+    (void) v;
+    ]b4_symbol_variant([this->type_get ()], [value], [YY_MOVE_OR_COPY], [YY_MOVE (v)])])[}]])[
 
   template <typename Base>
   bool
-  ]b4_parser_class_name[::basic_symbol<Base>::empty () const
+  ]b4_parser_class[::basic_symbol<Base>::empty () const YY_NOEXCEPT
   {
     return Base::type_get () == empty_symbol;
   }
 
   template <typename Base>
   void
-  ]b4_parser_class_name[::basic_symbol<Base>::move (basic_symbol& s)
+  ]b4_parser_class[::basic_symbol<Base>::move (basic_symbol& s)
   {
     super_type::move (s);
     ]b4_variant_if([b4_symbol_variant([this->type_get ()], [value], [move],
-                                      [s.value])],
-                   [value = s.value;])[]b4_locations_if([
-    location = s.location;])[
+                                      [YY_MOVE (s.value)])],
+                   [value = YY_MOVE (s.value);])[]b4_locations_if([
+    location = YY_MOVE (s.location);])[
   }
 
   // by_type.
-  ]b4_inline([$1])b4_parser_class_name[::by_type::by_type ()
+  ]b4_inline([$1])b4_parser_class[::by_type::by_type ()
     : type (empty_symbol)
   {}
 
-  ]b4_inline([$1])b4_parser_class_name[::by_type::by_type (const by_type& other)
-    : type (other.type)
+#if 201103L <= YY_CPLUSPLUS
+  ]b4_inline([$1])b4_parser_class[::by_type::by_type (by_type&& that)
+    : type (that.type)
+  {
+    that.clear ();
+  }
+#endif
+
+  ]b4_inline([$1])b4_parser_class[::by_type::by_type (const by_type& that)
+    : type (that.type)
   {}
 
-  ]b4_inline([$1])b4_parser_class_name[::by_type::by_type (token_type t)
+  ]b4_inline([$1])b4_parser_class[::by_type::by_type (token_type t)
     : type (yytranslate_ (t))
   {}
 
   ]b4_inline([$1])[void
-  ]b4_parser_class_name[::by_type::clear ()
+  ]b4_parser_class[::by_type::clear ()
   {
     type = empty_symbol;
   }
 
   ]b4_inline([$1])[void
-  ]b4_parser_class_name[::by_type::move (by_type& that)
+  ]b4_parser_class[::by_type::move (by_type& that)
   {
     type = that.type;
     that.clear ();
   }
 
   ]b4_inline([$1])[int
-  ]b4_parser_class_name[::by_type::type_get () const
+  ]b4_parser_class[::by_type::type_get () const YY_NOEXCEPT
   {
     return type;
   }
 ]b4_token_ctor_if([[
-  ]b4_inline([$1])b4_parser_class_name[::token_type
-  ]b4_parser_class_name[::by_type::token () const
+  ]b4_inline([$1])b4_parser_class[::token_type
+  ]b4_parser_class[::by_type::token () const YY_NOEXCEPT
   {
     // YYTOKNUM[NUM] -- (External) token number corresponding to the
     // (internal) symbol number NUM (which must be that of a token).  */
@@ -423,19 +510,17 @@ m4_define([b4_public_types_define],
     {
   ]b4_toknum[
     };
-    return static_cast<token_type> (yytoken_number_[type]);
+    return token_type (yytoken_number_[type]);
   }
 ]])[]dnl
-b4_symbol_constructor_define])
+])
 
 
-# b4_symbol_constructor_declare
-# b4_symbol_constructor_define
-# -----------------------------
-# Declare/define symbol constructors for all the value types.
+# b4_token_constructor_define
+# ----------------------------
+# Define symbol constructors for all the value types.
 # Use at class-level.  Redefined in variant.hh.
-m4_define([b4_symbol_constructor_declare], [])
-m4_define([b4_symbol_constructor_define], [])
+m4_define([b4_token_constructor_define], [])
 
 
 # b4_yytranslate_define(cc|hh)
@@ -443,16 +528,17 @@ m4_define([b4_symbol_constructor_define], [])
 # Define yytranslate_.  Sometimes used in the header file ($1=hh),
 # sometimes in the cc file.
 m4_define([b4_yytranslate_define],
-[[  // Symbol number corresponding to token number t.
-  ]b4_inline([$1])b4_parser_class_name[::token_number_type
-  ]b4_parser_class_name[::yytranslate_ (]b4_token_ctor_if([token_type],
+[  b4_inline([$1])b4_parser_class[::token_number_type
+  ]b4_parser_class[::yytranslate_ (]b4_token_ctor_if([token_type],
                                                           [int])[ t)
   {
+    // YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to
+    // TOKEN-NUM as returned by yylex.
     static
     const token_number_type
     translate_table[] =
     {
-]b4_translate[
+  ]b4_translate[
     };
     const unsigned user_token_number_max_ = ]b4_user_token_number_max[;
     const token_number_type undef_token_ = ]b4_undef_token_number[;
@@ -469,15 +555,13 @@ m4_define([b4_yytranslate_define],
 
 # b4_lhs_value([TYPE])
 # --------------------
-# Expansion of $<TYPE>$.
 m4_define([b4_lhs_value],
 [b4_symbol_value([yyval], [$1])])
 
 
-# b4_rhs_value(RULE-LENGTH, NUM, [TYPE])
+# b4_rhs_value(RULE-LENGTH, POS, [TYPE])
 # --------------------------------------
-# Expansion of $<TYPE>NUM, where the current rule has RULE-LENGTH
-# symbols on RHS.
+# FIXME: Dead code.
 m4_define([b4_rhs_value],
 [b4_symbol_value([yysemantic_stack_@{($1) - ($2)@}], [$3])])
 
@@ -489,9 +573,9 @@ m4_define([b4_lhs_location],
 [(yyloc)])
 
 
-# b4_rhs_location(RULE-LENGTH, NUM)
+# b4_rhs_location(RULE-LENGTH, POS)
 # ---------------------------------
-# Expansion of @NUM, where the current rule has RULE-LENGTH symbols
+# Expansion of @POS, where the current rule has RULE-LENGTH symbols
 # on RHS.
 m4_define([b4_rhs_location],
 [(yylocation_stack_@{($1) - ($2)@})])
@@ -564,7 +648,7 @@ m4_define([b4_yylloc_default_define],
         {                                                               \
           (Current).begin = (Current).end = YYRHSLOC (Rhs, 0).end;      \
         }                                                               \
-    while (/*CONSTCOND*/ false)
+    while (false)
 # endif
 ]])
 
