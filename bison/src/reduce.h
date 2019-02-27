@@ -32,6 +32,11 @@ bool reduce_nonterminal_useless_in_grammar (const sym_content *sym);
 
 void reduce_free (void);
 
+/** Map initial nterm numbers to the new ones.  Built by
+ * reduce_grammar.  Size nvars + nuseless_nonterminals.  */
+extern symbol_number *nterm_map;
+
 extern unsigned nuseless_nonterminals;
 extern unsigned nuseless_productions;
+
 #endif /* !REDUCE_H_ */

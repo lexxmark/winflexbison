@@ -648,7 +648,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
               untyped_var_seen = true;
           }
 
-        obstack_printf (&obstack_for_string, "]b4_lhs_value(%d, ",
+        obstack_printf (&obstack_for_string, "]b4_lhs_value(orig %d, ",
                         sym->content.sym->content->number);
         obstack_quote (&obstack_for_string, type_name);
         obstack_sgrow (&obstack_for_string, ")[");
@@ -677,7 +677,9 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
                         "]b4_rhs_value(%d, %d, ",
                         effective_rule_length, n);
         if (sym)
-          obstack_printf (&obstack_for_string, "%d, ", sym->content.sym->content->number);
+          obstack_printf (&obstack_for_string, "%s%d, ",
+                          sym->content.sym->content->class == nterm_sym ? "orig " : "",
+                          sym->content.sym->content->number);
         else
           obstack_sgrow (&obstack_for_string, "[], ");
 

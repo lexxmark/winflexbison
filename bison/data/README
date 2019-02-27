@@ -75,48 +75,75 @@ skeletons.
 
 ## Symbols
 
+### `b4_symbol(NUM, FIELD)`
 In order to unify the handling of the various aspects of symbols (tag, type
 name, whether terminal, etc.), bison.exe defines one macro per (token,
 field), where field can `has_id`, `id`, etc.: see
-src/output.c:prepare_symbols_definitions().
+`prepare_symbols_definitions()` in `src/output.c`.
 
-The various FIELDS are:
+The macro `b4_symbol(NUM, FIELD)` gives access to the following FIELDS:
 
-- has_id: 0 or 1.
+- `has_id`: 0 or 1.
+
   Whether the symbol has an id.
-- id: string
-  If has_id, the id.  Guaranteed to be usable as a C identifier.
-  Prefixed by api.token.prefix if defined.
-- tag: string.
+
+- `id`: string
+  If has_id, the id (prefixed by api.token.prefix if defined), otherwise
+  defined as empty.  Guaranteed to be usable as a C identifier.
+
+- `tag`: string.
   A representation of the symbol.  Can be 'foo', 'foo.id', '"foo"' etc.
-- user_number: integer
+
+- `user_number`: integer
   The external number as used by yylex.  Can be ASCII code when a character,
   some number chosen by bison, or some user number in the case of
   %token FOO <NUM>.  Corresponds to yychar in yacc.c.
-- is_token: 0 or 1
+
+- `is_token`: 0 or 1
   Whether this is a terminal symbol.
-- number: integer
+
+- `number`: integer
   The internal number (computed from the external number by yytranslate).
   Corresponds to yytoken in yacc.c.  This is the same number that serves as
   key in b4_symbol(NUM, FIELD).
-- has_type: 0, 1
+
+  In bison, symbols are first assigned increasing numbers in order of
+  appearance (but tokens first, then nterms).  After grammar reduction,
+  unused nterms are then renumbered to appear last (i.e., first tokens, then
+  used nterms and finally unused nterms).  This final number NUM is the one
+  contained in this field, and it is the one used as key in `b4_symbol(NUM,
+  FIELD)`.
+
+  The code of the rule actions, however, is emitted before we know what
+  symbols are unused, so they use the original numbers.  To avoid confusion,
+  they actually use "orig NUM" instead of just "NUM".  bison also emits
+  definitions for `b4_symbol(orig NUM, number)` that map from original
+  numbers to the new ones.  `b4_symbol` actually resolves `orig NUM` in the
+  other case, i.e., `b4_symbol(orig 42, tag)` would return the tag of the
+  symbols whose original number was 42.
+
+- `has_type`: 0, 1
   Whether has a semantic value.
-- type_tag: string
+
+- `type_tag`: string
   When api.value.type=union, the generated name for the union member.
   yytype_INT etc. for symbols that has_id, otherwise yytype_1 etc.
-- type
+
+- `type`
   If it has a semantic value, its type tag, or, if variant are used,
   its type.
   In the case of api.value.type=union, type is the real type (e.g. int).
-- has_printer: 0, 1
-- printer: string
-- printer_file: string
-- printer_line: integer
+
+- `has_printer`: 0, 1
+- `printer`: string
+- `printer_file`: string
+- `printer_line`: integer
   If the symbol has a printer, everything about it.
-- has_destructor, destructor, destructor_file, destructor_line
+
+- `has_destructor`, `destructor`, `destructor_file`, `destructor_line`
   Likewise.
 
-### b4_symbol_value(VAL, [SYMBOL-NUM], [TYPE-TAG])
+### `b4_symbol_value(VAL, [SYMBOL-NUM], [TYPE-TAG])`
 Expansion of $$, $1, $<TYPE-TAG>3, etc.
 
 The semantic value from a given VAL.
@@ -127,14 +154,14 @@ The semantic value from a given VAL.
 The result can be used safely, it is put in parens to avoid nasty precedence
 issues.
 
-### b4_lhs_value(SYMBOL-NUM, [TYPE])
+### `b4_lhs_value(SYMBOL-NUM, [TYPE])`
 Expansion of `$$` or `$<TYPE>$`, for symbol `SYMBOL-NUM`.
 
-### b4_rhs_data(RULE-LENGTH, POS)
+### `b4_rhs_data(RULE-LENGTH, POS)`
 The data corresponding to the symbol `#POS`, where the current rule has
 `RULE-LENGTH` symbols on RHS.
 
-### b4_rhs_value(RULE-LENGTH, POS, SYMBOL-NUM, [TYPE])
+### `b4_rhs_value(RULE-LENGTH, POS, SYMBOL-NUM, [TYPE])`
 Expansion of `$<TYPE>POS`, where the current rule has `RULE-LENGTH` symbols
 on RHS.
 

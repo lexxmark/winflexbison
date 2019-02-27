@@ -389,17 +389,28 @@ m4_define([b4_glr_cc_if],
 #
 # The following macros provide access to symbol related values.
 
-# _b4_symbol(NUM, FIELD)
-# ----------------------
+# __b4_symbol(NUM, FIELD)
+# -----------------------
 # Recover a FIELD about symbol #NUM.  Thanks to m4_indir, fails if
 # undefined.
-m4_define([_b4_symbol],
+m4_define([__b4_symbol],
 [m4_indir([b4_symbol($1, $2)])])
+
+
+# _b4_symbol(NUM, FIELD)
+# ----------------------
+# Recover a FIELD about symbol #NUM (or "orig NUM").  Fails if
+# undefined.
+m4_define([_b4_symbol],
+[m4_ifdef([b4_symbol($1, number)],
+          [__b4_symbol(m4_indir([b4_symbol($1, number)]), $2)],
+          [__b4_symbol([$1], [$2])])])
+
 
 
 # b4_symbol(NUM, FIELD)
 # ---------------------
-# Recover a FIELD about symbol #NUM.  Thanks to m4_indir, fails if
+# Recover a FIELD about symbol #NUM (or "orig NUM").  Fails if
 # undefined.  If FIELD = id, prepend the token prefix.
 m4_define([b4_symbol],
 [m4_case([$2],
