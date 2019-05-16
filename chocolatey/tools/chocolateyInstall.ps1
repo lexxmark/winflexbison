@@ -1,7 +1,7 @@
 # download and unpack a zip file
 Install-ChocolateyZipPackage `
   -PackageName "winflexbison3" `
-  -Url "http://sourceforge.net/projects/winflexbison/files/old_versions/win_flex_bison-2.5.15.zip" `
-  -Checksum "F46C9B483525689EFA58FFE0495EB8017F5979618E9FF7D914F531C78DAD28D6" `
+  -Url "https://github.com/lexxmark/winflexbison/releases/download/v2.5.18/win_flex_bison-2.5.18.zip" `
+  -Checksum "095CF65CB3F12EE5888022F93109ACBE6264E5F18F6FFCE0BDA77FEB31B65BD8" `
   -ChecksumType "sha256" `
   -UnzipLocation "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
