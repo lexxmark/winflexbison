@@ -7,7 +7,7 @@ bison2.7 [![Build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb
 Main winflexbison repository for https://sourceforge.net/projects/winflexbison/
 
 ## Downloads
-Go to http://sourceforge.net/projects/winflexbison/files/ or https://github.com/lexxmark/winflexbison/releases
+Go to https://github.com/lexxmark/winflexbison/releases or https://sourceforge.net/projects/winflexbison/files/
 
 ## Changelog
 See the [changelog.md](changelog.md) file.
@@ -20,7 +20,7 @@ See the [changelog.md](changelog.md) file.
     * 2.5.x versions include bison version 3.x.x
 
 ## HowTo
-https://sourceforge.net/p/winflexbison/wiki/Visual%20Studio%20custom%20build%20rules/
+[VisualStudioCustomBuildRules.md](custom_build_rules/docs/VisualStudioCustomBuildRules.md)
 
 ## Example flex/bison files
 Go to https://github.com/meyerd/flex-bison-example
