@@ -32,8 +32,9 @@ This documentation uses the combined rule-set but can be used for all rule-sets.
 
 ----
 
-Launch Visual Studio and open an VC++ project.
+Launch Visual Studio and open an VC/VC++ project.
 Open context menu for project item in Solution Explorer panel and select "**Build Customizations...**" menu item.
+(Note: newer VS versions have this below sub-menu "**Build Dependencies...**".)
 
 ![Build Customizations in Solution Explorer](docs/1.png)
 
@@ -46,6 +47,7 @@ In popup dialog "Visual C++ Build Customization Files" press "**Find Existing...
 ----
 
 In Open File dialog select "**win_flex_bison_custom_build.targets**" file and press "Open".
+(Note: you may have to switch the file filter to "(*.*) all files".)
 
 ----
 
