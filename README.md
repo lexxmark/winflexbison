@@ -1,26 +1,27 @@
-master [![Build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/master?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/master)
+# WinFlexBison - Flex and Bison for Microsoft Windows
 
-bison2.7 [![Build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/bison2.7?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/bison2.7)
+WinFlexBison is a Windows port of [Flex (the fast lexical analyser)](https://github.com/westes/flex/) and [GNU Bison (parser generator)](https://www.gnu.org/software/bison/).
+Both win_flex and win_bison are based on upstream sources but depend on system libraries only.
 
-## WinFlexBison - Flex and Bison for Microsoft Windows
+**NOTE**:
+* 2.4.x versions include GNU Bison version 2.7
+* 2.5.x versions include GNU Bison version 3.x.x
 
-Main winflexbison repository for https://sourceforge.net/projects/winflexbison/
+## Build status
+Bison 3.x (master) [![Build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/master?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/master) and, for compatibility reasons, Bison 2.7 (bison2.7) [![Build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/bison2.7?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/bison2.7)
 
 ## Downloads
-Go to https://github.com/lexxmark/winflexbison/releases or https://sourceforge.net/projects/winflexbison/files/
+https://github.com/lexxmark/winflexbison/releases provides stable versions. To test non-released development versions see the artifacts provided by CI under "Build status".
 
 ## Changelog
-See the [changelog.md](changelog.md) file.
+The release page includes the full Changelog but you may also see the [changelog.md](changelog.md) file.
 
 ## Build requirements
-  * Visual Studio 2015 or newer
-  * optional: CMake (when building with CMake)
-  * **NOTE**:
-    * 2.4.x versions include bison version 2.7
-    * 2.5.x versions include bison version 3.x.x
+* Visual Studio 2015 or newer
+* optional: CMake (when building with CMake)
 
 ## HowTo
-[VisualStudioCustomBuildRules.md](custom_build_rules/docs/VisualStudioCustomBuildRules.md)
+You may use win_flex and win_bison directly on the command line or [use them via CustomBuildRules in VisualStudio](custom_build_rules/docs/VisualStudioCustomBuildRules.md).
 
 ## Example flex/bison files
-Go to https://github.com/meyerd/flex-bison-example
+See https://github.com/meyerd/flex-bison-example
