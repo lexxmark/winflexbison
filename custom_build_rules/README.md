@@ -10,19 +10,19 @@ You find the custom build rules for win_flex_bison in the **custom_build_rules**
 You may choose to install one of the following rule set
 
 * the combined rules - [alternative download][1]:
-    * [win_flex_bison_custom_build.props  ](../win_flex_bison/win_flex_bison_custom_build.props)
-    * [win_flex_bison_custom_build.targets](../win_flex_bison/win_flex_bison_custom_build.targets)
-    * [win_flex_bison_custom_build.xml    ](../win_flex_bison/win_flex_bison_custom_build.xml)
+    * [win_flex_bison_custom_build.props  ](win_flex_bison/win_flex_bison_custom_build.props)
+    * [win_flex_bison_custom_build.targets](win_flex_bison/win_flex_bison_custom_build.targets)
+    * [win_flex_bison_custom_build.xml    ](win_flex_bison/win_flex_bison_custom_build.xml)
 
 * flex only rules   - [alternative download][2]:
-    * [win_flex_custom_build.props        ](../win_flex_only/win_flex_custom_build.props)
-    * [win_flex_custom_build.targets      ](../win_flex_only/win_flex_custom_build.targets)
-    * [win_flex_custom_build.xml          ](../win_flex_only/win_flex_custom_build.xml)
+    * [win_flex_custom_build.props        ](win_flex_only/win_flex_custom_build.props)
+    * [win_flex_custom_build.targets      ](win_flex_only/win_flex_custom_build.targets)
+    * [win_flex_custom_build.xml          ](win_flex_only/win_flex_custom_build.xml)
 
 * bison only rules  - [alternative download][3]:
-    * [win_bison_custom_build.props  ](../win_bison_only/win_bison_custom_build.props)
-    * [win_bison_custom_build.targets](../win_bison_only/win_bison_custom_build.targets)
-    * [win_bison_custom_build.xml    ](../win_bison_only/win_bison_custom_build.xml)
+    * [win_bison_custom_build.props  ](win_bison_only/win_bison_custom_build.props)
+    * [win_bison_custom_build.targets](win_bison_only/win_bison_custom_build.targets)
+    * [win_bison_custom_build.xml    ](win_bison_only/win_bison_custom_build.xml)
 
 This documentation uses the combined rule-set but can be used for all rule-sets.
 
@@ -32,38 +32,40 @@ This documentation uses the combined rule-set but can be used for all rule-sets.
 
 ----
 
-Launch Visual Studio and open an VC++ project.
+Launch Visual Studio and open an VC/VC++ project.
 Open context menu for project item in Solution Explorer panel and select "**Build Customizations...**" menu item.
+(Note: newer VS versions have this below sub-menu "**Build Dependencies...**".)
 
-![Build Customizations in Solution Explorer](1.png)
+![Build Customizations in Solution Explorer](docs/1.png)
 
 ----
 
 In popup dialog "Visual C++ Build Customization Files" press "**Find Existing...**" button.
 
-![Customization Files](2.png)
+![Customization Files](docs/2.png)
 
 ----
 
 In Open File dialog select "**win_flex_bison_custom_build.targets**" file and press "Open".
+(Note: you may have to switch the file filter to "(*.*) all files".)
 
 ----
 
 You will see "Add Search Path?" message box, press "Yes".
 
-![Adding Search Path](3.png)
+![Adding Search Path](docs/3.png)
 
 ----
 
 In "Visual C++ Build Customization Files" dialog check just added item **win_flex_bison_custom_build** and press "OK".
 
-![activate custom build rule](4.png)
+![activate custom build rule](docs/4.png)
 
 ----
 
 Now you can add flex and bison files to the project...
 
-![project with flex and bison files added](5.png)
+![project with flex and bison files added](docs/5.png)
 
 ... and build.
 In build output you should see something like this:
@@ -88,7 +90,7 @@ For **sample.l** flex file you'll got **sample.flex.cpp**.
 
 Now you can add them to the project and build. (*Don't forget to exclude cpp files from using precompiled headers*)
 
-![Include generated files into Solution](6.png)
+![Include generated files into Solution](docs/6.png)
 
 ~~~~
 
@@ -120,7 +122,7 @@ If your flex/bison file is incorrect and you've got an error. But you don't see 
 
 You can change Build Output Verbosity from "Minimal" to "Normal" in "Options" dialog
 
-![Verbosity](Verbosity.png)
+![Verbosity](docs/Verbosity.png)
 
 Then you will see more detailed output:
 
@@ -144,16 +146,16 @@ Then you will see more detailed output:
 
 Also you can tune some flex/bison options in files properties dialog:
 
-![Opening File Properties](Properties.png)
-![Property Page for Flex sources](FlexProperties.png)
-![Property Page for Bison sources](BisonProperties.png)
+![Opening File Properties](docs/Properties.png)
+![Property Page for Flex sources](docs/FlexProperties.png)
+![Property Page for Bison sources](docs/BisonProperties.png)
 
 ----
 
 
 To debug your scanner or parser you can set break points right into **sample.y** or **sample.l** code.
 
-![Debugging Flex source files](Flex_debuging.png)
+![Debugging Flex source files](docs/Flex_debuging.png)
 
 ----
 
