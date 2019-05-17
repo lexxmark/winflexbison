@@ -10,19 +10,19 @@ You find the custom build rules for win_flex_bison in the **custom_build_rules**
 You may choose to install one of the following rule set
 
 * the combined rules - [alternative download][1]:
-    * [win_flex_bison_custom_build.props  ](win_flex_bison/win_flex_bison_custom_build.props)
-    * [win_flex_bison_custom_build.targets](win_flex_bison/win_flex_bison_custom_build.targets)
-    * [win_flex_bison_custom_build.xml    ](win_flex_bison/win_flex_bison_custom_build.xml)
+    * [win_flex_bison_custom_build.props  ](../win_flex_bison/win_flex_bison_custom_build.props)
+    * [win_flex_bison_custom_build.targets](../win_flex_bison/win_flex_bison_custom_build.targets)
+    * [win_flex_bison_custom_build.xml    ](../win_flex_bison/win_flex_bison_custom_build.xml)
 
 * flex only rules   - [alternative download][2]:
-    * [win_flex_custom_build.props](win_flex_only/win_flex_custom_build.props)
-    * [win_flex_custom_build.targets](win_flex_only/win_flex_custom_build.targets)
-    * [win_flex_custom_build.xml](win_flex_only/win_flex_custom_build.xml)
+    * [win_flex_custom_build.props        ](../win_flex_only/win_flex_custom_build.props)
+    * [win_flex_custom_build.targets      ](../win_flex_only/win_flex_custom_build.targets)
+    * [win_flex_custom_build.xml          ](../win_flex_only/win_flex_custom_build.xml)
 
 * bison only rules  - [alternative download][3]:
-    * [win_bison_custom_build.props](win_bison_only/win_bison_custom_build.props)
-    * [win_bison_custom_build.targets](win_bison_only/win_bison_custom_build.targets)
-    * [win_bison_custom_build.xml](win_bison_only/win_bison_custom_build.xml)
+    * [win_bison_custom_build.props  ](../win_bison_only/win_bison_custom_build.props)
+    * [win_bison_custom_build.targets](../win_bison_only/win_bison_custom_build.targets)
+    * [win_bison_custom_build.xml    ](../win_bison_only/win_bison_custom_build.xml)
 
 This documentation uses the combined rule-set but can be used for all rule-sets.
 
