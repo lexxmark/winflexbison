@@ -14,6 +14,6 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
   </metadata>
   <files>
-    <file src="tools\chocolateyInstall.ps1" target="tools" />
+    <file src="tools\chocolateyInstallWinFlexBison3.ps1" target="tools" />
   </files>
 </package>
