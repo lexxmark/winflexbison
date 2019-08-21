@@ -284,19 +284,47 @@ m4_define([b4_declare_yyparse],
 # Declaration that might either go into the header (if --defines)
 # or open coded in the parser body.
 m4_define([b4_shared_declarations],
-[b4_cpp_guard_open([b4_spec_defines_file])[
+[b4_cpp_guard_open([b4_spec_header_file])[
 ]b4_declare_yydebug[
 ]b4_percent_code_get([[requires]])[
 ]b4_token_enums_defines[
 ]b4_declare_yylstype[
 ]b4_declare_yyparse[
 ]b4_percent_code_get([[provides]])[
-]b4_cpp_guard_close([b4_spec_defines_file])[]dnl
+]b4_cpp_guard_close([b4_spec_header_file])[]dnl
 ])
+
+
+# b4_header_include_if(IF-TRUE, IF-FALSE)
+# ---------------------------------------
+# Run IF-TRUE if we generate an output file and api.header.include
+# is defined.
+m4_define([b4_header_include_if],
+[m4_ifval(m4_quote(b4_spec_header_file),
+          [b4_percent_define_ifdef([[api.header.include]],
+                                   [$1],
+                                   [$2])],
+          [$2])])
+
+m4_if(b4_spec_header_file, [[y.tab.h]],
+      [b4_percent_define_default([[api.header.include]],
+                                 [["@basename(]b4_spec_header_file[@)"]])])
+
+
+
 
 ## -------------- ##
 ## Output files.  ##
 ## -------------- ##
+
+
+b4_defines_if([[
+]b4_output_begin([b4_spec_header_file])[
+]b4_copyright([Bison interface for Yacc-like parsers in C])[
+]b4_disclaimer[
+]b4_shared_declarations[
+]b4_output_end[
+]])# b4_defines_if
 
 b4_output_begin([b4_parser_file_name])[
 ]b4_copyright([Bison implementation for Yacc-like parsers in C])[
@@ -345,11 +373,11 @@ m4_if(b4_api_prefix, [yy], [],
 # define YYERROR_VERBOSE ]b4_error_verbose_if([1], [0])[
 #endif
 
-]m4_ifval(m4_quote(b4_spec_defines_file),
-[[/* In a future release of Bison, this section will be replaced
-   by #include "@basename(]b4_spec_defines_file[@)".  */
-]])dnl
-b4_shared_declarations[
+]b4_header_include_if([[#include ]b4_percent_define_get([[api.header.include]])],
+                      [m4_ifval(m4_quote(b4_spec_header_file),
+                                [/* Use api.header.include to #include this header
+   instead of duplicating it here.  */
+])b4_shared_declarations])[
 
 ]b4_user_post_prologue[
 ]b4_percent_code_get[]dnl
@@ -410,6 +438,15 @@ typedef short yytype_int16;
 #endif
 
 ]b4_attribute_define[
+
+]b4_parse_assert_if([[#ifdef NDEBUG
+# define YY_ASSERT(E) ((void) (0 && (E)))
+#else
+# include <assert.h> /* INFRINGES ON USER NAME SPACE */
+# define YY_ASSERT(E) assert (E)
+#endif
+]],
+[[#define YY_ASSERT(E) ((void) (0 && (E)))]])[
 
 #if ]b4_lac_if([[1]], [[! defined yyoverflow || YYERROR_VERBOSE]])[
 
@@ -1453,6 +1490,8 @@ yynewstate:
 | yynewstate -- set current state (the top of the stack) to yystate.  |
 `--------------------------------------------------------------------*/
 yysetstate:
+  YYDPRINTF ((stderr, "Entering state %d\n", yystate));
+  YY_ASSERT (0 <= yystate && yystate < YYNSTATES);
   *yyssp = (yytype_int16) yystate;
 
   if (yyss + yystacksize - 1 <= yyssp)
@@ -1519,8 +1558,6 @@ yysetstate:
         YYABORT;
     }
 #endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
-
-  YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
   if (yystate == YYFINAL)
     YYACCEPT;
@@ -1613,8 +1650,8 @@ yyread_pushed_token:]])[
   yystate = yyn;
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
-  YY_IGNORE_MAYBE_UNINITIALIZED_END
-]b4_locations_if([  *++yylsp = yylloc;])[
+  YY_IGNORE_MAYBE_UNINITIALIZED_END]b4_locations_if([
+  *++yylsp = yylloc;])[
   goto yynewstate;
 
 
@@ -1662,7 +1699,7 @@ yyreduce:
   }]], [[
   switch (yyn)
     {
-      ]b4_user_actions[
+]b4_user_actions[
       default: break;
     }]])[
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1917,11 +1954,3 @@ yypushreturn:]])[
 }
 ]b4_epilogue[]dnl
 b4_output_end
-
-b4_defines_if([[
-]b4_output_begin([b4_spec_defines_file])[
-]b4_copyright([Bison interface for Yacc-like parsers in C])[
-]b4_disclaimer[
-]b4_shared_declarations[
-]b4_output_end[
-]])# b4_defines_if

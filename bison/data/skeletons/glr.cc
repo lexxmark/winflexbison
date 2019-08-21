@@ -100,8 +100,8 @@ m4_defn([b4_initial_action])]))])[
 
 # Hijack the post prologue to declare yyerror.
 ]m4_append([b4_post_prologue],
-[b4_syncline([@oline@], [@ofile@])[
-]b4_function_declare([yyerror],
+[b4_syncline([@oline@], [@ofile@])dnl
+b4_function_declare([yyerror],
     [static void],b4_locations_if([
     [[const ]b4_namespace_ref::b4_parser_class[::location_type *yylocationp],
                         [yylocationp]],])
@@ -128,8 +128,8 @@ m4_if(b4_prefix, [yy], [],
 # Hijack the epilogue to define implementations (yyerror, parser member
 # functions etc.).
 m4_append([b4_epilogue],
-[b4_syncline([@oline@], [@ofile@])[
-
+[b4_syncline([@oline@], [@ofile@])dnl
+[
 /*------------------.
 | Report an error.  |
 `------------------*/
@@ -234,7 +234,7 @@ m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
 
 #endif
 ]m4_popdef([b4_parse_param])dnl
-b4_namespace_close
+b4_namespace_close[]dnl
 ])
 
 
@@ -351,15 +351,15 @@ b4_percent_define_flag_if([[global_tokens_and_yystype]],
 ])
 
 b4_defines_if(
-[b4_output_begin([b4_spec_defines_file])
+[b4_output_begin([b4_spec_header_file])
 b4_copyright([Skeleton interface for Bison GLR parsers in C++],
              [2002-2015, 2018-2019])[
 // C++ GLR parser skeleton written by Akim Demaille.
 
 ]b4_disclaimer[
-]b4_cpp_guard_open([b4_spec_defines_file])[
+]b4_cpp_guard_open([b4_spec_header_file])[
 ]b4_shared_declarations[
-]b4_cpp_guard_close([b4_spec_defines_file])[
+]b4_cpp_guard_close([b4_spec_header_file])[
 ]b4_output_end])
 
 # Let glr.c (and b4_shared_declarations) believe that the user

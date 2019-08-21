@@ -83,8 +83,8 @@ typedef size_t goto_number;
 /** Index into #from_state and #to_state.
 
    All the transitions that accept a particular variable are grouped
-   together and GOTO_MAP[I - NTOKENS] is the index in FROM_STATE and
-   TO_STATE of the first of them.  */
+   together in FROM_STATE and TO_STATE, with indexes from GOTO_MAP[I -
+   NTOKENS] to GOTO_MAP[I - NTOKENS + 1] - 1 (including both).  */
 extern goto_number *goto_map;
 
 /** The size of #from_state and #to_state.  */
@@ -96,11 +96,10 @@ extern state_number *from_state;
 /** State number it leads to.  */
 extern state_number *to_state;
 
-/** Map a state/symbol pair into its numeric representation.  */
-goto_number map_goto (state_number s0, symbol_number sym);
+/** The number of the goto from state SRC labeled with nterm SYM.  */
+goto_number map_goto (state_number src, symbol_number sym);
 
 /* goto_follows[i] is the set of tokens following goto i.  */
 extern bitsetv goto_follows;
-
 
 #endif /* !LALR_H_ */

@@ -23,8 +23,10 @@
 #include "system.h"
 
 #include <argmatch.h>
-#include <stdarg.h>
 #include <progname.h>
+#include <stdarg.h>
+#include <sys/stat.h>
+#include <textstyle.h>
 
 #include "complain.h"
 #include "files.h"
@@ -61,7 +63,47 @@ typedef enum
 /** For each warning type, its severity.  */
 static severity warnings_flag[warnings_size];
 
-static unsigned *indent_ptr = 0;
+static unsigned *indent_ptr = NULL;
+
+styled_ostream_t errstream = NULL;
+
+void
+begin_use_class (const char *s, FILE *out)
+{
+  if (out == stderr)
+    {
+      if (color_debug)
+        fprintf (out, "<%s>", s);
+      else
+        {
+          styled_ostream_begin_use_class (errstream, s);
+          styled_ostream_flush_to_current_style (errstream);
+        }
+    }
+}
+
+void
+end_use_class (const char *s, FILE *out)
+{
+  if (out == stderr)
+    {
+      if (color_debug)
+        fprintf (out, "</%s>", s);
+      else
+        {
+          styled_ostream_end_use_class (errstream, s);
+          styled_ostream_flush_to_current_style (errstream);
+        }
+    }
+}
+
+void
+flush (FILE *out)
+{
+  if (out == stderr)
+    ostream_flush (errstream, FLUSH_THIS_STREAM);
+  fflush (out);
+}
 
 /*------------------------.
 | --warnings's handling.  |
@@ -165,10 +207,87 @@ warnings_argmatch (char *args)
     warning_argmatch ("all", 0, 0);
 }
 
+static const char*
+severity_style (severity s)
+{
+  switch (s)
+    {
+    case severity_disabled:
+    case severity_unset:
+      return "note";
+    case severity_warning:
+      return "warning";
+    case severity_error:
+    case severity_fatal:
+      return "error";
+    }
+  abort ();
+}
+
+static const char*
+severity_prefix (severity s)
+{
+  switch (s)
+    {
+    case severity_disabled:
+    case severity_unset:
+      return "";
+    case severity_warning:
+      return _("warning");
+    case severity_error:
+      return  _("error");
+    case severity_fatal:
+      return _("fatal error");
+    }
+  abort ();
+}
+
 
 /*-----------.
 | complain.  |
 `-----------*/
+
+void
+complain_init_color (void)
+{
+#if HAVE_LIBTEXTSTYLE
+  if (color_mode == color_yes
+      || color_mode == color_html
+      || (color_mode == color_tty && isatty (STDERR_FILENO)))
+    {
+      style_file_prepare ("BISON_STYLE", "BISON_STYLEDIR", pkgdatadir (),
+                          "bison-default.css");
+      /* As a fallback, use the default in the current directory.  */
+      struct stat statbuf;
+      if ((style_file_name == NULL || stat (style_file_name, &statbuf) < 0)
+          && stat ("bison-default.css", &statbuf) == 0)
+        style_file_name = "bison-default.css";
+    }
+  else
+    /* No styling.  */
+    style_file_name = NULL;
+#endif
+
+  /* Workaround clang's warning (starting at Clang 3.5) about the stub
+     code of html_styled_ostream_create:
+
+     | src/complain.c:274:7: error: code will never be executed [-Werror,-Wunreachable-code]
+     |     ? html_styled_ostream_create (file_ostream_create (stderr),
+     |       ^~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#if defined __clang__
+# pragma clang diagnostic push
+# pragma clang diagnostic ignored "-Wunreachable-code"
+#endif
+  errstream =
+    color_mode == color_html
+    ? html_styled_ostream_create (file_ostream_create (stderr),
+                                  style_file_name)
+    : styled_ostream_create (STDERR_FILENO, "(stderr)", TTYCTL_AUTO,
+                             style_file_name);
+#if defined __clang__
+# pragma clang diagnostic pop
+#endif
+}
 
 void
 complain_init (void)
@@ -185,6 +304,12 @@ complain_init (void)
     }
 }
 
+void
+complain_free (void)
+{
+  caret_free ();
+  styled_ostream_free (errstream);
+}
 
 /* A diagnostic with FLAGS is about to be issued.  With what severity?
    (severity_fatal, severity_error, severity_disabled, or
@@ -229,19 +354,30 @@ warning_is_unset (warnings flags)
   return true;
 }
 
-/** Display a "[-Wyacc]" like message on \a f.  */
+bool
+warning_is_enabled (warnings flags)
+{
+  return severity_warning <= warning_severity (flags);
+}
+
+/** Display a "[-Wyacc]" like message on \a out.  */
 
 static void
-warnings_print_categories (warnings warn_flags, FILE *f)
+warnings_print_categories (warnings warn_flags, FILE *out)
 {
-  /* Display only the first match, the second is "-Wall".  */
   for (size_t i = 0; warnings_args[i]; ++i)
     if (warn_flags & warnings_types[i])
       {
         severity s = warning_severity (warnings_types[i]);
-        fprintf (f, " [-W%s%s]",
+        const char* style = severity_style (s);
+        fputs (" [", out);
+        begin_use_class (style, out);
+        fprintf (out, "-W%s%s",
                  s == severity_error ? "error=" : "",
                  warnings_args[i]);
+        end_use_class (style, out);
+        fputc (']', out);
+        /* Display only the first match, the second is "-Wall".  */
         return;
       }
 }
@@ -251,7 +387,8 @@ warnings_print_categories (warnings warn_flags, FILE *f)
  * \param loc     the location, defaulting to the current file,
  *                or the program name.
  * \param flags   the category for this message.
- * \param prefix  put before the message (e.g., "warning").
+ * \param sever   to decide the prefix to put before the message
+ *                (e.g., "warning").
  * \param message the error message, a printf format string.  Iff it
  *                ends with ": ", then no trailing newline is printed,
  *                and the caller should print the remaining
@@ -260,7 +397,7 @@ warnings_print_categories (warnings warn_flags, FILE *f)
  */
 static
 void
-error_message (const location *loc, warnings flags, const char *prefix,
+error_message (const location *loc, warnings flags, severity sever,
                const char *message, va_list args)
 {
   unsigned pos = 0;
@@ -274,7 +411,7 @@ error_message (const location *loc, warnings flags, const char *prefix,
   if (indent_ptr)
     {
       if (*indent_ptr)
-        prefix = NULL;
+        sever = severity_disabled;
       if (!*indent_ptr)
         *indent_ptr = pos;
       else if (*indent_ptr > pos)
@@ -282,13 +419,20 @@ error_message (const location *loc, warnings flags, const char *prefix,
       indent_ptr = NULL;
     }
 
-  if (prefix)
-    fprintf (stderr, "%s: ", prefix);
+  const char* style = severity_style (sever);
+
+  if (sever != severity_disabled)
+    {
+      begin_use_class (style, stderr);
+      fprintf (stderr, "%s:", severity_prefix (sever));
+      end_use_class (style, stderr);
+      fputc (' ', stderr);
+    }
 
   vfprintf (stderr, message, args);
   /* Print the type of warning, only if this is not a sub message
      (in which case the prefix is null).  */
-  if (! (flags & silent) && prefix)
+  if (! (flags & silent) && sever != severity_disabled)
     warnings_print_categories (flags, stderr);
 
   {
@@ -296,16 +440,15 @@ error_message (const location *loc, warnings flags, const char *prefix,
     if (l < 2 || message[l - 2] != ':' || message[l - 1] != ' ')
       {
         putc ('\n', stderr);
-        fflush (stderr);
+        flush (stderr);
         if (loc && feature_flag & feature_caret && !(flags & no_caret))
-          location_caret (*loc, stderr);
+          location_caret (*loc, style, stderr);
       }
   }
-  fflush (stderr);
+  flush (stderr);
 }
 
-/** Raise a complaint. That can be a fatal error, an error or just a
-    warning.  */
+/** Raise a complaint (fatal error, error or just warning).  */
 
 static void
 complains (const location *loc, warnings flags, const char *message,
@@ -317,13 +460,9 @@ complains (const location *loc, warnings flags, const char *message,
 
   if (severity_warning <= s)
     {
-      const char* prefix =
-        s == severity_fatal ? _("fatal error")
-        : s == severity_error ? _("error")
-        : _("warning");
       if (severity_error <= s && ! complaint_status)
         complaint_status = status_warning_as_error;
-      error_message (loc, flags, prefix, message, args);
+      error_message (loc, flags, s, message, args);
     }
 
   if (flags & fatal)
@@ -398,7 +537,7 @@ deprecated_directive (location const *loc, char const *old, char const *upd)
               _("deprecated directive: %s, use %s"),
               quote (old), quote_n (1, upd));
   /* Register updates only if -Wdeprecated is enabled.  */
-  if (warnings_flag[warning_deprecated] != severity_disabled)
+  if (warning_is_enabled (Wdeprecated))
     fixits_register (loc, upd);
 }
 

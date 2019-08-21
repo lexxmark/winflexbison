@@ -26,7 +26,6 @@
 # include <string.h> /* strcmp */
 
 # include "uniqstr.h"
-# include "config.h"
 
 /* A boundary between two characters.  */
 typedef struct
@@ -50,15 +49,21 @@ typedef struct
   */
   int column;
 
+  /* If nonnegative, (origin-0) bytes number in the current line.
+     Never displayed, used when printing error messages with colors to
+     know where colors start and ends.  */
+  int byte;
+
 } boundary;
 
-/* Set the position of \a a. */
+/* Set the position of \a p. */
 static inline void
-boundary_set (boundary *b, const char *f, int l, int c)
+boundary_set (boundary *p, const char *f, int l, int c, int b)
 {
-  b->file = f;
-  b->line = l;
-  b->column = c;
+  p->file = f;
+  p->line = l;
+  p->column = c;
+  p->byte = b;
 }
 
 /* Return -1, 0, 1, depending whether a is before, equal, or
@@ -96,8 +101,8 @@ typedef struct
 
 # define GRAM_LTYPE location
 
-# define EMPTY_LOCATION_INIT {{NULL, 0, 0}, {NULL, 0, 0}}
-extern location const empty_location;
+# define EMPTY_LOCATION_INIT {{NULL, 0, 0, 0}, {NULL, 0, 0, 0}}
+extern location const empty_loc;
 
 /* Set *LOC and adjust scanner cursor to account for token TOKEN of
    size SIZE.  */
@@ -111,10 +116,10 @@ unsigned location_print (location loc, FILE *out);
 
 /* Free any allocated resources and close any open file handles that are
    left-over by the usage of location_caret.  */
-void cleanup_caret (void);
+void caret_free (void);
 
 /* Output to OUT the line and caret corresponding to location LOC.  */
-void location_caret (location loc, FILE *out);
+void location_caret (location loc, const char* style, FILE *out);
 
 /* Return -1, 0, 1, depending whether a is before, equal, or
    after b.  */
@@ -130,7 +135,8 @@ location_cmp (location a, location b)
 /* Whether this is the empty location.  */
 bool location_empty (location loc);
 
-/* LOC_STR must be formatted as 'file:line.column', it will be modified.  */
-void boundary_set_from_string (boundary *bound, char *loc_str);
+/* STR must be formatted as 'file:line.column@byte' or 'file:line.column',
+   it will be modified.  */
+void boundary_set_from_string (boundary *bound, char *str);
 
 #endif /* ! defined LOCATION_H_ */

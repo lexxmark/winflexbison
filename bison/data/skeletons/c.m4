@@ -229,18 +229,22 @@ m4_define([b4_attribute_define],
 #endif
 
 ]m4_bmatch([$1], [\bnoreturn\b], [[/* The _Noreturn keyword of C11.  */
-#if ! defined _Noreturn
-# if defined __cplusplus && 201103L <= __cplusplus
+]dnl This is an exact copy of lib/_Noreturn.h.
+[#ifndef _Noreturn
+# if (defined __cplusplus \
+      && ((201103 <= __cplusplus && !(__GNUC__ == 4 && __GNUC_MINOR__ == 7)) \
+          || (defined _MSC_VER && 1900 <= _MSC_VER)))
 #  define _Noreturn [[noreturn]]
-# elif !(defined __STDC_VERSION__ && 201112 <= __STDC_VERSION__)
-#  if (3 <= __GNUC__ || (__GNUC__ == 2 && 8 <= __GNUC_MINOR__) \
-       || 0x5110 <= __SUNPRO_C)
-#   define _Noreturn __attribute__ ((__noreturn__))
-#  elif defined _MSC_VER && 1200 <= _MSC_VER
-#   define _Noreturn __declspec (noreturn)
-#  else
-#   define _Noreturn
-#  endif
+# elif ((!defined __cplusplus || defined __clang__) \
+        && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0)  \
+            || 4 < __GNUC__ + (7 <= __GNUC_MINOR__)))
+   /* _Noreturn works as-is.  */
+# elif 2 < __GNUC__ + (8 <= __GNUC_MINOR__) || 0x5110 <= __SUNPRO_C
+#  define _Noreturn __attribute__ ((__noreturn__))
+# elif 1200 <= (defined _MSC_VER ? _MSC_VER : 0)
+#  define _Noreturn __declspec (noreturn)
+# else
+#  define _Noreturn
 # endif
 #endif
 
@@ -470,7 +474,7 @@ m4_define([b4_sync_start], [[#]line $1 $2])
 m4_define([b4_case],
 [  case $1:
 $2
-b4_syncline([@oline@], [@ofile@])
+b4_syncline([@oline@], [@ofile@])dnl
     break;])
 
 
@@ -480,7 +484,7 @@ m4_define([b4_predicate_case],
 [  case $1:
     if (! (
 $2)) YYERROR;
-b4_syncline([@oline@], [@ofile@])
+b4_syncline([@oline@], [@ofile@])dnl
     break;])
 
 
@@ -540,8 +544,10 @@ m4_if(b4_skeleton, ["yacc.c"],
     YYPRINT (yyo, yytoknum[yytype], *yyvaluep);
 # endif
 ]])dnl
-  b4_symbol_actions([printer])[
-}
+b4_percent_code_get([[pre-printer]])dnl
+  b4_symbol_actions([printer])
+b4_percent_code_get([[post-printer]])dnl
+[}
 
 
 /*---------------------------.
@@ -709,13 +715,13 @@ typedef ]b4_percent_define_get([[api.value.type]])[ ]b4_api_PREFIX[STYPE;
 [m4_bmatch(b4_percent_define_get([[api.value.type]]),
 [union\|union-directive],
 [[#if ! defined ]b4_api_PREFIX[STYPE && ! defined ]b4_api_PREFIX[STYPE_IS_DECLARED
-]b4_percent_define_get_syncline([[api.value.union.name]])[
-union ]b4_percent_define_get([[api.value.union.name]])[
+]b4_percent_define_get_syncline([[api.value.union.name]])dnl
+[union ]b4_percent_define_get([[api.value.union.name]])[
 {
 ]b4_user_union_members[
 };
-]b4_percent_define_get_syncline([[api.value.union.name]])[
-typedef union ]b4_percent_define_get([[api.value.union.name]])[ ]b4_api_PREFIX[STYPE;
+]b4_percent_define_get_syncline([[api.value.union.name]])dnl
+[typedef union ]b4_percent_define_get([[api.value.union.name]])[ ]b4_api_PREFIX[STYPE;
 # define ]b4_api_PREFIX[STYPE_IS_TRIVIAL 1
 # define ]b4_api_PREFIX[STYPE_IS_DECLARED 1
 #endif
@@ -726,7 +732,10 @@ typedef union ]b4_percent_define_get([[api.value.union.name]])[ ]b4_api_PREFIX[S
 # -----------------------
 m4_define([b4_location_type_define],
 [[/* Location type.  */
-#if ! defined ]b4_api_PREFIX[LTYPE && ! defined ]b4_api_PREFIX[LTYPE_IS_DECLARED
+]b4_percent_define_ifdef([[api.location.type]],
+[[typedef ]b4_percent_define_get([[api.location.type]])[ ]b4_api_PREFIX[LTYPE;
+]],
+[[#if ! defined ]b4_api_PREFIX[LTYPE && ! defined ]b4_api_PREFIX[LTYPE_IS_DECLARED
 typedef struct ]b4_api_PREFIX[LTYPE ]b4_api_PREFIX[LTYPE;
 struct ]b4_api_PREFIX[LTYPE
 {
@@ -738,7 +747,7 @@ struct ]b4_api_PREFIX[LTYPE
 # define ]b4_api_PREFIX[LTYPE_IS_DECLARED 1
 # define ]b4_api_PREFIX[LTYPE_IS_TRIVIAL 1
 #endif
-]])
+]])])
 
 
 # b4_declare_yylstype

@@ -71,6 +71,7 @@ static size_t no_cr_read (FILE *, char *, size_t);
 #define ROLLBACK_CURRENT_TOKEN                                  \
   do {                                                          \
     scanner_cursor.column -= mbsnwidth (yytext, yyleng, 0);     \
+    scanner_cursor.byte -= yyleng;                              \
     yyless (0);                                                 \
   } while (0)
 
@@ -78,6 +79,7 @@ static size_t no_cr_read (FILE *, char *, size_t);
   do {                                                          \
     deprecated_directive (loc, yytext, Msg);                    \
     scanner_cursor.column -= mbsnwidth (Msg, strlen (Msg), 0);  \
+    scanner_cursor.byte -= strlen (Msg);                        \
     for (size_t i = strlen (Msg); i != 0; --i)                  \
       unput (Msg[i - 1]);                                       \
   } while (0)
@@ -133,10 +135,12 @@ static void unexpected_newline (boundary, char const *);
 %x SC_BRACKETED_ID SC_RETURN_BRACKETED_ID
 
 letter    [.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_]
-notletter [^.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_]{-}[%\{]
 id        {letter}({letter}|[-0-9])*
 int       [0-9]+
 xint      0[xX][0-9abcdefABCDEF]+
+
+ /* UTF-8 Encoded Unicode Code Point, from Flex's documentation. */
+mbchar    [\x09\x0A\x0D\x20-\x7E]|[\xC2-\xDF][\x80-\xBF]|\xE0[\xA0-\xBF][\x80-\xBF]|[\xE1-\xEC\xEE\xEF]([\x80-\xBF]{2})|\xED[\x80-\x9F][\x80-\xBF]|\xF0[\x\90-\xBF]([\x80-\xBF]{2})|[\xF1-\xF3]([\x80-\xBF]{3})|\xF4[\x80-\x8F]([\x80-\xBF]{2})
 
 /* Zero or more instances of backslash-newline.  Following GCC, allow
    white space between the backslash and the newline.  */
@@ -157,7 +161,7 @@ eqopt    ({sp}=)?
   int context_state PACIFY_CC (= 0);
 
   /* Location of most recent identifier, when applicable.  */
-  location id_loc PACIFY_CC (= empty_location);
+  location id_loc PACIFY_CC (= empty_loc);
 
   /* Where containing code started, when applicable.  Its initial
      value is relevant only when yylex is invoked in the SC_EPILOGUE
@@ -248,7 +252,6 @@ eqopt    ({sp}=)?
   "%prec"                           return PERCENT_PREC;
   "%precedence"                     return BISON_DIRECTIVE (PRECEDENCE);
   "%printer"                        return BISON_DIRECTIVE (PRINTER);
-  "%pure-parser"                    RETURN_PERCENT_FLAG ("api.pure");
   "%require"                        return BISON_DIRECTIVE (REQUIRE);
   "%right"                          return PERCENT_RIGHT;
   "%skeleton"                       return BISON_DIRECTIVE (SKELETON);
@@ -260,6 +263,10 @@ eqopt    ({sp}=)?
   "%union"                          return PERCENT_UNION;
   "%verbose"                        return BISON_DIRECTIVE (VERBOSE);
   "%yacc"                           RETURN_VALUE (PERCENT_YACC, uniqstr_new (yytext));
+
+  /* Deprecated since Bison 2.3b (2008-05-27), but the warning is
+     issued only since Bison 3.4. */
+  "%pure"[-_]"parser"               RETURN_VALUE (PERCENT_PURE_PARSER, uniqstr_new (yytext));
 
   /* Deprecated since Bison 3.0 (2013-07-25), but the warning is
      issued only since Bison 3.3. */
@@ -278,13 +285,13 @@ eqopt    ({sp}=)?
   "%no"[-_]"default"[-_]"prec"      DEPRECATED ("%no-default-prec");
   "%no"[-_]"lines"                  DEPRECATED ("%no-lines");
   "%output"{eqopt}                  DEPRECATED ("%output");
-  "%pure"[-_]"parser"               DEPRECATED ("%pure-parser");
   "%token"[-_]"table"               DEPRECATED ("%token-table");
 
   "%"{id} {
     complain (loc, complaint, _("invalid directive: %s"), quote (yytext));
   }
 
+  ":"                     return COLON;
   "="                     return EQUAL;
   "|"                     return PIPE;
   ";"                     return SEMICOLON;
@@ -398,6 +405,7 @@ eqopt    ({sp}=)?
       }
   }
   ":" {
+    ROLLBACK_CURRENT_TOKEN;
     BEGIN (bracketed_id_str ? SC_RETURN_BRACKETED_ID : INITIAL);
     *loc = id_loc;
     return ID_COLON;
@@ -788,8 +796,16 @@ eqopt    ({sp}=)?
   | By default, grow the string obstack with the input.  |
   `-----------------------------------------------------*/
 
-<SC_COMMENT,SC_LINE_COMMENT,SC_BRACED_CODE,SC_PREDICATE,SC_PROLOGUE,SC_EPILOGUE,SC_STRING,SC_CHARACTER,SC_ESCAPED_STRING,SC_ESCAPED_CHARACTER>. |
-  <SC_COMMENT,SC_LINE_COMMENT,SC_BRACED_CODE,SC_PREDICATE,SC_PROLOGUE,SC_EPILOGUE>\n    STRING_GROW;
+<SC_COMMENT,SC_LINE_COMMENT,SC_BRACED_CODE,SC_PREDICATE,SC_PROLOGUE,SC_EPILOGUE,SC_STRING,SC_CHARACTER,SC_ESCAPED_STRING,SC_ESCAPED_CHARACTER>
+{
+  /* Accept multibyte characters in one block instead of byte after
+     byte, so that add_column_width and mbsnwidth can compute correct
+     screen width.
+
+     Add a fallthrough "|." so that non UTF-8 input is still accepted
+     and does not jam the scanner.  */
+  {mbchar}|.   STRING_GROW;
+}
 
 %%
 
@@ -944,7 +960,7 @@ handle_syncline (char *args, location loc)
       *strchr (file + 1, '"') = '\0';
       current_file = uniqstr_new (file + 1);
     }
-  boundary_set (&scanner_cursor, current_file, lineno, 1);
+  boundary_set (&scanner_cursor, current_file, lineno, 1, 1);
 }
 
 
@@ -965,6 +981,7 @@ unexpected_end (boundary start, char const *msgid, char const *token_end)
   /* Adjust scanner cursor so that any later message does not count
      the characters about to be inserted.  */
   scanner_cursor.column -= i;
+  scanner_cursor.byte -= i;
 
   while (i != 0)
     unput (token_end[--i]);

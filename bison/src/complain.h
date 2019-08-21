@@ -24,6 +24,20 @@
 /* Sub-messages indent. */
 # define SUB_INDENT (4)
 
+/*---------------.
+| Error stream.  |
+`---------------*/
+
+/** Enable a style on \a out provided it's stderr.  */
+void begin_use_class (const char *style, FILE *out);
+
+/** Disable a style on \a out provided it's stderr.  */
+void end_use_class (const char *style, FILE *out);
+
+/** Flush \a out.  */
+void flush (FILE *out);
+
+
 /*-------------.
 | --warnings.  |
 `-------------*/
@@ -76,6 +90,12 @@ void warnings_argmatch (char *args);
 /** Initialize this module.  */
 void complain_init (void);
 
+/** Reclaim resources.  */
+void complain_free (void);
+
+/** Initialize support for colored messages.  */
+void complain_init_color (void);
+
 typedef enum
   {
     Wnone             = 0,       /**< Issue no warnings.  */
@@ -105,9 +125,12 @@ typedef enum
     (Never enabled, never disabled). */
 bool warning_is_unset (warnings flags);
 
+/** Whether warnings of \a flags should be reported. */
+bool warning_is_enabled (warnings flags);
+
 /** Make a complaint, with maybe a location.  */
-void complain (location const *loc, warnings flags, char const *message, ...);
-//  __attribute__ ((__format__ (__printf__, 3, 4)));
+void complain (location const *loc, warnings flags, char const *message, ...)
+  __attribute__ ((__format__ (__printf__, 3, 4)));
 
 /** Likewise, but with an \a argc/argv interface.  */
 void complain_args (location const *loc, warnings w, unsigned *indent,
@@ -115,8 +138,9 @@ void complain_args (location const *loc, warnings w, unsigned *indent,
 
 /** Make a complaint with location and some indentation.  */
 void complain_indent (location const *loc, warnings flags, unsigned *indent,
-                      char const *message, ...);
- // __attribute__ ((__format__ (__printf__, 4, 5)));
+                      char const *message, ...)
+  __attribute__ ((__format__ (__printf__, 4, 5)));
+
 
 /** GNU Bison extension not valid with POSIX Yacc.  */
 void bison_directive (location const *loc, char const *directive);

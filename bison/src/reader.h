@@ -32,7 +32,7 @@ typedef struct merger_list
   struct merger_list* next;
   uniqstr name;
   uniqstr type;
-  location type_declaration_location;
+  location type_declaration_loc;
 } merger_list;
 
 /* From the parser.  */

@@ -211,7 +211,7 @@ muscle_syncline_grow (char const *key, location loc)
   obstack_printf (&muscle_obstack, "]b4_syncline(%d, ", loc.start.line);
   obstack_quote (&muscle_obstack,
                  quotearg_style (c_quoting_style, loc.start.file));
-  obstack_sgrow (&muscle_obstack, ")[");
+  obstack_sgrow (&muscle_obstack, ")dnl\n[");
   char const *extension = obstack_finish0 (&muscle_obstack);
   muscle_grow (key, extension, "", "");
   obstack_free (&muscle_obstack, extension);
@@ -227,7 +227,7 @@ void
 muscle_code_grow (const char *key, const char *val, location loc)
 {
   muscle_syncline_grow (key, loc);
-  muscle_grow (key, val, "\n", "\n");
+  muscle_grow (key, val, "", "\n");
 }
 
 
@@ -275,18 +275,14 @@ muscle_boundary_grow (char const *key, boundary bound)
 {
   obstack_sgrow  (&muscle_obstack, "[[");
   obstack_escape (&muscle_obstack, bound.file);
-  obstack_printf (&muscle_obstack, ":%d.%d]]", bound.line, bound.column);
+  obstack_printf (&muscle_obstack, ":%d.%d@@%d]]", bound.line, bound.column, bound.byte);
   char const *extension = obstack_finish0 (&muscle_obstack);
   muscle_grow (key, extension, "", "");
   obstack_free (&muscle_obstack, extension);
 }
 
 
-/* In the format '[[file_name:line.column]], [[file_name:line.column]]',
-   append LOC to MUSCLE.  Use digraphs for special characters in each
-   file name.  */
-
-static void
+void
 muscle_location_grow (char const *key, location loc)
 {
   muscle_boundary_grow (key, loc.start);
@@ -714,9 +710,11 @@ muscle_percent_define_default (char const *variable, char const *value)
       {
         uniqstr loc_name = muscle_name (variable, "loc");
         location loc;
-        loc.start.file = loc.end.file = "<default value>";
-        loc.start.line = loc.end.line = -1;
-        loc.start.column = loc.end.column = -1;
+        loc.start.file = "<default value>";
+        loc.start.line = -1;
+        loc.start.column = -1;
+        loc.start.byte = -1;
+        loc.end = loc.start;
         muscle_insert (loc_name, "");
         muscle_location_grow (loc_name, loc);
       }

@@ -26,6 +26,7 @@
 #include "complain.h"
 #include "conflicts.h"
 #include "files.h"
+#include "fixits.h"
 #include "getargs.h"
 #include "gram.h"
 #include "muscle-tab.h"
@@ -61,7 +62,7 @@ grammar_start_symbol_set (symbol *sym, location loc)
     {
       start_flag = true;
       startsymbol = sym;
-      startsymbol_location = loc;
+      startsymbol_loc = loc;
     }
 }
 
@@ -130,12 +131,12 @@ record_merge_function_type (int merger, uniqstr type, location declaration_loc)
                        quote (merge_function->name), type,
                        merge_function->type);
       indent += SUB_INDENT;
-      complain_indent (&merge_function->type_declaration_location, complaint,
+      complain_indent (&merge_function->type_declaration_loc, complaint,
                        &indent,
                        _("previous declaration"));
     }
   merge_function->type = uniqstr_new (type);
-  merge_function->type_declaration_location = declaration_loc;
+  merge_function->type_declaration_loc = declaration_loc;
 }
 
 /*--------------------------------------.
@@ -226,11 +227,9 @@ grammar_current_rule_begin (symbol *lhs, location loc,
   ++nrules;
   previous_rule_end = grammar_end;
 
-  symbol_list *p = grammar_symbol_append (lhs, loc);
+  current_rule = grammar_symbol_append (lhs, loc);
   if (lhs_name)
-    assign_named_ref (p, named_ref_copy (lhs_name));
-
-  current_rule = grammar_end;
+    assign_named_ref (current_rule, named_ref_copy (lhs_name));
 
   /* Mark the rule's lhs as a nonterminal if not already so.  */
   if (lhs->content->class == unknown_sym)
@@ -293,10 +292,10 @@ grammar_rule_check_and_complete (symbol_list *r)
       if (first_rhs)
         {
           char const *lhs_type = r->content.sym->content->type_name;
-          const char *rhs_type =
+          char const *rhs_type =
             first_rhs->content->type_name ? first_rhs->content->type_name : "";
           if (!UNIQSTR_EQ (lhs_type, rhs_type))
-            complain (&r->location, Wother,
+            complain (&r->rhs_loc, Wother,
                       _("type clash on default action: <%s> != <%s>"),
                       lhs_type, rhs_type);
           else
@@ -309,7 +308,7 @@ grammar_rule_check_and_complete (symbol_list *r)
               if (is_cxx)
                 {
                   code_props_rule_action_init (&r->action_props, "{ $$ = $1; }",
-                                               r->location, r,
+                                               r->rhs_loc, r,
                                                /* name */ NULL,
                                                /* type */ NULL,
                                                /* is_predicate */ false);
@@ -319,7 +318,7 @@ grammar_rule_check_and_complete (symbol_list *r)
         }
       /* Warn if there is no default for $$ but we need one.  */
       else
-        complain (&r->location, Wother,
+        complain (&r->rhs_loc, Wother,
                   _("empty rule for typed nonterminal, and no action"));
     }
 
@@ -336,9 +335,9 @@ grammar_rule_check_and_complete (symbol_list *r)
           {
             warnings warn_flag = midrule_warning ? Wmidrule_values : Wother;
             if (n)
-              complain (&l->location, warn_flag, _("unused value: $%d"), n);
+              complain (&l->sym_loc, warn_flag, _("unused value: $%d"), n);
             else
-              complain (&l->location, warn_flag, _("unset value: $$"));
+              complain (&l->rhs_loc, warn_flag, _("unset value: $$"));
           }
       }
   }
@@ -346,14 +345,23 @@ grammar_rule_check_and_complete (symbol_list *r)
   /* Check that %empty => empty rule.  */
   if (r->percent_empty_loc.start.file
       && r->next && r->next->content.sym)
-    complain (&r->percent_empty_loc, complaint,
-              _("%%empty on non-empty rule"));
+    {
+      complain (&r->percent_empty_loc, complaint,
+                _("%%empty on non-empty rule"));
+      fixits_register (&r->percent_empty_loc, "");
+    }
 
   /* Check that empty rule => %empty.  */
   if (!(r->next && r->next->content.sym)
       && !r->midrule_parent_rule
-      && !r->percent_empty_loc.start.file)
-    complain (&r->location, Wempty_rule, _("empty rule without %%empty"));
+      && !r->percent_empty_loc.start.file
+      && warning_is_enabled (Wempty_rule))
+    {
+      complain (&r->rhs_loc, Wempty_rule, _("empty rule without %%empty"));
+      location loc = r->rhs_loc;
+      loc.end = loc.start;
+      fixits_register (&loc, " %empty ");
+    }
 
   /* See comments in grammar_current_rule_prec_set for how POSIX
      mandates this complaint.  It's only for identifiers, so skip
@@ -362,12 +370,12 @@ grammar_rule_check_and_complete (symbol_list *r)
       && r->ruleprec->tag[0] != '\'' && r->ruleprec->tag[0] != '"'
       && r->ruleprec->content->status != declared
       && !r->ruleprec->content->prec)
-    complain (&r->location, Wother,
+    complain (&r->rhs_loc, Wother,
               _("token for %%prec is not defined: %s"), r->ruleprec->tag);
 
   /* Check that the (main) action was not typed.  */
   if (r->action_props.type)
-    complain (&r->location, Wother,
+    complain (&r->rhs_loc, Wother,
               _("only midrule actions can be typed: %s"), r->action_props.type);
 }
 
@@ -380,8 +388,8 @@ void
 grammar_current_rule_end (location loc)
 {
   /* Put an empty link in the list to mark the end of this rule  */
-  grammar_symbol_append (NULL, grammar_end->location);
-  current_rule->location = loc;
+  grammar_symbol_append (NULL, grammar_end->rhs_loc);
+  current_rule->rhs_loc = loc;
 }
 
 
@@ -401,11 +409,11 @@ grammar_midrule_action (void)
 
   /* Make a DUMMY nonterminal, whose location is that of the midrule
      action.  Create the MIDRULE.  */
-  location dummy_location = current_rule->action_props.location;
-  symbol *dummy = dummy_symbol_get (dummy_location);
+  location dummy_loc = current_rule->action_props.location;
+  symbol *dummy = dummy_symbol_get (dummy_loc);
   symbol_type_set(dummy,
                   current_rule->action_props.type, current_rule->action_props.location);
-  symbol_list *midrule = symbol_list_sym_new (dummy, dummy_location);
+  symbol_list *midrule = symbol_list_sym_new (dummy, dummy_loc);
 
   /* Remember named_ref of previous action. */
   named_ref *action_name = current_rule->action_props.named_ref;
@@ -415,7 +423,7 @@ grammar_midrule_action (void)
   ++nrules;
   ++nritems;
   /* Attach its location and actions to that of the DUMMY.  */
-  midrule->location = dummy_location;
+  midrule->rhs_loc = dummy_loc;
   code_props_rule_action_init (&midrule->action_props,
                                current_rule->action_props.code,
                                current_rule->action_props.location,
@@ -436,14 +444,14 @@ grammar_midrule_action (void)
     grammar = midrule;
 
   /* End the dummy's rule.  */
-  midrule->next = symbol_list_sym_new (NULL, dummy_location);
+  midrule->next = symbol_list_sym_new (NULL, dummy_loc);
   midrule->next->next = current_rule;
 
   previous_rule_end = midrule->next;
 
   /* Insert the dummy nonterminal replacing the midrule action into
      the current rule.  Bind it to its dedicated rule.  */
-  grammar_current_rule_symbol_append (dummy, dummy_location,
+  grammar_current_rule_symbol_append (dummy, dummy_loc,
                                       action_name);
   grammar_end->midrule = midrule;
   midrule->midrule_parent_rule = current_rule;
@@ -502,11 +510,11 @@ grammar_current_rule_dprec_set (int dprec, location loc)
               "%dprec");
   else if (current_rule->dprec != 0)
     duplicate_rule_directive ("%dprec",
-                              current_rule->dprec_location, loc);
+                              current_rule->dprec_loc, loc);
   else
     {
       current_rule->dprec = dprec;
-      current_rule->dprec_location = loc;
+      current_rule->dprec_loc = loc;
     }
 }
 
@@ -521,11 +529,11 @@ grammar_current_rule_merge_set (uniqstr name, location loc)
               "%merge");
   if (current_rule->merger != 0)
     duplicate_rule_directive ("%merge",
-                              current_rule->merger_declaration_location, loc);
+                              current_rule->merger_declaration_loc, loc);
   else
     {
       current_rule->merger = get_merge_function (name);
-      current_rule->merger_declaration_location = loc;
+      current_rule->merger_declaration_loc = loc;
     }
 }
 
@@ -615,11 +623,11 @@ packgram (void)
     {
       symbol_list *lhs = p;
       record_merge_function_type (lhs->merger, lhs->content.sym->content->type_name,
-                                  lhs->merger_declaration_location);
+                                  lhs->merger_declaration_loc);
       /* If the midrule's $$ is set or its $n is used, remove the '$' from the
          symbol name so that it's a user-defined symbol so that the default
          %destructor and %printer apply.  */
-      if (lhs->midrule_parent_rule
+      if (lhs->midrule_parent_rule /* i.e., symbol_is_dummy (lhs->content.sym).  */
           && (lhs->action_props.is_value_used
               || (symbol_list_n_get (lhs->midrule_parent_rule,
                                      lhs->midrule_parent_rhs_index)
@@ -629,8 +637,8 @@ packgram (void)
       /* Don't check the generated rule 0.  It has no action, so some rhs
          symbols may appear unused, but the parsing algorithm ensures that
          %destructor's are invoked appropriately.  */
-      if (p != grammar)
-        grammar_rule_check_and_complete (p);
+      if (lhs != grammar)
+        grammar_rule_check_and_complete (lhs);
 
       rules[ruleno].user_number = ruleno;
       rules[ruleno].number = ruleno;
@@ -640,18 +648,18 @@ packgram (void)
       rules[ruleno].dprec = lhs->dprec;
       rules[ruleno].merger = lhs->merger;
       rules[ruleno].precsym = NULL;
-      rules[ruleno].location = lhs->location;
+      rules[ruleno].location = lhs->rhs_loc;
       rules[ruleno].useful = true;
       rules[ruleno].action = lhs->action_props.code;
-      rules[ruleno].action_location = lhs->action_props.location;
+      rules[ruleno].action_loc = lhs->action_props.location;
       rules[ruleno].is_predicate = lhs->action_props.is_predicate;
-      rules[ruleno].expected_sr_conflicts = p->expected_sr_conflicts;
-      rules[ruleno].expected_rr_conflicts = p->expected_rr_conflicts;
+      rules[ruleno].expected_sr_conflicts = lhs->expected_sr_conflicts;
+      rules[ruleno].expected_rr_conflicts = lhs->expected_rr_conflicts;
 
       /* Traverse the rhs.  */
       {
         size_t rule_length = 0;
-        for (p = p->next; p->content.sym; p = p->next)
+        for (p = lhs->next; p->content.sym; p = p->next)
           {
             ++rule_length;
 
@@ -706,18 +714,18 @@ reader (void)
   symbols_new ();
 
   /* Construct the accept symbol. */
-  accept = symbol_get ("$accept", empty_location);
+  accept = symbol_get ("$accept", empty_loc);
   accept->content->class = nterm_sym;
   accept->content->number = nvars++;
 
   /* Construct the error token */
-  errtoken = symbol_get ("error", empty_location);
+  errtoken = symbol_get ("error", empty_loc);
   errtoken->content->class = token_sym;
   errtoken->content->number = ntokens++;
 
   /* Construct a token that represents all undefined literal tokens.
      It is always token number 2.  */
-  undeftoken = symbol_get ("$undefined", empty_location);
+  undeftoken = symbol_get ("$undefined", empty_loc);
   undeftoken->content->class = token_sym;
   undeftoken->content->number = ntokens++;
 
@@ -754,11 +762,12 @@ prepare_percent_define_front_end_variables (void)
 
   /* Check %define front-end variables.  */
   {
-    static char const * const values[] = {
-      "lr.type", "lalr", "ielr", "canonical-lr", NULL,
-      "lr.default-reduction", "most", "consistent", "accepting", NULL,
-      NULL
-    };
+    static char const * const values[] =
+      {
+       "lr.type", "lr""(0)", "lalr", "ielr", "canonical-lr", NULL,
+       "lr.default-reduction", "most", "consistent", "accepting", NULL,
+       NULL
+      };
     muscle_percent_define_check_values (values);
   }
 }
@@ -793,7 +802,7 @@ check_and_convert_grammar (void)
   /* If the user did not define her ENDTOKEN, do it now. */
   if (!endtoken)
     {
-      endtoken = symbol_get ("$end", empty_location);
+      endtoken = symbol_get ("$end", empty_loc);
       endtoken->content->class = token_sym;
       endtoken->content->number = 0;
       /* Value specified by POSIX.  */
@@ -815,11 +824,11 @@ check_and_convert_grammar (void)
 
      $accept: %start $end.  */
   {
-    symbol_list *p = symbol_list_sym_new (accept, empty_location);
-    p->location = grammar->location;
-    p->next = symbol_list_sym_new (startsymbol, empty_location);
-    p->next->next = symbol_list_sym_new (endtoken, empty_location);
-    p->next->next->next = symbol_list_sym_new (NULL, empty_location);
+    symbol_list *p = symbol_list_sym_new (accept, empty_loc);
+    p->rhs_loc = grammar->rhs_loc;
+    p->next = symbol_list_sym_new (startsymbol, empty_loc);
+    p->next->next = symbol_list_sym_new (endtoken, empty_loc);
+    p->next->next->next = symbol_list_sym_new (NULL, empty_loc);
     p->next->next->next->next = grammar;
     nrules += 1;
     nritems += 3;
@@ -829,8 +838,7 @@ check_and_convert_grammar (void)
   aver (nsyms <= SYMBOL_NUMBER_MAXIMUM);
   aver (nsyms == ntokens + nvars);
 
-  /* Assign the symbols their symbol numbers.  Write #defines for the
-     token symbols into FDEFINES if requested.  */
+  /* Assign the symbols their symbol numbers.  */
   symbols_pack ();
 
   /* Scan rule actions after invoking symbol_check_alias_consistency (in

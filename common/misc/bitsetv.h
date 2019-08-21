@@ -57,4 +57,7 @@ extern void bitsetv_dump (FILE *, const char *, const char *, bitsetv);
 /* Function to debug vector of bitsets from debugger.  */
 extern void debug_bitsetv (bitsetv);
 
+/* Dump vector of bitsets as a matrix.  */
+extern void bitsetv_matrix_dump(FILE *, const char *, bitsetv);
+
 #endif  /* _BITSETV_H  */

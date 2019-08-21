@@ -147,13 +147,13 @@ m4_if(m4_bregexp(b4_namespace_ref, [::[	 ]*$]), [-1], [],
                 [[namespace reference has a trailing "::"]])])
 
 m4_define([b4_namespace_open],
-[b4_user_code([b4_percent_define_get_syncline([[api.namespace]])
+[b4_user_code([b4_percent_define_get_syncline([[api.namespace]])dnl
 [namespace ]m4_bpatsubst(m4_dquote(m4_bpatsubst(m4_dquote(b4_namespace_ref),
                                                 [^\(.\)[	 ]*::], [\1])),
                          [::], [ { namespace ])[ {]])])
 
 m4_define([b4_namespace_close],
-[b4_user_code([b4_percent_define_get_syncline([[api.namespace]])
+[b4_user_code([b4_percent_define_get_syncline([[api.namespace]])dnl
 m4_bpatsubst(m4_dquote(m4_bpatsubst(m4_dquote(b4_namespace_ref[ ]),
                                     [^\(.\)[	 ]*\(::\)?\([^][:]\|:[^:]\)*],
                                     [\1])),
@@ -194,7 +194,7 @@ m4_define([b4_value_type_declare],
 [union\|union-directive],
 [[    union semantic_type
     {
-    ]b4_user_union_members[
+]b4_user_union_members[
     };]])])dnl
 ])
 

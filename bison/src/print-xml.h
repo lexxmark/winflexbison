@@ -21,6 +21,10 @@
 #ifndef PRINT_XML_H_
 # define PRINT_XML_H_
 
+# include <config.h>
+
+# include <stdio.h>
+
 void xml_indent (FILE *out, int level);
 void xml_puts (FILE *, int, char const *);
 void xml_printf (FILE *, int, char const *, ...);

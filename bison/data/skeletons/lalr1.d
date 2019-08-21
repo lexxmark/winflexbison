@@ -47,8 +47,8 @@ import std.format;
  * parser <tt>]b4_parser_class[</tt>.
  */
 public interface Lexer
-{
-  ]b4_locations_if([[/**
+{]b4_locations_if([[
+  /**
    * Method to retrieve the beginning position of the last scanned token.
    * @@return the position at which the last scanned token starts.  */
   @@property ]b4_position_type[ startPos ();
@@ -56,8 +56,9 @@ public interface Lexer
   /**
    * Method to retrieve the ending position of the last scanned token.
    * @@return the first position beyond the last scanned token.  */
-  @@property ]b4_position_type[ endPos ();]])[
+  @@property ]b4_position_type[ endPos ();
 
+]])[
   /**
    * Method to retrieve the semantic value of the last scanned token.
    * @@return the semantic value of the last scanned token.  */
@@ -68,13 +69,13 @@ public interface Lexer
    * to the next token and prepares to return the semantic value
    * ]b4_locations_if([and beginning/ending positions ])[of the token.
    * @@return the token identifier corresponding to the next token. */
-  YYTokenType yylex ();
+  int yylex ();
 
   /**
    * Entry point for error reporting.  Emits an error
    * ]b4_locations_if([referring to the given location ])[in a user-defined way.
-   *
-   * ]b4_locations_if([[@@param loc The location of the element to which the
+   *]b4_locations_if([[
+   * @@param loc The location of the element to which the
    *                error message is related]])[
    * @@param s The string for the error message.  */
    void yyerror (]b4_locations_if([b4_location_type[ loc, ]])[string s);
@@ -82,8 +83,8 @@ public interface Lexer
 
 private final struct YYStackElement{
   int state;
-  ]b4_yystype[ value;
-  ]b4_locations_if(b4_location_type[[] location;])[
+  ]b4_yystype[ value;]b4_locations_if(
+  b4_location_type[[] location;])[
 }
 
 private final struct YYStack {
@@ -231,9 +232,9 @@ b4_user_union_members
   ]b4_identification[
 
   /** True if verbose error messages are enabled.  */
-  public bool errorVerbose = ]b4_flag_value([error_verbose]);
+  public bool errorVerbose = ]b4_flag_value([error_verbose])[;
 
-  b4_locations_if([[
+]b4_locations_if([[
   private final ]b4_location_type[ yylloc_from_stack (ref YYStack rhs, int n)
   {
     static if (yy_location_is_class) {
@@ -249,34 +250,34 @@ b4_user_union_members
     }
   }]])[
 
-  ]b4_lexer_if([[private class YYLexer implements Lexer {
+]b4_lexer_if([[  private class YYLexer implements Lexer {
 ]b4_percent_code_get([[lexer]])[
   }
-
-  ]])[/** The object doing lexical analysis for us.  */
+]])[
+  /** The object doing lexical analysis for us.  */
   private Lexer yylexer;
-  ]
-  b4_parse_param_vars
 
-b4_lexer_if([[
+]b4_parse_param_vars[
+
+]b4_lexer_if([[
   /**
    * Instantiates the Bison-generated parser.
    */
   public this] (b4_parse_param_decl([b4_lex_param_decl])[) {
     this.yylexer = new YYLexer(]b4_lex_param_call[);
     this.yyDebugStream = stderr;
-    ]b4_parse_param_cons[
+]b4_parse_param_cons[
   }
-]])
+]])[
 
   /**
    * Instantiates the Bison-generated parser.
    * @@param yylexer The scanner that will supply tokens to the parser.
    */
-  b4_lexer_if([[protected]], [[public]]) [this (]b4_parse_param_decl([[Lexer yylexer]])[) {
+  ]b4_lexer_if([[protected]], [[public]]) [this (]b4_parse_param_decl([[Lexer yylexer]])[) {
     this.yylexer = yylexer;
     this.yyDebugStream = stderr;
-    ]b4_parse_param_cons[
+]b4_parse_param_cons[
   }
 
   private File yyDebugStream;
@@ -358,8 +359,8 @@ b4_lexer_if([[
 
   private int yyaction (int yyn, ref YYStack yystack, int yylen)
   {
-    ]b4_yystype[ yyval;
-    ]b4_locations_if([b4_location_type[ yyloc = yylloc_from_stack (yystack, yylen);]])[
+    ]b4_yystype[ yyval;]b4_locations_if([[
+    ]b4_location_type[ yyloc = yylloc_from_stack (yystack, yylen);]])[
 
     /* If YYLEN is nonzero, implement the default value of the action:
        `$$ = $1'.  Otherwise, use the top of the stack.
@@ -408,7 +409,8 @@ b4_lexer_if([[
     if (yystr[0] == '"')
       {
         string yyr;
-        strip_quotes: for (int i = 1; i < yystr.length; i++)
+      strip_quotes:
+        for (int i = 1; i < yystr.length; i++)
           switch (yystr[i])
             {
             case '\'':
@@ -475,15 +477,15 @@ b4_locations_if([, ref ]b4_location_type[ yylocationp])[)
     YYStack yystack;
 
     /* Error handling.  */
-    int yynerrs_ = 0;
-    ]b4_locations_if([/// The location where the error started.
+    int yynerrs_ = 0;]b4_locations_if([[
+    /// The location where the error started.
     ]b4_location_type[ yyerrloc = null;
 
     /// ]b4_location_type[ of the lookahead.
     ]b4_location_type[ yylloc;
 
     /// @@$.
-    ]b4_location_type[ yyloc;])[
+    ]b4_location_type[ yyloc;]])[
 
     /// Semantic value of the lookahead.
     ]b4_yystype[ yylval;
@@ -531,8 +533,7 @@ m4_popdef([b4_at_dollar])])dnl
         if (yychar == yyempty_)
         {
           yycdebug ("Reading a token: ");
-          yychar = yylex ();]
-          b4_locations_if([[
+          yychar = yylex ();]b4_locations_if([[
           static if (yy_location_is_class) {
             yylloc = new ]b4_location_type[(yylexer.startPos, yylexer.endPos);
           } else {
@@ -624,7 +625,7 @@ m4_popdef([b4_at_dollar])])dnl
           yyerror (]b4_locations_if([yylloc, ])[yysyntax_error (yystate, yytoken));
         }
 
-        ]b4_locations_if([yyerrloc = yylloc;])[
+]b4_locations_if([        yyerrloc = yylloc;])[
         if (yyerrstatus_ == 3)
         {
           /* If just tried and failed to reuse lookahead token after an
@@ -648,9 +649,8 @@ m4_popdef([b4_at_dollar])])dnl
       /*-------------------------------------------------.
       | errorlab -- error raised explicitly by YYERROR.  |
       `-------------------------------------------------*/
-      case YYERROR:
-
-        ]b4_locations_if([yyerrloc = yystack.locationAt (yylen - 1);])[
+      case YYERROR:]b4_locations_if([
+        yyerrloc = yystack.locationAt (yylen - 1);])[
         /* Do not reclaim the symbols of the rule which action triggered
            this YYERROR.  */
         yystack.pop (yylen);
@@ -663,7 +663,7 @@ m4_popdef([b4_at_dollar])])dnl
       | yyerrlab1 -- common code for both syntax error and YYERROR.  |
       `-------------------------------------------------------------*/
       case YYERRLAB1:
-        yyerrstatus_ = 3;	/* Each real token shifted decrements this.xb  */
+        yyerrstatus_ = 3;       /* Each real token shifted decrements this.  */
 
         for (;;)
         {
@@ -683,14 +683,14 @@ m4_popdef([b4_at_dollar])])dnl
           if (yystack.height == 1)
             return false;
 
-          ]b4_locations_if([yyerrloc = yystack.locationAt (0);])[
+]b4_locations_if([          yyerrloc = yystack.locationAt (0);])[
           yystack.pop ();
           yystate = yystack.stateAt (0);
           if (yydebug > 0)
             yystack.print (yyDebugStream);
         }
 
-        ]b4_locations_if([
+]b4_locations_if([
         /* Muck with the stack to setup for yylloc.  */
         yystack.push (0, yy_semantic_null, yylloc);
         yystack.push (0, yy_semantic_null, yyerrloc);
@@ -892,6 +892,5 @@ m4_popdef([b4_at_dollar])])dnl
 b4_percent_code_get[]dnl
 
 }
-
-b4_epilogue
+b4_epilogue[]dnl
 m4_divert_pop(0)dnl

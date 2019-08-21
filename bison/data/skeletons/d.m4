@@ -18,11 +18,24 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# b4_comment(TEXT)
-# ----------------
-m4_define([b4_comment], [/* m4_bpatsubst([$1], [
-], [
-   ])  */])
+# _b4_comment(TEXT, OPEN, CONTINUE, END)
+# --------------------------------------
+# Put TEXT in comment.  Avoid trailing spaces: don't indent empty lines.
+# Avoid adding indentation to the first line, as the indentation comes
+# from OPEN.  That's why we don't patsubst([$1], [^\(.\)], [   \1]).
+#
+# Prefix all the output lines with PREFIX.
+m4_define([_b4_comment],
+[$2[]m4_bpatsubst(m4_expand([[$1]]), [
+\(.\)], [
+$3\1])$4])
+
+
+# b4_comment(TEXT, [PREFIX])
+# --------------------------
+# Put TEXT in comment.  Prefix all the output lines with PREFIX.
+m4_define([b4_comment],
+[_b4_comment([$1], [$2/* ], [$2   ], [  */])])
 
 
 # b4_list2(LIST1, LIST2)
@@ -177,7 +190,7 @@ b4_percent_define_default([[stype]], [[YYSemanticType]])])
 # %name-prefix
 m4_define_default([b4_prefix], [[YY]])
 
-b4_percent_define_default([[api.parser.class]], [b4_prefix[]YYParser])])
+b4_percent_define_default([[api.parser.class]], [b4_prefix[]Parser])])
 m4_define([b4_parser_class], [b4_percent_define_get([[api.parser.class]])])
 
 #b4_percent_define_default([[location_type]], [Location])])

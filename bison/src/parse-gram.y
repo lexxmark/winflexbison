@@ -49,7 +49,7 @@
   #include "xmemdup0.h"
 
   static int current_prec = 0;
-  static location current_lhs_location;
+  static location current_lhs_loc;
   static named_ref *current_lhs_named_ref;
   static symbol *current_lhs_symbol;
   static symbol_class current_class = unknown_sym;
@@ -94,6 +94,9 @@
   static void handle_name_prefix (location const *loc,
                                   char const *directive, char const *value);
 
+  /* Handle a %pure-parser directive.  */
+  static void handle_pure_parser (location const *loc, char const *directive);
+
   /* Handle a %require directive.  */
   static void handle_require (location const *loc, char const *version);
 
@@ -112,8 +115,13 @@
   #define YYTYPE_INT8 int_fast8_t
   #define YYTYPE_UINT16 uint_fast16_t
   #define YYTYPE_UINT8 uint_fast8_t
+
+  /* Add style to semantic values in traces.  */
+  static void tron (FILE *yyo);
+  static void troff (FILE *yyo);
 }
 
+%define api.header.include {"parse-gram.h"}
 %define api.prefix {gram_}
 %define api.pure full
 %define api.value.type union
@@ -129,8 +137,8 @@
 {
   /* Bison's grammar can initial empty locations, hence a default
      location is needed. */
-  boundary_set (&@$.start, current_file, 1, 1);
-  boundary_set (&@$.end, current_file, 1, 1);
+  boundary_set (&@$.start, current_file, 1, 1, 1);
+  boundary_set (&@$.end, current_file, 1, 1, 1);
 }
 
 /* Define the tokens together with their human representation.  */
@@ -176,6 +184,7 @@
   PERCENT_NONDETERMINISTIC_PARSER
                           "%nondeterministic-parser"
   PERCENT_OUTPUT          "%output"
+  PERCENT_PURE_PARSER     "%pure-parser"
   PERCENT_REQUIRE         "%require"
   PERCENT_SKELETON        "%skeleton"
   PERCENT_START           "%start"
@@ -188,6 +197,7 @@
 %token BRACED_PREDICATE "%?{...}"
 %token BRACKETED_ID    "[identifier]"
 %token CHAR            "char"
+%token COLON           ":"
 %token EPILOGUE        "epilogue"
 %token EQUAL           "="
 %token ID              "identifier"
@@ -200,17 +210,20 @@
 %token TAG_ANY         "<*>"
 %token TAG_NONE        "<>"
 
+ /* Experimental feature, don't rely on it.  */
+%code pre-printer  {tron (yyo);}
+%code post-printer {troff (yyo);}
+
 %type <unsigned char> CHAR
 %printer { fputs (char_name ($$), yyo); } <unsigned char>
 
 %type <char*> "{...}" "%?{...}" "%{...%}" EPILOGUE STRING
-%printer { fputs (quotearg_style (c_quoting_style, $$), yyo); } STRING
-%printer { fprintf (yyo, "{\n%s\n}", $$); } <char*>
+%printer { fputs ($$, yyo); }  <char*>
 
 %type <uniqstr>
   BRACKETED_ID ID ID_COLON
   PERCENT_ERROR_VERBOSE PERCENT_FILE_PREFIX PERCENT_FLAG PERCENT_NAME_PREFIX
-  PERCENT_YACC
+  PERCENT_PURE_PARSER PERCENT_YACC
   TAG tag tag.opt variable
 %printer { fputs ($$, yyo); } <uniqstr>
 %printer { fprintf (yyo, "[%s]", $$); } BRACKETED_ID
@@ -312,7 +325,7 @@ prologue_declaration:
 | "%defines" STRING
     {
       defines_flag = true;
-      spec_defines_file = xstrdup ($2);
+      spec_header_file = xstrdup ($2);
     }
 | "%error-verbose"                 { handle_error_verbose (&@$, $1); }
 | "%expect" INT                    { expected_sr_conflicts = $2; }
@@ -334,6 +347,7 @@ prologue_declaration:
 | "%nondeterministic-parser"    { nondeterministic_parser = true; }
 | "%output" STRING              { spec_outfile = $2; }
 | "%param" { current_param = $1; } params { current_param = param_none; }
+| "%pure-parser"                { handle_pure_parser (&@$, $1); }
 | "%require" STRING             { handle_require (&@2, $2); }
 | "%skeleton" STRING            { handle_skeleton (&@2, $2); }
 | "%token-table"                { token_table_flag = true; }
@@ -626,7 +640,7 @@ rules_or_grammar_declaration:
 ;
 
 rules:
-  id_colon named_ref.opt { current_lhs ($1, @1, $2); } rhses.1
+  id_colon named_ref.opt { current_lhs ($1, @1, $2); } ":" rhses.1
     {
       /* Free the current lhs. */
       current_lhs (0, @1, 0);
@@ -634,15 +648,15 @@ rules:
 ;
 
 rhses.1:
-  rhs                { grammar_current_rule_end (@1); }
-| rhses.1 "|" rhs    { grammar_current_rule_end (@3); }
+  rhs                { grammar_current_rule_end (@rhs); }
+| rhses.1 "|" rhs    { grammar_current_rule_end (@rhs); }
 | rhses.1 ";"
 ;
 
 %token PERCENT_EMPTY "%empty";
 rhs:
   %empty
-    { grammar_current_rule_begin (current_lhs_symbol, current_lhs_location,
+    { grammar_current_rule_begin (current_lhs_symbol, current_lhs_loc,
                                   current_lhs_named_ref); }
 | rhs symbol named_ref.opt
     { grammar_current_rule_symbol_append ($2, @2, $3); }
@@ -665,7 +679,7 @@ rhs:
 ;
 
 named_ref.opt:
-  %empty         { $$ = 0; }
+  %empty         { $$ = NULL; }
 | BRACKETED_ID   { $$ = named_ref_new ($1, @1); }
 ;
 
@@ -901,6 +915,7 @@ handle_file_prefix (location const *loc,
     deprecated_directive (dir_loc, directive, "%file-prefix");
 }
 
+
 static void
 handle_name_prefix (location const *loc,
                     char const *directive, char const *value)
@@ -936,6 +951,16 @@ handle_name_prefix (location const *loc,
 
 
 static void
+handle_pure_parser (location const *loc, char const *directive)
+{
+  bison_directive (loc, directive);
+  deprecated_directive (loc, directive, "%define api.pure");
+  muscle_percent_define_insert ("api.pure", *loc, muscle_keyword, "",
+                                MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE);
+}
+
+
+static void
 handle_require (location const *loc, char const *version)
 {
   /* Changes of behavior are only on minor version changes, so "3.0.5"
@@ -958,10 +983,9 @@ handle_require (location const *loc, char const *version)
       return;
     }
   required_version = major * 100 + minor;
-  /* Pretend to be at least 3.2, even if we are only 3.1-211, as it
-     allows us to check features published in 3.2 while developping
-     3.2.  */
-  const char* api_version = "3.2";
+  /* Pretend to be at least 3.4, to check features published in 3.4
+     while developping it.  */
+  const char* api_version = "3.4";
   const char* package_version =
     strverscmp (api_version, PACKAGE_VERSION) > 0
     ? api_version : PACKAGE_VERSION;
@@ -998,6 +1022,7 @@ handle_skeleton (location const *loc, char const *skel)
   skeleton_arg (skeleton_user, grammar_prio, *loc);
 }
 
+
 static void
 handle_yacc (location const *loc, char const *directive)
 {
@@ -1017,6 +1042,7 @@ handle_yacc (location const *loc, char const *directive)
       && STRNEQ (directive, "%yacc"))
     deprecated_directive (loc, directive, "%fixed-output-files");
 }
+
 
 static void
 gram_error (location const *loc, char const *msg)
@@ -1042,7 +1068,7 @@ void
 current_lhs (symbol *sym, location loc, named_ref *ref)
 {
   current_lhs_symbol = sym;
-  current_lhs_location = loc;
+  current_lhs_loc = loc;
   if (sym)
     symbol_location_as_lhs_set (sym, loc);
   /* In order to simplify memory management, named references for lhs
@@ -1052,4 +1078,14 @@ current_lhs (symbol *sym, location loc, named_ref *ref)
      rules using "|".  Therefore free the parser's original copy.  */
   free (current_lhs_named_ref);
   current_lhs_named_ref = ref;
+}
+
+static void tron (FILE *yyo)
+{
+  begin_use_class ("value", yyo);
+}
+
+static void troff (FILE *yyo)
+{
+  end_use_class ("value", yyo);
 }

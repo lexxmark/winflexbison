@@ -73,7 +73,7 @@ typedef size_t uintptr_t;
 # include <verify.h>
 # include <xalloc.h>
 #include <stdio.h>
-
+#include <stdint.h>
 
 /*-----------------.
 | GCC extensions.  |

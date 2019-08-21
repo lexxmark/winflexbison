@@ -39,13 +39,13 @@
 #include "reduce.h"
 #include "symtab.h"
 
-/* Set of all nonterminals whose language is not empty.  */
+/* Set of nonterminals whose language is not empty.  */
 static bitset N;
 
-/* Set of all rules which have no useless nonterminals in their RHS.  */
+/* Set of rules that have no useless nonterminals in their RHS.  */
 static bitset P;
 
-/* Set of all accessible symbols.  */
+/* Set of accessible symbols.  */
 static bitset V;
 
 /* Set of symbols used to define rule precedence (so they are
@@ -81,9 +81,11 @@ useful_production (rule_number r, bitset N0)
 }
 
 
-/*---------------------------------------------------------.
-| Remember that rules are 1-origin, symbols are 0-origin.  |
-`---------------------------------------------------------*/
+/*-----------------------------------------------------------------.
+| Compute N, the set of nonterminals whose language is not empty.  |
+|                                                                  |
+| Remember that rules are 1-origin, symbols are 0-origin.          |
+`-----------------------------------------------------------------*/
 
 static void
 useless_nonterminals (void)
@@ -248,10 +250,7 @@ reduce_grammar_tables (void)
 
   /* Adjust NRITEMS.  */
   for (rule_number r = nrules; r < nrules + nuseless_productions; ++r)
-    {
-      int length = rule_rhs_length (&rules[r]);
-      nritems -= length + 1;
-  }
+    nritems -= rule_rhs_length (&rules[r]) + 1;
 }
 
 
@@ -321,7 +320,7 @@ reduce_output (FILE *out)
     {
       fprintf (out, "%s\n\n", _("Nonterminals useless in grammar"));
       for (int i = 0; i < nuseless_nonterminals; ++i)
-        fprintf (out, "   %s\n", symbols[nsyms + i]->tag);
+        fprintf (out, "    %s\n", symbols[nsyms + i]->tag);
       fputs ("\n\n", out);
     }
 
@@ -333,7 +332,7 @@ reduce_output (FILE *out)
           if (!b)
             fprintf (out, "%s\n\n", _("Terminals unused in grammar"));
           b = true;
-          fprintf (out, "   %s\n", symbols[i]->tag);
+          fprintf (out, "    %s\n", symbols[i]->tag);
         }
     if (b)
       fputs ("\n\n", out);
@@ -378,23 +377,23 @@ reduce_grammar (void)
   inaccessable_symbols ();
 
   /* Did we reduce something? */
-  if (!nuseless_nonterminals && !nuseless_productions)
-    return;
+  if (nuseless_nonterminals || nuseless_productions)
+    {
+      reduce_print ();
 
-  reduce_print ();
+      if (!bitset_test (N, accept->content->number - ntokens))
+        complain (&startsymbol_loc, fatal,
+                  _("start symbol %s does not derive any sentence"),
+                  startsymbol->tag);
 
-  if (!bitset_test (N, accept->content->number - ntokens))
-    complain (&startsymbol_location, fatal,
-              _("start symbol %s does not derive any sentence"),
-              startsymbol->tag);
-
-  /* First reduce the nonterminals, as they renumber themselves in the
-     whole grammar.  If you change the order, nonterms would be
-     renumbered only in the reduced grammar.  */
-  if (nuseless_nonterminals)
-    nonterminals_reduce ();
-  if (nuseless_productions)
-    reduce_grammar_tables ();
+      /* First reduce the nonterminals, as they renumber themselves in the
+         whole grammar.  If you change the order, nonterms would be
+         renumbered only in the reduced grammar.  */
+      if (nuseless_nonterminals)
+        nonterminals_reduce ();
+      if (nuseless_productions)
+        reduce_grammar_tables ();
+    }
 
   if (trace_flag & trace_grammar)
     {

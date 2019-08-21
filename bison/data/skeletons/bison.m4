@@ -438,13 +438,6 @@ m4_define([b4_symbol_tag_comment],
 ])
 
 
-# b4_symbol_action_location(SYMBOL-NUM, KIND)
-# -------------------------------------------
-# Report the location of the KIND action as FILE:LINE.
-m4_define([b4_symbol_action_location],
-[b4_symbol([$1], [$2_file]):b4_syncline([b4_symbol([$1], [$2_line])])])
-
-
 # b4_symbol_action(SYMBOL-NUM, KIND)
 # ----------------------------------
 # Run the action KIND (destructor or printer) for SYMBOL-NUM.
@@ -455,9 +448,9 @@ m4_define([b4_symbol_action],
                    [],
                    [(*yylocationp)])dnl
     _b4_symbol_case([$1])[]dnl
-b4_syncline([b4_symbol([$1], [$2_line])], [b4_symbol([$1], [$2_file])])
+b4_syncline([b4_symbol([$1], [$2_line])], [b4_symbol([$1], [$2_file])])dnl
       b4_symbol([$1], [$2])
-b4_syncline([@oline@], [@ofile@])
+b4_syncline([@oline@], [@ofile@])dnl
         break;
 
 b4_dollar_popdef[]dnl
@@ -586,12 +579,15 @@ m4_define([b4_basename],
 [m4_bpatsubst([$1], [^.*/\([^/]+\)/*$], [\1])])
 
 
-# b4_syncline(LINE, FILE)
-# -----------------------
+# b4_syncline(LINE, FILE)dnl
+# --------------------------
+# Should always be following by a dnl.
+#
+# Emit "#line LINE FILE /* __LINE__ __FILE__ */".
 m4_define([b4_syncline],
 [b4_flag_if([synclines],
-[b4_sync_start([$1], [$2]) b4_sync_end([__line__],
-                                       [b4_basename(m4_quote(__file__))])[]dnl
+[b4_sync_start([$1], [$2])[]dnl
+b4_sync_end([__line__], [b4_basename(m4_quote(__file__))])
 ])])
 
 # b4_sync_start(LINE, FILE)
@@ -603,7 +599,17 @@ m4_define([b4_sync_start], [b4_comment([$2:$1])])
 # -----------------------
 # Syncline for the current place, which ends.  Typically a comment
 # left for the reader.
-m4_define([b4_sync_end],   [b4_comment([$2:$1])])
+m4_define([b4_sync_end],   [ b4_comment([$2:$1])]
+)
+# This generates dependencies on the Bison skeletons hence lots of
+# useless 'git diff'.  This location is useless for the regular
+# user (who does not care about the skeletons) and is actually not
+# useful for Bison developpers too (I, Akim, never used this to locate
+# the code in skeletons that generated output).  So disable it
+# completely.  If someone thinks this was actually useful, a %define
+# variable should be provided to control the level of verbosity of
+# '#line', in replacement of --no-lines.
+m4_define([b4_sync_end])
 
 
 # b4_user_code(USER-CODE)
@@ -753,8 +759,10 @@ m4_define([b4_percent_define_get_kind],
           [m4_indir([b4_percent_define_kind(]$1[)])],
           [b4_fatal([[$0: undefined %%define variable '%s']], [$1])])])
 
-# b4_percent_define_get_syncline(VARIABLE)
-# ----------------------------------------
+# b4_percent_define_get_syncline(VARIABLE)dnl
+# -------------------------------------------
+# Should always be following by a dnl.
+#
 # Mimic muscle_percent_define_get_syncline in ../src/muscle-tab.h exactly.
 # That is, if the %define variable VARIABLE is undefined, complain fatally
 # since that's a Bison or skeleton error.  Otherwise, return its definition
@@ -970,8 +978,7 @@ m4_ifval([$1], [m4_define([b4_percent_code_bison_qualifiers(]$1[)])])dnl
 m4_ifdef(b4_macro_name,
 [b4_comment([m4_if([$#], [0], [[Unqualified %code]],
                    [["%code ]$1["]])[ blocks.]])
-b4_user_code([m4_indir(b4_macro_name)])
-])dnl
+b4_user_code([m4_indir(b4_macro_name)])])dnl
 m4_popdef([b4_macro_name])])
 
 # b4_percent_code_ifdef(QUALIFIER, IF-TRUE, [IF-FALSE])
@@ -1071,10 +1078,10 @@ m4_define_default([b4_location_initial_line],   [1])
 ## Sanity checks.  ##
 ## --------------- ##
 
-# api.location.prefix={...} (Java and C++).
+# api.location.type={...} (C, C++ and Java).
 b4_percent_define_check_kind([api.location.type], [code], [deprecated])
 
-# api.position.prefix={...} (Java).
+# api.position.type={...} (Java).
 b4_percent_define_check_kind([api.position.type], [code], [deprecated])
 
 # api.prefix >< %name-prefix.

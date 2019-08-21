@@ -39,12 +39,12 @@ extern "C" {
    if ERRNUM is nonzero, follow it with ": " and strerror (ERRNUM).
    If STATUS is nonzero, terminate the program with `exit (STATUS)'.  */
 
-extern void error (int __status, int __errnum, const char *__format, ...)
-     _GL_ATTRIBUTE_FORMAT ((__printf__, 3, 4));
+extern void error(int __status, int __errnum, const char *__format, ...);
+//     _GL_ATTRIBUTE_FORMAT ((__printf__, 3, 4));
 
 extern void error_at_line (int __status, int __errnum, const char *__fname,
-                           unsigned int __lineno, const char *__format, ...)
-     _GL_ATTRIBUTE_FORMAT ((__printf__, 5, 6));
+                           unsigned int __lineno, const char *__format, ...);
+//     _GL_ATTRIBUTE_FORMAT ((__printf__, 5, 6));
 
 /* If NULL, error will flush stdout, then print on stderr the program
    name, a colon and a space.  Otherwise, error will call this

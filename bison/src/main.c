@@ -23,14 +23,14 @@
 
 #include <bitset.h>
 #include <bitset_stats.h>
+#include <closeout.h>
 //#include <configmake.h>
 #include <progname.h>
+#include <quote.h>
 #include <quotearg.h>
 #include <relocatable.h> /* relocate2 */
 #include <timevar.h>
 
-#include "LR0.h"
-#include "closeout.h"
 #include "complain.h"
 #include "conflicts.h"
 #include "derives.h"
@@ -38,15 +38,15 @@
 #include "fixits.h"
 #include "getargs.h"
 #include "gram.h"
-#include "lalr.h"
 #include "ielr.h"
+#include "lalr.h"
+#include "lr0.h"
 #include "muscle-tab.h"
 #include "nullable.h"
 #include "output.h"
-#include "print.h"
-#include "print_graph.h"
+#include "print-graph.h"
 #include "print-xml.h"
-#include <quote.h>
+#include "print.h"
 #include "reader.h"
 #include "reduce.h"
 #include "scan-code.h"
@@ -56,81 +56,22 @@
 #include "tables.h"
 #include "uniqstr.h"
 
-/* extracts basename from path, optionally stripping the extension "\.*"
- * (same concept as /bin/sh `basename`, but different handling of extension). */
-static char *basename2 (path, strip_ext)
-     char   *path;
-     int strip_ext;		/* boolean */
-{
-	char   *b, *e = 0;
-
-	b = path;
-	for (b = path; *path; path++)
-		if (*path == '/')
-			b = path + 1;
-		else if (*path == '\\')
-			b = path + 1;
-		else if (*path == '.')
-			e = path;
-
-	if (strip_ext && e && e > b)
-		*e = '\0';
-	return b;
-}
-
-extern const char* get_app_path();
-
-char* get_local_pkgdatadir()
-{
-	const char* program_path = 0;
-	const char* dir = 0;
-	const char* last_divider = 0;
-	char* local_pkgdatadir = NULL;
-	size_t dir_len = 0;
-	size_t local_pkgdatadir_len = 0;
-
-	program_path = dir = get_app_path();
-
-	while (*dir)
-	{
-		if (*dir == '\\' || *dir == '/')
-			last_divider = dir;
-		++dir;
-	}
-
-	if (!last_divider)
-		return PKGDATADIR;
-
-	++last_divider;
-
-	dir_len = last_divider - program_path;
-	local_pkgdatadir_len = dir_len+strlen(PKGDATADIR);
-	local_pkgdatadir = (char*)malloc((local_pkgdatadir_len+1)*sizeof(char));
-	strncpy(local_pkgdatadir, program_path, dir_len);
-	strcpy(&local_pkgdatadir[dir_len], PKGDATADIR);
-
-	return local_pkgdatadir;
-}
-
-char* local_pkgdatadir = 0;
 
 int
 main (int argc, char *argv[])
 {
 #define DEPENDS_ON_LIBINTL 1
   set_program_name (argv[0]);
-  program_name = basename2 (argv[0], 1);
-  local_pkgdatadir = get_local_pkgdatadir();
-
   setlocale (LC_ALL, "");
   {
     char *cp = NULL;
     char const *localedir = relocate2 (LOCALEDIR, &cp);
-    (void) bindtextdomain (PACKAGE, localedir);
-    (void) bindtextdomain ("bison-runtime", localedir);
+    bindtextdomain ("bison", localedir);
+    bindtextdomain ("bison-gnulib", localedir);
+    bindtextdomain ("bison-runtime", localedir);
     free (cp);
   }
-  (void) textdomain (PACKAGE);
+  textdomain ("bison");
 
   {
     char const *cp = getenv ("LC_CTYPE");
@@ -215,7 +156,10 @@ main (int argc, char *argv[])
 
   print_precedence_warnings ();
 
-  if (!update_flag)
+  /* Whether to generate output files.  */
+  bool generate = !(feature_flag & feature_syntax_only);
+
+  if (generate)
     {
       /* Output file names. */
       compute_output_file_names ();
@@ -256,7 +200,7 @@ main (int argc, char *argv[])
   timevar_pop (tv_free);
 
   /* Output the tables and the parser to ftable.  In file output.  */
-  if (!update_flag)
+  if (generate)
     {
       timevar_push (tv_parser);
       output ();
@@ -286,13 +230,10 @@ main (int argc, char *argv[])
     bitset_stats_dump (stderr);
 
  finish:
-  free(local_pkgdatadir);
 
   /* Stop timing and print the times.  */
   timevar_stop (tv_total);
   timevar_print (stderr);
-
-  cleanup_caret ();
 
   /* Fix input file now, even if there are errors: that's less
      warnings in the following runs.  */
@@ -306,6 +247,8 @@ main (int argc, char *argv[])
       fixits_free ();
     }
   uniqstrs_free ();
+
+  complain_free ();
 
   return complaint_status ? EXIT_FAILURE : EXIT_SUCCESS;
 }

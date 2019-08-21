@@ -48,7 +48,7 @@ extern char *spec_graph_file;
 extern char *spec_xml_file;
 
 /* File name specified with --defines.  */
-extern char *spec_defines_file;
+extern char *spec_header_file;
 
 /* Directory prefix of output file names.  */
 extern char *dir_prefix;
@@ -63,6 +63,9 @@ extern uniqstr current_file;
 
 /* The computed base for output file names.  */
 extern char *all_but_ext;
+
+/* Where our data files are installed.  */
+char const *pkgdatadir (void);
 
 void compute_output_file_names (void);
 void output_file_names_free (void);

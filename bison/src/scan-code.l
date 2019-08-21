@@ -57,8 +57,8 @@ static void handle_action_at (symbol_list *rule, char *cp, location at_loc);
 /* A string to be pushed to obstack after dollar/at has been handled. */
 static char *ref_tail_fields;
 
-static location the_location;
-static location *loc = &the_location;
+static location current_loc;
+static location *loc = &current_loc;
 
 /* A string representing the most recent translation.  */
 static char *last_string;
@@ -187,7 +187,7 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
   }
   "@$" {
     obstack_sgrow (&obstack_for_string, "]b4_at_dollar[");
-    muscle_percent_define_ensure("locations", the_location, true);
+    muscle_percent_define_ensure("locations", *loc, true);
   }
 }
 
@@ -507,12 +507,12 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
                              dollar_or_at);
           }
         else if (midrule_rhs_index)
-          complain_indent (&rule->location, complaint, &indent,
+          complain_indent (&rule->rhs_loc, complaint, &indent,
                            _("symbol not found in production before $%d: "
                              "%.*s"),
                            midrule_rhs_index, len, cp);
         else
-          complain_indent (&rule->location, complaint, &indent,
+          complain_indent (&rule->rhs_loc, complaint, &indent,
                            _("symbol not found in production: %.*s"),
                            len, cp);
 
@@ -631,7 +631,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
         if (!type_name
             && !sym->content.sym->content->type_name)
           {
-            if (union_seen | tag_seen)
+            if (union_seen || tag_seen)
               {
                 if (rule->midrule_parent_rule)
                   complain (&dollar_loc, complaint,
@@ -665,7 +665,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
         if (!type_name
             && (!sym || !sym->content.sym->content->type_name))
           {
-            if (union_seen | tag_seen)
+            if (union_seen || tag_seen)
               complain (&dollar_loc, complaint,
                         _("$%s of %s has no declared type"), cp,
                         quote (effective_rule->content.sym->tag));
@@ -747,8 +747,8 @@ handle_action_at (symbol_list *rule, char *text, location at_loc)
 | Initialize the scanner.  |
 `-------------------------*/
 
-/* Translate the dollars and ats in \a self, in the context \a sc_context
-   (SC_RULE_ACTION, SC_SYMBOL_ACTION, INITIAL).  */
+/* Translate the '$...' and '@...' in \a self, in the context \a
+   sc_context (SC_RULE_ACTION, SC_SYMBOL_ACTION, INITIAL).  */
 
 static char const *
 translate_action (code_props *self, int sc_context)

@@ -19,8 +19,9 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include "getargs.h"
+
 #include "system.h"
-#include "output.h"
 
 #include <argmatch.h>
 #include <c-strcase.h>
@@ -28,12 +29,13 @@
 #include <error.h>
 #include <getopt.h>
 #include <progname.h>
+#include <quote.h>
+#include <textstyle.h>
 
 #include "complain.h"
 #include "files.h"
-#include "getargs.h"
 #include "muscle-tab.h"
-#include "quote.h"
+#include "output.h"
 #include "uniqstr.h"
 
 bool defines_flag = false;
@@ -43,6 +45,7 @@ bool no_lines_flag = false;
 bool token_table_flag = false;
 location yacc_loc = EMPTY_LOCATION_INIT;
 bool update_flag = false; /* for -u */
+bool color_debug = false;
 
 bool nondeterministic_parser = false;
 bool glr_parser = false;
@@ -182,10 +185,12 @@ ARGMATCH_VERIFY (report_args, report_types);
 static const char * const trace_args[] =
 {
   "none       - no traces",
+  "locations  - full display of the locations",
   "scan       - grammar scanner traces",
   "parse      - grammar parser traces",
   "automaton  - construction of the automaton",
   "bitsets    - use of bitsets",
+  "closure    - input/output of closure",
   "grammar    - reading, reducing the grammar",
   "resource   - memory consumption (where available)",
   "sets       - grammar sets: firsts, nullable etc.",
@@ -202,10 +207,12 @@ static const char * const trace_args[] =
 static const int trace_types[] =
 {
   trace_none,
+  trace_locations,
   trace_scan,
   trace_parse,
   trace_automaton,
   trace_bitsets,
+  trace_closure,
   trace_grammar,
   trace_resource,
   trace_sets,
@@ -230,6 +237,7 @@ static const char * const feature_args[] =
   "none",
   "caret", "diagnostics-show-caret",
   "fixit", "diagnostics-parseable-fixits",
+  "syntax-only",
   "all",
   0
 };
@@ -239,6 +247,7 @@ static const int feature_types[] =
   feature_none,
   feature_caret, feature_caret,
   feature_fixit_parsable, feature_fixit_parsable,
+  feature_syntax_only,
   feature_all
 };
 
@@ -290,7 +299,7 @@ Operation modes:\n\
   -u, --update               apply fixes to the source grammar file and exit\n\
   -y, --yacc                 emulate POSIX Yacc\n\
   -W, --warnings[=CATEGORY]  report the warnings falling in CATEGORY\n\
-  -f, --feature[=FEATURE]    activate miscellaneous features\n\
+  -f, --feature[=FEATURES]   activate miscellaneous features\n\
 \n\
 "), stdout);
 
@@ -329,13 +338,13 @@ Output:\n\
 
       fputs (_("\
 Warning categories include:\n\
-  'midrule-values'    unset or unused midrule values\n\
-  'yacc'              incompatibilities with POSIX Yacc\n\
   'conflicts-sr'      S/R conflicts (enabled by default)\n\
   'conflicts-rr'      R/R conflicts (enabled by default)\n\
   'deprecated'        obsolete constructs\n\
   'empty-rule'        empty rules without %empty\n\
+  'midrule-values'    unset or unused midrule values\n\
   'precedence'        useless precedence and associativity\n\
+  'yacc'              incompatibilities with POSIX Yacc\n\
   'other'             all other warnings (enabled by default)\n\
   'all'               all the warnings except 'yacc'\n\
   'no-CATEGORY'       turn off warnings in CATEGORY\n\
@@ -356,10 +365,17 @@ THINGS is a list of comma separated words that can include:\n\
       putc ('\n', stdout);
 
       fputs (_("\
-FEATURE is a list of comma separated words that can include:\n\
-  'caret'        show errors with carets\n\
-  'all'          all of the above\n\
-  'none'         disable all of the above\n\
+FEATURES is a list of comma separated words that can include:\n\
+  'caret', 'diagnostics-show-caret'\n\
+    show errors with carets\n\
+  'fixit', 'diagnostics-parseable-fixits'\n\
+    show machine-readable fixes\n\
+  'syntax-only'\n\
+    do not generate any file\n\
+  'all'\n\
+    all of the above\n\
+  'none'\n\
+    disable all of the above\n\
   "), stdout);
 
       putc ('\n', stdout);
@@ -491,10 +507,12 @@ static char const short_options[] =
 /* Values for long options that do not have single-letter equivalents.  */
 enum
 {
-  LOCATIONS_OPTION = CHAR_MAX + 1,
-  PRINT_LOCALEDIR_OPTION,
+  COLOR_OPTION = CHAR_MAX + 1,
+  LOCATIONS_OPTION,
   PRINT_DATADIR_OPTION,
-  REPORT_FILE_OPTION
+  PRINT_LOCALEDIR_OPTION,
+  REPORT_FILE_OPTION,
+  STYLE_OPTION
 };
 
 static struct option const long_options[] =
@@ -521,7 +539,9 @@ static struct option const long_options[] =
   { "verbose",     no_argument,         0,   'v' },
 
   /* Hidden. */
-  { "trace",         optional_argument,   0,     'T' },
+  { "trace",       optional_argument,   0,  'T' },
+  { "color",       optional_argument,   0,  COLOR_OPTION },
+  { "style",       optional_argument,   0,  STYLE_OPTION },
 
   /* Output.  */
   { "defines",     optional_argument,   0,   'd' },
@@ -559,17 +579,46 @@ command_line_location (void)
 {
   location res;
   /* "<command line>" is used in GCC's messages about -D. */
-  boundary_set (&res.start, uniqstr_new ("<command line>"), optind - 1, -1);
+  boundary_set (&res.start, uniqstr_new ("<command line>"), optind - 1, -1, -1);
   res.end = res.start;
   return res;
+}
+
+
+/* Handle the command line options for color support.  Do it early, so
+   that error messages from getargs be also colored as per the user's
+   request.  This is consistent with the way GCC and Clang behave.  */
+
+static void
+getargs_colors (int argc, char *argv[])
+{
+  for (int i = 1; i < argc; i++)
+    {
+      const char *arg = argv[i];
+      if (STRPREFIX_LIT ("--color=", arg))
+        {
+          const char *color = arg + strlen ("--color=");
+          if (STREQ (color, "debug"))
+            color_debug = true;
+          else
+            handle_color_option (color);
+        }
+      else if (STRPREFIX_LIT ("--style=", arg))
+        {
+          const char *style = arg + strlen ("--style=");
+          handle_style_option (style);
+        }
+    }
+  complain_init_color ();
 }
 
 
 void
 getargs (int argc, char *argv[])
 {
-  int c;
+  getargs_colors (argc, argv);
 
+  int c;
   while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
          != -1)
     switch (c)
@@ -646,8 +695,8 @@ getargs (int argc, char *argv[])
         defines_flag = true;
         if (optarg)
           {
-            free (spec_defines_file);
-            spec_defines_file = xstrdup (AS_FILE_NAME (optarg));
+            free (spec_header_file);
+            spec_header_file = xstrdup (AS_FILE_NAME (optarg));
           }
         break;
 
@@ -692,6 +741,7 @@ getargs (int argc, char *argv[])
 
       case 'u':
         update_flag = true;
+        feature_flag |= feature_syntax_only;
         break;
 
       case 'v':
@@ -712,6 +762,10 @@ getargs (int argc, char *argv[])
         yacc_loc = command_line_location ();
         break;
 
+      case COLOR_OPTION:
+        /* Handled in getargs_colors. */
+        break;
+
       case LOCATIONS_OPTION:
         muscle_percent_define_ensure ("locations",
                                       command_line_location (), true);
@@ -722,12 +776,16 @@ getargs (int argc, char *argv[])
         exit (EXIT_SUCCESS);
 
       case PRINT_DATADIR_OPTION:
-        printf ("%s\n", compute_pkgdatadir ());
+        printf ("%s\n", pkgdatadir ());
         exit (EXIT_SUCCESS);
 
       case REPORT_FILE_OPTION:
         free (spec_verbose_file);
         spec_verbose_file = xstrdup (AS_FILE_NAME (optarg));
+        break;
+
+      case STYLE_OPTION:
+        /* Handled in getargs_colors. */
         break;
 
       default:

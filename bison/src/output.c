@@ -22,13 +22,10 @@
 #include "system.h"
 #include <mbstring.h>
 
-//#include <configmake.h>
 #include <filename.h> /* IS_PATH_WITH_DIR */
-#include <error.h>
 #include <get-errno.h>
 #include <path-join.h>
 #include <quotearg.h>
-#include <relocatable.h> /* relocate2 */
 //#include <spawn-pipe.h>
 #include <timevar.h>
 //#include <wait-process.h>
@@ -47,9 +44,6 @@
 #include "tables.h"
 
 static struct obstack format_obstack;
-
-/* Memory allocated by relocate2, to free.  */
-static char *relocate_buffer = NULL;
 
 
 /*-------------------------------------------------------------------.
@@ -140,9 +134,8 @@ string_output (FILE *out, char const *string)
 }
 
 
-/*----------------------------.
-| Prepare the symbols names.  |
-`----------------------------*/
+/* Generate the b4_<MUSCLE_NAME> (e.g., b4_tname) table with the
+   symbol names (aka tags). */
 
 static void
 prepare_symbol_names (char const *muscle_name)
@@ -380,9 +373,9 @@ user_actions_output (FILE *out)
       {
         fprintf (out, "%s(%d, [b4_syncline(%d, ",
                  rules[r].is_predicate ? "b4_predicate_case" : "b4_case",
-                 r + 1, rules[r].action_location.start.line);
-        string_output (out, rules[r].action_location.start.file);
-        fprintf (out, ")\n[    %s]])\n\n", rules[r].action);
+                 r + 1, rules[r].action_loc.start.line);
+        string_output (out, rules[r].action_loc.start.file);
+        fprintf (out, ")dnl\n[    %s]])\n\n", rules[r].action);
       }
   fputs ("])\n\n", out);
 }
@@ -441,13 +434,13 @@ prepare_symbol_definitions (void)
       key = obstack_finish0 (&format_obstack);
 
       /* Whether the symbol has an identifier.  */
-      const char *value = symbol_id_get (sym);
+      const char *id = symbol_id_get (sym);
       SET_KEY ("has_id");
-      MUSCLE_INSERT_INT (key, !!value);
+      MUSCLE_INSERT_INT (key, !!id);
 
       /* Its identifier.  */
       SET_KEY ("id");
-      MUSCLE_INSERT_STRING (key, value ? value : "");
+      MUSCLE_INSERT_STRING (key, id ? id : "");
 
       /* Its tag.  Typically for documentation purpose.  */
       SET_KEY ("tag");
@@ -485,6 +478,9 @@ prepare_symbol_definitions (void)
 
               SET_KEY2 (pname, "line");
               MUSCLE_INSERT_INT (key, p->location.start.line);
+
+              SET_KEY2 (pname, "loc");
+              muscle_location_grow (key, p->location);
 
               SET_KEY (pname);
               MUSCLE_INSERT_STRING_RAW (key, p->code);
@@ -665,7 +661,7 @@ output_skeleton (void)
 
   /* Compute the names of the package data dir and skeleton files.  */
   char const *m4 = (m4 = getenv ("M4")) ? m4 : "M4";
-  char const *datadir = compute_pkgdatadir ();
+  char const *datadir = pkgdatadir ();
   char *skeldir = xpath_join (datadir, "skeletons");
   char *m4sugar = xpath_join (datadir, "m4sugar/m4sugar.m4");
   char *m4bison = xpath_join (skeldir, "bison.m4");
@@ -695,6 +691,8 @@ output_skeleton (void)
 //  pid_t pid;
   int i = 0;
   {
+    char const *argv[10];
+    //int i = 0;
     argv[i++] = m4;
 
     /* When POSIXLY_CORRECT is set, GNU M4 1.6 and later disable GNU
@@ -725,6 +723,10 @@ output_skeleton (void)
    //                         true, filter_fd);
   }
 
+  free (skeldir);
+  free (m4sugar);
+  free (m4bison);
+  free (skel);
 
   if (trace_flag & trace_muscles)
     muscles_output (stderr);
@@ -754,22 +756,11 @@ output_skeleton (void)
       error (EXIT_FAILURE, get_errno (),
              "m4 failed");
 
-
-  free (skeldir);
-  free (m4sugar);
-  free (m4bison);
-  free (skel);
-
   fflush(m4_out);
   if (fseek(m4_out, 0, SEEK_SET))
     error (EXIT_FAILURE, get_errno (),
       "fseek");
-
-  timevar_push (tv_m4);
-//  in = fdopen (filter_fd[0], "r");
-//  if (! in)
-//    error (EXIT_FAILURE, get_errno (),
-//	   "fdopen");
+//FILE *in = xfdopen (filter_fd[0], "r");
   scan_skel (m4_out);
     /* scan_skel should have read all of M4's output.  Otherwise, when we
        close the pipe, we risk letting M4 report a broken-pipe to the
@@ -813,7 +804,7 @@ prepare (void)
 #define DEFINE(Name) MUSCLE_INSERT_STRING (#Name, Name ? Name : "")
   DEFINE (dir_prefix);
   DEFINE (parser_file_name);
-  DEFINE (spec_defines_file);
+  DEFINE (spec_header_file);
   DEFINE (spec_file_prefix);
   DEFINE (spec_graph_file);
   DEFINE (spec_name_prefix);
@@ -832,7 +823,7 @@ prepare (void)
     /* b4_skeletonsdir is used inside m4_include in the skeletons, so digraphs
        would never be expanded.  Hopefully no one has M4-special characters in
        his Bison installation path.  */
-    char *skeldir = xpath_join (compute_pkgdatadir (), "skeletons");
+    char *skeldir = xpath_join (pkgdatadir (), "skeletons");
     MUSCLE_INSERT_STRING_RAW ("skeletonsdir", skeldir);
     free (skeldir);
   }
@@ -865,19 +856,4 @@ output (void)
     unlink_generated_sources ();
 
   obstack_free (&format_obstack, NULL);
-  free (relocate_buffer);
-}
-
-extern char* local_pkgdatadir;
-
-char const *
-compute_pkgdatadir (void)
-{
-  if (relocate_buffer)
-    return relocate_buffer;
-  else
-    {
-      char const *cp = getenv ("BISON_PKGDATADIR");
-      return cp ? cp : relocate2 (local_pkgdatadir, &relocate_buffer);
-    }
 }

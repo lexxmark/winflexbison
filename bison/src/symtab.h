@@ -72,7 +72,7 @@ typedef enum
     needed,
     /** Defined with %type or %token (good).  */
     declared,
-  } status;
+  } declaration_status;
 
 enum code_props_type
   {
@@ -122,7 +122,7 @@ struct sym_content
   uniqstr type_name;
 
   /** Its \c \%type's location.  */
-  location type_location;
+  location type_loc;
 
   /** Any \c \%destructor (resp. \%printer) declared specificially for this
       symbol.
@@ -134,7 +134,7 @@ struct sym_content
   code_props props[CODE_PROPS_SIZE];
 
   symbol_number number;
-  location prec_location;
+  location prec_loc;
   int prec;
   assoc assoc;
 
@@ -144,7 +144,7 @@ struct sym_content
   int user_token_number;
 
   symbol_class class;
-  status status;
+  declaration_status status;
 };
 
 /** Undefined user number.  */
@@ -246,7 +246,7 @@ extern symbol *accept;
 /** The user start symbol. */
 extern symbol *startsymbol;
 /** The location of the \c \%start declaration.  */
-extern location startsymbol_location;
+extern location startsymbol_loc;
 
 /** Whether a symbol declared with a type tag.  */
 extern bool tag_seen;
@@ -321,7 +321,7 @@ typedef struct {
 
   /** Its status : "undeclared", "used" or "declared".
       It cannot be "needed".  */
-  status status;
+  declaration_status status;
 
   /** Any \c %destructor and %printer declared for this
       semantic type.  */

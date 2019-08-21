@@ -27,12 +27,12 @@
 
 #include <bitset.h>
 
-#include "LR0.h"
 #include "closure.h"
 #include "complain.h"
 #include "getargs.h"
 #include "gram.h"
 #include "lalr.h"
+#include "lr0.h"
 #include "reader.h"
 #include "reduce.h"
 #include "state.h"
@@ -47,6 +47,16 @@ typedef struct state_list
 static state_list *first_state = NULL;
 static state_list *last_state = NULL;
 
+/* Print CORE for debugging. */
+static void
+core_print (size_t core_size, item_number *core, FILE *out)
+{
+  for (int i = 0; i < core_size; ++i)
+    {
+      item_print (ritem + core[i], NULL, out);
+      fputc ('\n', out);
+    }
+}
 
 /*------------------------------------------------------------------.
 | A state was just discovered from another state.  Queue it for     |
@@ -57,14 +67,14 @@ static state *
 state_list_append (symbol_number sym, size_t core_size, item_number *core)
 {
   state_list *node = xmalloc (sizeof *node);
-  state *s = state_new (sym, core_size, core);
+  state *res = state_new (sym, core_size, core);
 
   if (trace_flag & trace_automaton)
     fprintf (stderr, "state_list_append (state = %d, symbol = %d (%s))\n",
              nstates, sym, symbols[sym]->tag);
 
   node->next = NULL;
-  node->state = s;
+  node->state = res;
 
   if (!first_state)
     first_state = node;
@@ -72,17 +82,28 @@ state_list_append (symbol_number sym, size_t core_size, item_number *core)
     last_state->next = node;
   last_state = node;
 
-  return s;
+  return res;
 }
 
-static int nshifts;
-static symbol_number *shift_symbol;
+/* Symbols that can be "shifted" (including non terminals) from the
+   current state.  */
+bitset shift_symbol;
 
 static rule **redset;
+/* For the current state, the list of pointers to states that can be
+   reached via a shift/goto.  Could be indexed by the reaching symbol,
+   but labels of incoming transitions can be recovered by the state
+   itself.  */
 static state **shiftset;
 
+
+/* KERNEL_BASE[symbol-number] -> list of item numbers (offsets inside
+   RITEM) of lenngth KERNEL_SIZE[symbol-number]. */
 static item_number **kernel_base;
 static int *kernel_size;
+
+/* A single dimension array that serves as storage for
+   KERNEL_BASE.  */
 static item_number *kernel_items;
 
 
@@ -98,10 +119,11 @@ allocate_itemsets (void)
                                   sizeof *symbol_count);
 
   for (rule_number r = 0; r < nrules; ++r)
-    for (item_number *rhsp = rules[r].rhs; *rhsp >= 0; ++rhsp)
+    for (item_number *rhsp = rules[r].rhs; 0 <= *rhsp; ++rhsp)
       {
-        count++;
-        symbol_count[*rhsp]++;
+        symbol_number sym = item_number_as_symbol_number (*rhsp);
+        count += 1;
+        symbol_count[sym] += 1;
       }
 
   /* See comments before new_itemsets.  All the vectors of items
@@ -124,6 +146,17 @@ allocate_itemsets (void)
   kernel_size = xnmalloc (nsyms, sizeof *kernel_size);
 }
 
+/* Print the current kernel (in KERNEL_BASE). */
+static void
+kernel_print (FILE *out)
+{
+  for (symbol_number i = 0; i < nsyms; ++i)
+    if (kernel_size[i])
+      {
+        fprintf (out, "kernel[%s] =\n", symbols[i]->tag);
+        core_print (kernel_size[i], kernel_base[i], out);
+      }
+}
 
 static void
 allocate_storage (void)
@@ -133,14 +166,14 @@ allocate_storage (void)
   shiftset = xnmalloc (nsyms, sizeof *shiftset);
   redset = xnmalloc (nrules, sizeof *redset);
   state_hash_new ();
-  shift_symbol = xnmalloc (nsyms, sizeof *shift_symbol);
+  shift_symbol = bitset_create (nsyms, BITSET_FIXED);
 }
 
 
 static void
 free_storage (void)
 {
-  free (shift_symbol);
+  bitset_free (shift_symbol);
   free (redset);
   free (shiftset);
   free (kernel_base);
@@ -152,44 +185,44 @@ free_storage (void)
 
 
 
-/*---------------------------------------------------------------.
-| Find which symbols can be shifted in S, and for each one       |
-| record which items would be active after that shift.  Uses the |
-| contents of itemset.                                           |
-|                                                                |
-| shift_symbol is set to a vector of the symbols that can be     |
-| shifted.  For each symbol in the grammar, kernel_base[symbol]  |
-| points to a vector of item numbers activated if that symbol is |
-| shifted, and kernel_size[symbol] is their numbers.             |
-|                                                                |
-| itemset is sorted on item index in ritem, which is sorted on   |
-| rule number.  Compute each kernel_base[symbol] with the same   |
-| sort.                                                          |
-`---------------------------------------------------------------*/
+/*------------------------------------------------------------------.
+| Find which term/nterm symbols can be "shifted" in S, and for each |
+| one record which items would be active after that transition.     |
+| Uses the contents of itemset.                                     |
+|                                                                   |
+| shift_symbol is a bitset of the term/nterm symbols that can be    |
+| shifted.  For each symbol in the grammar, kernel_base[symbol]     |
+| points to a vector of item numbers activated if that symbol is    |
+| shifted, and kernel_size[symbol] is their numbers.                |
+|                                                                   |
+| itemset is sorted on item index in ritem, which is sorted on rule |
+| number.  Compute each kernel_base[symbol] with the same sort.     |
+`------------------------------------------------------------------*/
 
 static void
 new_itemsets (state *s)
 {
   if (trace_flag & trace_automaton)
-    fprintf (stderr, "Entering new_itemsets, state = %d\n", s->number);
+    fprintf (stderr, "new_itemsets: begin: state = %d\n", s->number);
 
   memset (kernel_size, 0, nsyms * sizeof *kernel_size);
 
-  nshifts = 0;
+  bitset_zero (shift_symbol);
 
   for (size_t i = 0; i < nitemset; ++i)
     if (item_number_is_symbol_number (ritem[itemset[i]]))
       {
         symbol_number sym = item_number_as_symbol_number (ritem[itemset[i]]);
-        if (!kernel_size[sym])
-          {
-            shift_symbol[nshifts] = sym;
-            nshifts++;
-          }
-
+        bitset_set (shift_symbol, sym);
         kernel_base[sym][kernel_size[sym]] = itemset[i] + 1;
         kernel_size[sym]++;
       }
+
+  if (trace_flag & trace_automaton)
+    {
+      kernel_print (stderr);
+      fprintf (stderr, "new_itemsets: end: state = %d\n\n", s->number);
+    }
 }
 
 
@@ -204,8 +237,12 @@ static state *
 get_state (symbol_number sym, size_t core_size, item_number *core)
 {
   if (trace_flag & trace_automaton)
-    fprintf (stderr, "Entering get_state, symbol = %d (%s)\n",
-             sym, symbols[sym]->tag);
+    {
+      fprintf (stderr, "Entering get_state, symbol = %d (%s), core:\n",
+               sym, symbols[sym]->tag);
+      core_print (core_size, core, stderr);
+      fputc ('\n', stderr);
+    }
 
   state *s = state_hash_lookup (core_size, core);
   if (!s)
@@ -228,24 +265,19 @@ static void
 append_states (state *s)
 {
   if (trace_flag & trace_automaton)
-    fprintf (stderr, "Entering append_states, state = %d\n", s->number);
+    fprintf (stderr, "append_states: begin: state = %d\n", s->number);
 
-  /* First sort shift_symbol into increasing order.  */
-
-  for (int i = 1; i < nshifts; i++)
+  bitset_iterator iter;
+  symbol_number sym;
+  int i = 0;
+  BITSET_FOR_EACH (iter, shift_symbol, sym, 0)
     {
-      const symbol_number sym = shift_symbol[i];
-      int j = i;
-      for (; 0 < j && sym < shift_symbol[j - 1]; j--)
-        shift_symbol[j] = shift_symbol[j - 1];
-      shift_symbol[j] = sym;
-    }
-
-  for (int i = 0; i < nshifts; i++)
-    {
-      const symbol_number sym = shift_symbol[i];
       shiftset[i] = get_state (sym, kernel_size[sym], kernel_base[sym]);
+      ++i;
     }
+
+  if (trace_flag & trace_automaton)
+    fprintf (stderr, "append_states: end: state = %d\n", s->number);
 }
 
 
@@ -324,7 +356,7 @@ void
 generate_states (void)
 {
   allocate_storage ();
-  new_closure (nritems);
+  closure_new (nritems);
 
   /* Create the initial state.  The 0 at the lhs is the index of the
      item of this initial rule.  */
@@ -344,18 +376,17 @@ generate_states (void)
       closure (s->items, s->nitems);
       /* Record the reductions allowed out of this state.  */
       save_reductions (s);
-      /* Find the itemsets of the states that shifts can reach.  */
+      /* Find the itemsets of the states that shifts/gotos can reach.  */
       new_itemsets (s);
       /* Find or create the core structures for those states.  */
       append_states (s);
 
       /* Create the shifts structures for the shifts to those states,
          now that the state numbers transitioning to are known.  */
-      state_transitions_set (s, nshifts, shiftset);
+      state_transitions_set (s, bitset_count (shift_symbol), shiftset);
     }
 
   /* discard various storage */
-  free_closure ();
   free_storage ();
 
   /* Set up STATES. */
