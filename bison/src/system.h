@@ -260,4 +260,6 @@ typedef size_t uintptr_t;
 #  include <dmalloc.h>
 # endif /* WITH_DMALLOC */
 
+int strverscmp(const char *s1, const char *s2);
+
 #endif  /* ! BISON_SYSTEM_H */

@@ -201,7 +201,7 @@ location_caret (location loc, const char *style, FILE *out)
              open it again, but leave caret_info.source NULL so that
              we don't try to quote it. */
           struct stat buf;
-          if (fstat (fileno (caret_info.source), &buf) == 0
+          if (fstat (_fileno (caret_info.source), &buf) == 0
               && buf.st_mode & S_IFREG)
             {
               caret_info.line = 1;

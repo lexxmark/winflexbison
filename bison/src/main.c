@@ -22,7 +22,6 @@
 #include "system.h"
 
 #include <bitset.h>
-#include <bitset_stats.h>
 #include <closeout.h>
 //#include <configmake.h>
 #include <progname.h>

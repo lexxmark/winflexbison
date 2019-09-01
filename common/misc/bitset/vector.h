@@ -1,6 +1,6 @@
-/* Functions to support bitset statistics.
+/* Functions to support vbitsets.
 
-   Copyright (C) 2002-2004, 2009-2015, 2018 Free Software Foundation,
+   Copyright (C) 2002, 2004, 2009-2015, 2018-2019 Free Software Foundation,
    Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
@@ -18,17 +18,13 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef _BITSET_STATS_H
-#define _BITSET_STATS_H
+#ifndef _BITSET_VECTOR_H
+#define _BITSET_VECTOR_H
 
-#include "bbitset.h"
+#include "bitset.h"
 
-extern bool bitset_stats_enabled;
+size_t vbitset_bytes (bitset_bindex);
 
-extern enum bitset_type bitset_stats_type_get (bitset);
-
-extern size_t bitset_stats_bytes (void);
-
-extern bitset bitset_stats_init (bitset, bitset_bindex, enum bitset_type);
+bitset vbitset_init (bitset, bitset_bindex);
 
 #endif

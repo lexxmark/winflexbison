@@ -31,6 +31,12 @@
     <Filter Include="Source Files\misc">
       <UniqueIdentifier>{eb344e8c-5b12-4842-82a3-df25cc8e8ea3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\misc\bitset">
+      <UniqueIdentifier>{276d7d97-6293-469a-aa72-ef8c02716351}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\misc\bitset">
+      <UniqueIdentifier>{0446abc4-9bc3-4624-b805-a6cab08ec98a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\common\m4\m4.h">
@@ -174,13 +180,7 @@
     <ClInclude Include="..\..\common\m4\lib\xvasprintf.h">
       <Filter>Header Files\m4\lib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\misc\abitset.h">
-      <Filter>Header Files\misc</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\misc\argmatch.h">
-      <Filter>Header Files\misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\misc\bbitset.h">
       <Filter>Header Files\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\misc\bitrotate.h">
@@ -189,13 +189,7 @@
     <ClInclude Include="..\..\common\misc\bitset.h">
       <Filter>Header Files\misc</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\misc\bitset_stats.h">
-      <Filter>Header Files\misc</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\misc\bitsetv.h">
-      <Filter>Header Files\misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\misc\bitsetv-print.h">
       <Filter>Header Files\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\misc\c-ctype.h">
@@ -219,9 +213,6 @@
     <ClInclude Include="..\..\common\misc\dosname.h">
       <Filter>Header Files\misc</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\misc\ebitset.h">
-      <Filter>Header Files\misc</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\misc\error.h">
       <Filter>Header Files\misc</Filter>
     </ClInclude>
@@ -241,9 +232,6 @@
       <Filter>Header Files\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\misc\hash.h">
-      <Filter>Header Files\misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\misc\lbitset.h">
       <Filter>Header Files\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\misc\localcharset.h">
@@ -283,9 +271,6 @@
       <Filter>Header Files\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\misc\uniwidth.in.h">
-      <Filter>Header Files\misc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\misc\vbitset.h">
       <Filter>Header Files\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\misc\verify.h">
@@ -329,6 +314,24 @@
     </ClInclude>
     <ClInclude Include="..\..\common\m4\lib\gl_array_list.h">
       <Filter>Header Files\m4\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\bitset\array.h">
+      <Filter>Header Files\misc\bitset</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\bitset\base.h">
+      <Filter>Header Files\misc\bitset</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\bitset\list.h">
+      <Filter>Header Files\misc\bitset</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\bitset\stats.h">
+      <Filter>Header Files\misc\bitset</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\bitset\table.h">
+      <Filter>Header Files\misc\bitset</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\bitset\vector.h">
+      <Filter>Header Files\misc\bitset</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -428,9 +431,6 @@
     <ClCompile Include="..\..\common\m4\lib\xvasprintf.c">
       <Filter>Source Files\m4\lib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\misc\abitset.c">
-      <Filter>Source Files\misc</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\common\misc\app_path.c">
       <Filter>Source Files\misc</Filter>
     </ClCompile>
@@ -443,13 +443,7 @@
     <ClCompile Include="..\..\common\misc\bitset.c">
       <Filter>Source Files\misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\misc\bitset_stats.c">
-      <Filter>Source Files\misc</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\common\misc\bitsetv.c">
-      <Filter>Source Files\misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\misc\bitsetv-print.c">
       <Filter>Source Files\misc</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\misc\c-ctype.c">
@@ -465,9 +459,6 @@
       <Filter>Source Files\misc</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\misc\dirname-lgpl.c">
-      <Filter>Source Files\misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\misc\ebitset.c">
       <Filter>Source Files\misc</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\misc\error.c">
@@ -494,9 +485,6 @@
     <ClCompile Include="..\..\common\misc\hash.c">
       <Filter>Source Files\misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\misc\lbitset.c">
-      <Filter>Source Files\misc</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\common\misc\localcharset.c">
       <Filter>Source Files\misc</Filter>
     </ClCompile>
@@ -519,9 +507,6 @@
       <Filter>Source Files\misc</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\misc\timevar.c">
-      <Filter>Source Files\misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\misc\vbitset.c">
       <Filter>Source Files\misc</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\misc\wcwidth.c">
@@ -598,6 +583,21 @@
     </ClCompile>
     <ClCompile Include="..\..\common\m4\lib\gl_array_list.c">
       <Filter>Source Files\m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\bitset\array.c">
+      <Filter>Source Files\misc\bitset</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\bitset\list.c">
+      <Filter>Source Files\misc\bitset</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\bitset\stats.c">
+      <Filter>Source Files\misc\bitset</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\bitset\table.c">
+      <Filter>Source Files\misc\bitset</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\bitset\vector.c">
+      <Filter>Source Files\misc\bitset</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
-#line 1 "src/scan-skel.c"
+#line 1 "lex.yy.c"
 
-#line 3 "src/scan-skel.c"
+#line 3 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -294,7 +294,6 @@
 
 /* begin standard C headers. */
 /* %if-c-only */
-#include "system.h"
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -832,7 +831,7 @@ static const flex_int16_t yy_rule_linenum[24] =
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 1 "<stdin>"
 /* Scan Bison Skeletons.                                       -*- C -*-
 
    Copyright (C) 2001-2015, 2018-2019 Free Software Foundation, Inc.
@@ -852,7 +851,7 @@ char *yytext;
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define YY_NO_INPUT 1
-#line 24 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 24 "<stdin>"
 #include <dirname.h>
 #include <error.h>
 #include <path-join.h>
@@ -882,25 +881,13 @@ static void at_output (int argc, char *argv[], char **name, int *lineno);
 static void fail_for_at_directive_too_many_args (char const *at_directive_name);
 static void fail_for_at_directive_too_few_args (char const *at_directive_name);
 static void fail_for_invalid_at (char const *at);
-#line 884 "src/scan-skel.c"
+#line 884 "lex.yy.c"
 
-#line 886 "src/scan-skel.c"
+#line 886 "lex.yy.c"
 
 #define INITIAL 0
 #define SC_AT_DIRECTIVE_ARGS 1
 #define SC_AT_DIRECTIVE_SKIP_WS 2
-
-#ifndef YY_NO_UNISTD_H
-/* Special case for "unistd.h", since it is non-ANSI. We include it way
- * down here because we want the user's section 1 to have been scanned first.
- * The user has a chance to override it with an option.
- */
-/* %if-c-only */
-//#include <unistd.h>
-/* %endif */
-/* %if-c++-only */
-/* %endif */
-#endif
 
 #ifndef YY_EXTRA_TYPE
 #define YY_EXTRA_TYPE void *
@@ -1164,11 +1151,11 @@ YY_DECL
 
 	{
 /* %% [7.0] user's declarations go here */
-#line 58 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 58 "<stdin>"
 
 
 
-#line 62 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 62 "<stdin>"
   int out_lineno PACIFY_CC (= 0);
   char *out_name = NULL;
 
@@ -1181,7 +1168,7 @@ YY_DECL
   at_directive at_ptr = NULL;
 
 
-#line 1183 "src/scan-skel.c"
+#line 1171 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1259,74 +1246,74 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 74 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 74 "<stdin>"
 fputc ('@', yyout);
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 75 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 75 "<stdin>"
 fputc ('[', yyout);
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 76 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 76 "<stdin>"
 fputc (']', yyout);
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 77 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 77 "<stdin>"
 continue;  /* Used by b4_cat in ../data/bison.m4.  */
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 78 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 78 "<stdin>"
 continue;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 80 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 80 "<stdin>"
 fprintf (yyout, "%d", out_lineno + 1);
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 81 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 81 "<stdin>"
 fputs (quotearg_style (c_quoting_style, out_name), yyout);
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 83 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 83 "<stdin>"
 at_init (&argc, argv, &at_ptr, &at_basename);
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 84 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 84 "<stdin>"
 at_init (&argc, argv, &at_ptr, &at_complain);
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 85 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 85 "<stdin>"
 at_init (&argc, argv, &at_ptr, &at_output);
 	YY_BREAK
 /* This pattern must not match more than the previous @ patterns. */
 case 11:
 YY_RULE_SETUP
-#line 88 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 88 "<stdin>"
 fail_for_invalid_at (yytext);
 	YY_BREAK
 case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
-#line 89 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 89 "<stdin>"
 out_lineno++; ECHO;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 90 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 90 "<stdin>"
 ECHO;
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 92 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 92 "<stdin>"
 {
   if (out_name)
     {
@@ -1341,38 +1328,38 @@ case YY_STATE_EOF(INITIAL):
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 103 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 103 "<stdin>"
 STRING_GROW;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 105 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 105 "<stdin>"
 obstack_1grow (&obstack_for_string, '@');
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 106 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 106 "<stdin>"
 obstack_1grow (&obstack_for_string, '[');
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 107 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 107 "<stdin>"
 obstack_1grow (&obstack_for_string, ']');
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 108 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 108 "<stdin>"
 continue; /* For starting an argument that begins with whitespace. */
 	YY_BREAK
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 109 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 109 "<stdin>"
 continue;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 111 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 111 "<stdin>"
 {
     if (argc >= ARGC_MAX)
       fail_for_at_directive_too_many_args (argv[0]);
@@ -1394,7 +1381,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 130 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 130 "<stdin>"
 fail_for_invalid_at (yytext);
 	YY_BREAK
 
@@ -1403,12 +1390,12 @@ fail_for_invalid_at (yytext);
 case 22:
 /* rule 22 can match eol */
 YY_RULE_SETUP
-#line 135 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 135 "<stdin>"
 continue;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 136 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 136 "<stdin>"
 yyless (0); BEGIN SC_AT_DIRECTIVE_ARGS;
 	YY_BREAK
 
@@ -1416,16 +1403,16 @@ yyless (0); BEGIN SC_AT_DIRECTIVE_ARGS;
 
 case YY_STATE_EOF(SC_AT_DIRECTIVE_ARGS):
 case YY_STATE_EOF(SC_AT_DIRECTIVE_SKIP_WS):
-#line 141 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 141 "<stdin>"
 complain (NULL, fatal, _("unclosed %s directive in skeleton"), argv[0]);
 	YY_BREAK
 
 case 24:
 YY_RULE_SETUP
-#line 144 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 144 "<stdin>"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1427 "src/scan-skel.c"
+#line 1415 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2530,7 +2517,7 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 144 "/Users/akim/src/gnu/bison/src/scan-skel.l"
+#line 144 "<stdin>"
 
 
 static void

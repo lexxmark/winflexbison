@@ -1,6 +1,6 @@
-#line 1 "src/scan-code.c"
+#line 1 "lex.yy.c"
 
-#line 3 "src/scan-code.c"
+#line 3 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -294,14 +294,7 @@
 
 /* begin standard C headers. */
 /* %if-c-only */
-#include "system.h"
 #include <stdio.h>
-// For Visual Studio 2013 we need this workaround
-#ifdef _MSC_VER
-	#if _MSC_VER < 1900
-		#define snprintf _snprintf
-	#endif
-#endif
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -860,7 +853,7 @@ static const flex_int16_t yy_rule_linenum[18] =
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 1 "<stdin>"
 /* Bison Action Scanner                             -*- C -*-
 
    Copyright (C) 2006-2015, 2018-2019 Free Software Foundation, Inc.
@@ -880,7 +873,7 @@ char *yytext;
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define YY_NO_INPUT 1
-#line 24 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 24 "<stdin>"
 #include <c-ctype.h>
 #include <get-errno.h>
 #include <quote.h>
@@ -917,8 +910,8 @@ static void handle_action_at (symbol_list *rule, char *cp, location at_loc);
 /* A string to be pushed to obstack after dollar/at has been handled. */
 static char *ref_tail_fields;
 
-static location the_location;
-static location *loc = &the_location;
+static location current_loc;
+static location *loc = &current_loc;
 
 /* A string representing the most recent translation.  */
 static char *last_string;
@@ -926,8 +919,8 @@ static char *last_string;
 /* True if an untyped $$ or $n was seen.  */
 static bool untyped_var_seen;
 
-#line 922 "src/scan-code.c"
-#line 71 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 922 "lex.yy.c"
+#line 71 "<stdin>"
  /* C and C++ comments in code. */
 
  /* Strings and characters in code. */
@@ -944,7 +937,7 @@ static bool untyped_var_seen;
 /* C style identifier. Must start with letter. Will be used for
    named symbol references. Shall be kept synchronized with
    scan-gram.l "letter" and "id". */
-#line 940 "src/scan-code.c"
+#line 940 "lex.yy.c"
 
 #define INITIAL 0
 #define SC_COMMENT 1
@@ -953,18 +946,6 @@ static bool untyped_var_seen;
 #define SC_CHARACTER 4
 #define SC_RULE_ACTION 5
 #define SC_SYMBOL_ACTION 6
-
-#ifndef YY_NO_UNISTD_H
-/* Special case for "unistd.h", since it is non-ANSI. We include it way
- * down here because we want the user's section 1 to have been scanned first.
- * The user has a chance to override it with an option.
- */
-/* %if-c-only */
-//#include <unistd.h>
-/* %endif */
-/* %if-c++-only */
-/* %endif */
-#endif
 
 #ifndef YY_EXTRA_TYPE
 #define YY_EXTRA_TYPE void *
@@ -1228,7 +1209,7 @@ YY_DECL
 
 	{
 /* %% [7.0] user's declarations go here */
-#line 97 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 97 "<stdin>"
 
 
 
@@ -1245,7 +1226,7 @@ YY_DECL
   | Scanning a C comment.  The initial '/ *' is already eaten.  |
   `------------------------------------------------------------*/
 
-#line 1241 "src/scan-code.c"
+#line 1229 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1324,7 +1305,7 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 115 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 115 "<stdin>"
 STRING_GROW; BEGIN sc_context;
 	YY_BREAK
 
@@ -1336,13 +1317,13 @@ STRING_GROW; BEGIN sc_context;
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 125 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 125 "<stdin>"
 STRING_GROW; BEGIN sc_context;
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 126 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 126 "<stdin>"
 STRING_GROW;
 	YY_BREAK
 
@@ -1354,7 +1335,7 @@ STRING_GROW;
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 136 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 136 "<stdin>"
 STRING_GROW;
 	YY_BREAK
 
@@ -1362,7 +1343,7 @@ STRING_GROW;
 
 case 5:
 YY_RULE_SETUP
-#line 141 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 141 "<stdin>"
 STRING_GROW; BEGIN sc_context;
 	YY_BREAK
 
@@ -1370,7 +1351,7 @@ STRING_GROW; BEGIN sc_context;
 
 case 6:
 YY_RULE_SETUP
-#line 146 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 146 "<stdin>"
 STRING_GROW; BEGIN sc_context;
 	YY_BREAK
 
@@ -1378,29 +1359,29 @@ STRING_GROW; BEGIN sc_context;
 
 case 7:
 YY_RULE_SETUP
-#line 152 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 152 "<stdin>"
 STRING_GROW; BEGIN SC_CHARACTER;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 153 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 153 "<stdin>"
 STRING_GROW; BEGIN SC_STRING;
 	YY_BREAK
 case 9:
 /* rule 9 can match eol */
 YY_RULE_SETUP
-#line 154 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 154 "<stdin>"
 STRING_GROW; BEGIN SC_COMMENT;
 	YY_BREAK
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 155 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 155 "<stdin>"
 STRING_GROW; BEGIN SC_LINE_COMMENT;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 157 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 157 "<stdin>"
 {
     complain (loc, Wother, _("stray '%s'"), yytext);
     obstack_escape (&obstack_for_string, yytext);
@@ -1411,7 +1392,7 @@ YY_RULE_SETUP
 
 case 12:
 YY_RULE_SETUP
-#line 165 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 165 "<stdin>"
 {
     ref_tail_fields = NULL;
     handle_action_dollar (self->rule, yytext, *loc);
@@ -1421,7 +1402,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 171 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 171 "<stdin>"
 {
     ref_tail_fields = NULL;
     handle_action_at (self->rule, yytext, *loc);
@@ -1434,7 +1415,7 @@ YY_RULE_SETUP
 
 case 14:
 YY_RULE_SETUP
-#line 181 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 181 "<stdin>"
 {
     const char *type_name = NULL;
     fetch_type_name (yytext + 1, &type_name, *loc)[-1] = 0;
@@ -1446,10 +1427,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 189 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 189 "<stdin>"
 {
     obstack_sgrow (&obstack_for_string, "]b4_at_dollar[");
-    muscle_percent_define_ensure("locations", the_location, true);
+    muscle_percent_define_ensure("locations", *loc, true);
   }
 	YY_BREAK
 
@@ -1458,14 +1439,14 @@ YY_RULE_SETUP
 /* Escape M4 quoting characters in C code.  */
 case 16:
 YY_RULE_SETUP
-#line 199 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 199 "<stdin>"
 obstack_escape (&obstack_for_string, yytext);
 	YY_BREAK
 /* By default, grow the string obstack with the input.  */
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 202 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 202 "<stdin>"
 STRING_GROW;
 	YY_BREAK
 /* End of processing. */
@@ -1476,16 +1457,16 @@ case YY_STATE_EOF(SC_STRING):
 case YY_STATE_EOF(SC_CHARACTER):
 case YY_STATE_EOF(SC_RULE_ACTION):
 case YY_STATE_EOF(SC_SYMBOL_ACTION):
-#line 205 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 205 "<stdin>"
 STRING_FINISH; return last_string;
 	YY_BREAK
 
 case 18:
 YY_RULE_SETUP
-#line 208 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 208 "<stdin>"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1481 "src/scan-code.c"
+#line 1469 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2590,7 +2571,7 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 208 "/Users/akim/src/gnu/bison/src/scan-code.l"
+#line 208 "<stdin>"
 
 
 static inline bool
@@ -2894,12 +2875,12 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
                              dollar_or_at);
           }
         else if (midrule_rhs_index)
-          complain_indent (&rule->location, complaint, &indent,
+          complain_indent (&rule->rhs_loc, complaint, &indent,
                            _("symbol not found in production before $%d: "
                              "%.*s"),
                            midrule_rhs_index, len, cp);
         else
-          complain_indent (&rule->location, complaint, &indent,
+          complain_indent (&rule->rhs_loc, complaint, &indent,
                            _("symbol not found in production: %.*s"),
                            len, cp);
 
@@ -3018,7 +2999,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
         if (!type_name
             && !sym->content.sym->content->type_name)
           {
-            if (union_seen | tag_seen)
+            if (union_seen || tag_seen)
               {
                 if (rule->midrule_parent_rule)
                   complain (&dollar_loc, complaint,
@@ -3052,7 +3033,7 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
         if (!type_name
             && (!sym || !sym->content.sym->content->type_name))
           {
-            if (union_seen | tag_seen)
+            if (union_seen || tag_seen)
               complain (&dollar_loc, complaint,
                         _("$%s of %s has no declared type"), cp,
                         quote (effective_rule->content.sym->tag));
@@ -3134,8 +3115,8 @@ handle_action_at (symbol_list *rule, char *text, location at_loc)
 | Initialize the scanner.  |
 `-------------------------*/
 
-/* Translate the dollars and ats in \a self, in the context \a sc_context
-   (SC_RULE_ACTION, SC_SYMBOL_ACTION, INITIAL).  */
+/* Translate the '$...' and '@...' in \a self, in the context \a
+   sc_context (SC_RULE_ACTION, SC_SYMBOL_ACTION, INITIAL).  */
 
 static char const *
 translate_action (code_props *self, int sc_context)

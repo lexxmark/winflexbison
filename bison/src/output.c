@@ -23,6 +23,7 @@
 #include <mbstring.h>
 
 #include <filename.h> /* IS_PATH_WITH_DIR */
+#include <error.h>
 #include <get-errno.h>
 #include <path-join.h>
 #include <quotearg.h>
