@@ -692,7 +692,7 @@ output_skeleton (void)
 //  pid_t pid;
   int i = 0;
   {
-    char const *argv[10];
+    //char const *argv[10];
     //int i = 0;
     argv[i++] = m4;
 
@@ -723,12 +723,12 @@ output_skeleton (void)
    // pid = create_pipe_bidi ("m4", m4, (char **)(void*)argv, false, true,
    //                         true, filter_fd);
   }
-
+/*
   free (skeldir);
   free (m4sugar);
   free (m4bison);
   free (skel);
-
+*/
   if (trace_flag & trace_muscles)
     muscles_output (stderr);
   {
@@ -774,6 +774,11 @@ output_skeleton (void)
   _unlink (m4_out_file_name);
 //  wait_subprocess (pid, "m4", false, false, true, true, NULL);
   timevar_pop (tv_m4);
+
+  free(skeldir);
+  free(m4sugar);
+  free(m4bison);
+  free(skel);
 }
 
 static void
