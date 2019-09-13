@@ -11,6 +11,11 @@ file(GLOB SOURCE_FILES
     "src/*.c"
     "src/*.h"
 )
+# exclude some source files
+list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/scan-code.c")
+list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/scan-gram.c")
+list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/scan-skel.c")
+
 
 # Add executable to build.
 add_executable(${PROJECT_NAME} 
