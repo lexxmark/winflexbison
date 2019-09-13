@@ -10,6 +10,8 @@ add_definitions(-D_LIB)
 file(GLOB SOURCE_FILES
     "misc/*.c"
 	"misc/*.h"
+    "misc/bitset/*.c"
+	"misc/bitset/*.h"
 	"m4/*.c"
 	"m4/*.h"
 	"m4/lib/*.c"
