@@ -4,6 +4,9 @@
   * 2.4.x versions include bison version 2.7
   * 2.5.x versions include bison version 3.x
   
+### version 2.5.21
+  * avoid _m4eof lines in generated bison code while printing warnings
+
 ### version 2.5.20
   * recovered invoking win_bison from different folders
 

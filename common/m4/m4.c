@@ -362,7 +362,7 @@ process_file (const char *name, FILE* in)
 #define OPTSTRING "-B:D:EF:GH:I:L:N:PQR:S:T:U:d::egil:o:st:"
 #endif
 
-extern char *cat_string;
+extern FILE* cat_out;
 
 int
 main_m4 (int argc, char *const *argv, FILE* in, FILE* out)
@@ -380,6 +380,8 @@ main_m4 (int argc, char *const *argv, FILE* in, FILE* out)
   const char *frozen_file_to_read = NULL;
   const char *frozen_file_to_write = NULL;
   const char *macro_sequence = "";
+
+  cat_out = out;
 
   //set_program_name (argv[0]);
   retcode = EXIT_SUCCESS;
@@ -691,14 +693,6 @@ main_m4 (int argc, char *const *argv, FILE* in, FILE* out)
       make_diversion (0);
       undivert_all ();
     }
-
-  if (cat_string)
-  {
-	fprintf(out, "%s", cat_string);
-	fflush(out);
-	free(cat_string);
-	cat_string = NULL;
-  }
 
   output_exit ();
   free_macro_sequence ();
