@@ -20,10 +20,8 @@
 
 #include <config.h>
 #include "system.h"
-#include <mbstring.h>
 
 #include <filename.h> /* IS_PATH_WITH_DIR */
-#include <error.h>
 #include <get-errno.h>
 #include <path-join.h>
 #include <quotearg.h>
@@ -93,7 +91,6 @@ Name (char const *name, Type *table_data, Type first,                   \
   MUSCLE_INSERT_LONG_INT (obstack_finish0 (&format_obstack), lmax);     \
 }
 
-GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_unsigned_table, unsigned)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_int_table, int)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_base_table, base_number)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_rule_number_table, rule_number)
@@ -216,17 +213,17 @@ prepare_symbols (void)
 static void
 prepare_rules (void)
 {
-  unsigned *prhs = xnmalloc (nrules, sizeof *prhs);
+  int *prhs = xnmalloc (nrules, sizeof *prhs);
   item_number *rhs = xnmalloc (nritems, sizeof *rhs);
-  unsigned *rline = xnmalloc (nrules, sizeof *rline);
+  int *rline = xnmalloc (nrules, sizeof *rline);
   symbol_number *r1 = xnmalloc (nrules, sizeof *r1);
-  unsigned *r2 = xnmalloc (nrules, sizeof *r2);
+  int *r2 = xnmalloc (nrules, sizeof *r2);
   int *dprec = xnmalloc (nrules, sizeof *dprec);
   int *merger = xnmalloc (nrules, sizeof *merger);
   int *immediate = xnmalloc (nrules, sizeof *immediate);
 
   /* Index in RHS.  */
-  unsigned i = 0;
+  int i = 0;
   for (rule_number r = 0; r < nrules; ++r)
     {
       /* Index of rule R in RHS. */
@@ -253,10 +250,10 @@ prepare_rules (void)
   aver (i == nritems);
 
   muscle_insert_item_number_table ("rhs", rhs, ritem[0], 1, nritems);
-  muscle_insert_unsigned_table ("prhs", prhs, 0, 0, nrules);
-  muscle_insert_unsigned_table ("rline", rline, 0, 0, nrules);
+  muscle_insert_int_table ("prhs", prhs, 0, 0, nrules);
+  muscle_insert_int_table ("rline", rline, 0, 0, nrules);
   muscle_insert_symbol_number_table ("r1", r1, 0, 0, nrules);
-  muscle_insert_unsigned_table ("r2", r2, 0, 0, nrules);
+  muscle_insert_int_table ("r2", r2, 0, 0, nrules);
   muscle_insert_int_table ("dprec", dprec, 0, 0, nrules);
   muscle_insert_int_table ("merger", merger, 0, 0, nrules);
   muscle_insert_int_table ("immediate", immediate, 0, 0, nrules);
@@ -361,9 +358,9 @@ symbol_numbers_output (FILE *out)
 }
 
 
-/*---------------------------------.
-| Output the user actions to OUT.  |
-`---------------------------------*/
+/*-------------------------------------------.
+| Output the user reduction actions to OUT.  |
+`-------------------------------------------*/
 
 static void
 user_actions_output (FILE *out)
@@ -372,11 +369,20 @@ user_actions_output (FILE *out)
   for (rule_number r = 0; r < nrules; ++r)
     if (rules[r].action)
       {
-        fprintf (out, "%s(%d, [b4_syncline(%d, ",
+        /* The useless "" is there to pacify syntax-check.  */
+        fprintf (out, "%s""(%d, [",
                  rules[r].is_predicate ? "b4_predicate_case" : "b4_case",
-                 r + 1, rules[r].action_loc.start.line);
-        string_output (out, rules[r].action_loc.start.file);
-        fprintf (out, ")dnl\n[    %s]])\n\n", rules[r].action);
+                 r + 1);
+        if (!no_lines_flag)
+          {
+            fprintf (out, "b4_syncline(%d, ",
+                     rules[r].action_loc.start.line);
+            string_output (out, rules[r].action_loc.start.file);
+            fprintf (out, ")dnl\n");
+          }
+        fprintf (out, "[%*s%s]])\n\n",
+                 rules[r].action_loc.start.column - 1, "",
+                 rules[r].action);
       }
   fputs ("])\n\n", out);
 }
@@ -484,7 +490,9 @@ prepare_symbol_definitions (void)
               muscle_location_grow (key, p->location);
 
               SET_KEY (pname);
-              MUSCLE_INSERT_STRING_RAW (key, p->code);
+              obstack_printf (&muscle_obstack,
+                              "%*s%s", p->location.start.column - 1, "", p->code);
+              muscle_insert (key, obstack_finish0 (&muscle_obstack));
             }
         }
 #undef SET_KEY2
@@ -534,10 +542,10 @@ prepare_actions (void)
      parser, so we could avoid accidents by not writing them out in
      that case.  Nevertheless, it seems even better to be able to use
      the GLR skeletons even without the non-deterministic tables.  */
-  muscle_insert_unsigned_table ("conflict_list_heads", conflict_table,
-                                conflict_table[0], 1, high + 1);
-  muscle_insert_unsigned_table ("conflicting_rules", conflict_list,
-                                0, 1, conflict_list_cnt);
+  muscle_insert_int_table ("conflict_list_heads", conflict_table,
+                           conflict_table[0], 1, high + 1);
+  muscle_insert_int_table ("conflicting_rules", conflict_list,
+                           0, 1, conflict_list_cnt);
 }
 
 
@@ -655,10 +663,7 @@ output_skeleton (void)
   FILE *m4_out = NULL;
   char m4_in_file_name[] = "~m4_in_temp_file_XXXXXX";
   char m4_out_file_name[] = "~m4_out_temp_file_XXXXXX";
-//  FILE *in;
-//  int filter_fd[2];
   char const *argv[10];
-//  pid_t pid;
 
   /* Compute the names of the package data dir and skeleton files.  */
   char const *m4 = (m4 = getenv ("M4")) ? m4 : "M4";

@@ -38,6 +38,11 @@ m4_define([b4_comment],
 [_b4_comment([$1], [$2/* ], [$2   ], [  */])])
 
 
+# b4_sync_start(LINE, FILE)
+# -------------------------
+m4_define([b4_sync_start], [[#]line $1 $2])
+
+
 # b4_list2(LIST1, LIST2)
 # ----------------------
 # Join two lists with a comma if necessary.
@@ -93,12 +98,6 @@ m4_define([b4_position_type_if],
 # --------------------------------
 m4_define([b4_location_type_if],
 [b4_percent_define_ifdef([[location_type]], [$1], [$2])])
-
-
-# b4_locations_if(TRUE, FALSE)
-# ----------------------------
-m4_define([b4_locations_if],
-[m4_if(b4_locations_flag, 1, [$1], [$2])])
 
 
 # b4_identification

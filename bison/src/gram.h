@@ -115,7 +115,7 @@ extern int nvars;
 typedef int item_number;
 # define ITEM_NUMBER_MAX INT_MAX
 extern item_number *ritem;
-extern unsigned nritems;
+extern int nritems;
 
 /* There is weird relationship between OT1H item_number and OTOH
    symbol_number and rule_number: we store the latter in

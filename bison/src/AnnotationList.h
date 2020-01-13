@@ -25,7 +25,7 @@
 # include "InadequacyList.h"
 # include "state.h"
 
-typedef unsigned AnnotationIndex;
+typedef int AnnotationIndex;
 
 /**
  * A node in a list of annotations on a particular LR(0) state.  Each

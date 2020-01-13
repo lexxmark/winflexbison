@@ -124,7 +124,7 @@ record_merge_function_type (int merger, uniqstr type, location declaration_loc)
   aver (merge_function != NULL && merger_find == merger);
   if (merge_function->type != NULL && !UNIQSTR_EQ (merge_function->type, type))
     {
-      unsigned indent = 0;
+      int indent = 0;
       complain_indent (&declaration_loc, complaint, &indent,
                        _("result type clash on merge function %s: "
                          "<%s> != <%s>"),
@@ -232,12 +232,8 @@ grammar_current_rule_begin (symbol *lhs, location loc,
     assign_named_ref (current_rule, named_ref_copy (lhs_name));
 
   /* Mark the rule's lhs as a nonterminal if not already so.  */
-  if (lhs->content->class == unknown_sym)
-    {
-      lhs->content->class = nterm_sym;
-      lhs->content->number = nvars;
-      ++nvars;
-    }
+  if (lhs->content->class == unknown_sym || lhs->content->class == pct_type_sym)
+    symbol_class_set (lhs, nterm_sym, empty_loc, false);
   else if (lhs->content->class == token_sym)
     complain (&loc, complaint, _("rule given for %s, which is a token"),
               lhs->tag);
@@ -358,6 +354,8 @@ grammar_rule_check_and_complete (symbol_list *r)
       && warning_is_enabled (Wempty_rule))
     {
       complain (&r->rhs_loc, Wempty_rule, _("empty rule without %%empty"));
+      if (feature_flag & feature_caret)
+        location_caret_suggestion (r->rhs_loc, "%empty", stderr);
       location loc = r->rhs_loc;
       loc.end = loc.start;
       fixits_register (&loc, " %empty ");
@@ -603,15 +601,14 @@ grammar_current_rule_expect_rr (int count, location loc)
 }
 
 
-/*---------------------------------------------------------------.
-| Convert the rules into the representation using RRHS, RLHS and |
-| RITEM.                                                         |
-`---------------------------------------------------------------*/
+/*---------------------------------------------.
+| Build RULES and RITEM from what was parsed.  |
+`---------------------------------------------*/
 
 static void
 packgram (void)
 {
-  unsigned itemno = 0;
+  int itemno = 0;
   ritem = xnmalloc (nritems + 1, sizeof *ritem);
   /* This sentinel is used by build_relations in gram.c.  */
   *ritem++ = 0;
@@ -699,7 +696,8 @@ packgram (void)
   if (trace_flag & trace_sets)
     ritem_print (stderr);
 }
-
+
+
 /*------------------------------------------------------------------.
 | Read in the grammar specification and record it in the format     |
 | described in gram.h.  All actions are copied into ACTION_OBSTACK, |
@@ -708,39 +706,20 @@ packgram (void)
 `------------------------------------------------------------------*/
 
 void
-reader (void)
+reader (const char *gram)
 {
-  /* Initialize the symbol table.  */
+  /* Set up symbol_table, semantic_type_table, and the built-in
+     symbols.  */
   symbols_new ();
 
-  /* Construct the accept symbol. */
-  accept = symbol_get ("$accept", empty_loc);
-  accept->content->class = nterm_sym;
-  accept->content->number = nvars++;
-
-  /* Construct the error token */
-  errtoken = symbol_get ("error", empty_loc);
-  errtoken->content->class = token_sym;
-  errtoken->content->number = ntokens++;
-
-  /* Construct a token that represents all undefined literal tokens.
-     It is always token number 2.  */
-  undeftoken = symbol_get ("$undefined", empty_loc);
-  undeftoken->content->class = token_sym;
-  undeftoken->content->number = ntokens++;
-
-  gram_in = xfopen (grammar_file, "r");
-
-  gram__flex_debug = trace_flag & trace_scan;
-  gram_debug = trace_flag & trace_parse;
-  gram_scanner_initialize ();
+  gram_scanner_open (gram);
   gram_parse ();
+  gram_scanner_close ();
+
   prepare_percent_define_front_end_variables ();
 
   if (complaint_status  < status_complaint)
     check_and_convert_grammar ();
-
-  xfclose (gram_in);
 }
 
 static void

@@ -21,6 +21,8 @@
 %option prefix="gram_" outfile="lex.yy.c"
 
 %{
+#include <errno.h>
+
 #include <c-ctype.h>
 #include <mbswidth.h>
 #include <quote.h>
@@ -48,9 +50,6 @@
 static boundary scanner_cursor;
 
 #define YY_USER_ACTION  location_compute (loc, &scanner_cursor, yytext, yyleng);
-
-static size_t no_cr_read (FILE *, char *, size_t);
-#define YY_INPUT(buf, result, size) ((result) = no_cr_read (yyin, buf, size))
 
 /* Report that yytext is an extension, and evaluate to its token type.  */
 #define BISON_DIRECTIVE(Directive)                              \
@@ -84,6 +83,9 @@ static size_t no_cr_read (FILE *, char *, size_t);
       unput (Msg[i - 1]);                                       \
   } while (0)
 
+/* The current file name.  Might change with #line.  */
+static uniqstr current_file = NULL;
+
 /* A string representing the most recently saved token.  */
 static char *last_string = NULL;
 
@@ -100,7 +102,7 @@ gram_scanner_last_string_free (void)
 }
 
 static void handle_syncline (char *, location);
-static unsigned long scan_integer (char const *p, int base, location loc);
+static int scan_integer (char const *p, int base, location loc);
 static int convert_ucn_to_byte (char const *hex_text);
 static void unexpected_eof (boundary, char const *);
 static void unexpected_newline (boundary, char const *);
@@ -139,12 +141,14 @@ id        {letter}({letter}|[-0-9])*
 int       [0-9]+
 xint      0[xX][0-9abcdefABCDEF]+
 
+eol       \n|\r\n
+
  /* UTF-8 Encoded Unicode Code Point, from Flex's documentation. */
 mbchar    [\x09\x0A\x0D\x20-\x7E]|[\xC2-\xDF][\x80-\xBF]|\xE0[\xA0-\xBF][\x80-\xBF]|[\xE1-\xEC\xEE\xEF]([\x80-\xBF]{2})|\xED[\x80-\x9F][\x80-\xBF]|\xF0[\x\90-\xBF]([\x80-\xBF]{2})|[\xF1-\xF3]([\x80-\xBF]{3})|\xF4[\x80-\x8F]([\x80-\xBF]{2})
 
 /* Zero or more instances of backslash-newline.  Following GCC, allow
    white space between the backslash and the newline.  */
-splice   (\\[ \f\t\v]*\n)*
+splice   (\\[ \f\t\v]*{eol})*
 
 /* An equal sign, with optional leading whitespaces. This is used in some
    deprecated constructs. */
@@ -193,7 +197,7 @@ eqopt    ({sp}=)?
   "," {
      complain (loc, Wother, _("stray ',' treated as white space"));
   }
-  [ \f\n\t\v]  |
+  [ \f\t\v\r]|{eol}  |
   "//".*       continue;
   "/*" {
     token_start = loc->start;
@@ -201,9 +205,7 @@ eqopt    ({sp}=)?
     BEGIN SC_YACC_COMMENT;
   }
 
-  /* #line directives are not documented, and may be withdrawn or
-     modified in future versions of Bison.  */
-  ^"#line "{int}(" \"".*"\"")?"\n" {
+  ^"#line "{int}(" \"".*"\"")?{eol} {
     handle_syncline (yytext + sizeof "#line " - 1, *loc);
   }
 }
@@ -233,7 +235,6 @@ eqopt    ({sp}=)?
   "%expect"                         return BISON_DIRECTIVE (EXPECT);
   "%expect-rr"                      return BISON_DIRECTIVE (EXPECT_RR);
   "%file-prefix"                    RETURN_VALUE (PERCENT_FILE_PREFIX, uniqstr_new (yytext));
-  "%fixed-output-files"             RETURN_VALUE (PERCENT_YACC, uniqstr_new (yytext));
   "%initial-action"                 return BISON_DIRECTIVE (INITIAL_ACTION);
   "%glr-parser"                     return BISON_DIRECTIVE (GLR_PARSER);
   "%language"                       return BISON_DIRECTIVE (LANGUAGE);
@@ -262,7 +263,7 @@ eqopt    ({sp}=)?
   "%type"                           return PERCENT_TYPE;
   "%union"                          return PERCENT_UNION;
   "%verbose"                        return BISON_DIRECTIVE (VERBOSE);
-  "%yacc"                           RETURN_VALUE (PERCENT_YACC, uniqstr_new (yytext));
+  "%yacc"                           return PERCENT_YACC;
 
   /* Deprecated since Bison 2.3b (2008-05-27), but the warning is
      issued only since Bison 3.4. */
@@ -281,7 +282,7 @@ eqopt    ({sp}=)?
   "%error"[-_]"verbose"             RETURN_VALUE (PERCENT_ERROR_VERBOSE, uniqstr_new (yytext));
   "%expect"[-_]"rr"                 DEPRECATED ("%expect-rr");
   "%file-prefix"{eqopt}             RETURN_VALUE (PERCENT_FILE_PREFIX, uniqstr_new (yytext));
-  "%fixed"[-_]"output"[-_]"files"   RETURN_VALUE (PERCENT_YACC, uniqstr_new (yytext));
+  "%fixed"[-_]"output"[-_]"files"   DEPRECATED ("%output \"y.tab.c\"");
   "%no"[-_]"default"[-_]"prec"      DEPRECATED ("%no-default-prec");
   "%no"[-_]"lines"                  DEPRECATED ("%no-lines");
   "%output"{eqopt}                  DEPRECATED ("%output");
@@ -330,7 +331,7 @@ eqopt    ({sp}=)?
   }
 
   /* Semantic predicate. */
-  "%?"[ \f\n\t\v]*"{" {
+  "%?"([ \f\t\v]|{eol})*"{" {
     nesting = 0;
     code_start = loc->start;
     BEGIN SC_PREDICATE;
@@ -359,7 +360,7 @@ eqopt    ({sp}=)?
     BEGIN SC_BRACKETED_ID;
   }
 
-  [^\[%A-Za-z0-9_<>{}\"\'*;|=/, \f\n\t\v]+|. {
+  [^\[%A-Za-z0-9_<>{}\"\'*;|=/, \f\r\n\t\v]+|. {
     complain (loc, complaint, "%s: %s",
               ngettext ("invalid character", "invalid characters", yyleng),
               quote_mem (yytext, yyleng));
@@ -458,7 +459,7 @@ eqopt    ({sp}=)?
       complain (loc, complaint, _("an identifier expected"));
   }
 
-  [^\].A-Za-z0-9_/ \f\n\t\v]+|. {
+  [^\].A-Za-z0-9_/ \f\r\n\t\v]+|. {
     complain (loc, complaint, "%s: %s",
               ngettext ("invalid character in bracketed name",
                         "invalid characters in bracketed name", yyleng),
@@ -491,7 +492,7 @@ eqopt    ({sp}=)?
 <SC_YACC_COMMENT>
 {
   "*/"     BEGIN context_state;
-  .|\n     continue;
+  .|{eol}  continue;
   <<EOF>>  unexpected_eof (token_start, "*/"); BEGIN context_state;
 }
 
@@ -513,7 +514,7 @@ eqopt    ({sp}=)?
 
 <SC_LINE_COMMENT>
 {
-  "\n"           STRING_GROW; BEGIN context_state;
+  {eol}          STRING_GROW; BEGIN context_state;
   {splice}       STRING_GROW;
   <<EOF>>        BEGIN context_state;
 }
@@ -535,7 +536,7 @@ eqopt    ({sp}=)?
     RETURN_VALUE (STRING, last_string);
   }
   <<EOF>>   unexpected_eof (token_start, "\"");
-  "\n"      unexpected_newline (token_start, "\"");
+  {eol}     unexpected_newline (token_start, "\"");
 }
 
   /*----------------------------------------------------------.
@@ -564,7 +565,7 @@ eqopt    ({sp}=)?
     BEGIN INITIAL;
     return CHAR;
   }
-  "\n"      unexpected_newline (token_start, "'");
+  {eol}     unexpected_newline (token_start, "'");
   <<EOF>>   unexpected_eof (token_start, "'");
 }
 
@@ -604,22 +605,22 @@ eqopt    ({sp}=)?
 {
   \\[0-7]{1,3} {
     verify (UCHAR_MAX < ULONG_MAX);
-    unsigned long c = strtoul (yytext + 1, NULL, 8);
-    if (!c || UCHAR_MAX < c)
+    long c = strtol (yytext + 1, NULL, 8);
+    if (0 < c && c <= UCHAR_MAX)
+      obstack_1grow (&obstack_for_string, c);
+    else
       complain (loc, complaint, _("invalid number after \\-escape: %s"),
                 yytext+1);
-    else
-      obstack_1grow (&obstack_for_string, c);
   }
 
   \\x[0-9abcdefABCDEF]+ {
     verify (UCHAR_MAX < ULONG_MAX);
-    unsigned long c = strtoul (yytext + 2, NULL, 16);
-    if (!c || UCHAR_MAX < c)
+    long c = strtol (yytext + 2, NULL, 16);
+    if (0 < c && c <= UCHAR_MAX)
+      obstack_1grow (&obstack_for_string, c);
+    else
       complain (loc, complaint, _("invalid number after \\-escape: %s"),
                 yytext+1);
-    else
-      obstack_1grow (&obstack_for_string, c);
   }
 
   \\a   obstack_1grow (&obstack_for_string, '\a');
@@ -641,7 +642,7 @@ eqopt    ({sp}=)?
     else
       obstack_1grow (&obstack_for_string, c);
   }
-  \\(.|\n)      {
+  \\(.|{eol})      {
     char const *p = yytext + 1;
     /* Quote only if escaping won't make the character visible.  */
     if (c_isspace ((unsigned char) *p) && c_isprint ((unsigned char) *p))
@@ -665,14 +666,14 @@ eqopt    ({sp}=)?
 <SC_CHARACTER>
 {
   "'"           STRING_GROW; BEGIN context_state;
-  \n            unexpected_newline (token_start, "'");
+  {eol}         unexpected_newline (token_start, "'");
   <<EOF>>       unexpected_eof (token_start, "'");
 }
 
 <SC_STRING>
 {
   "\""          STRING_GROW; BEGIN context_state;
-  \n            unexpected_newline (token_start, "\"");
+  {eol}         unexpected_newline (token_start, "\"");
   <<EOF>>       unexpected_eof (token_start, "\"");
 }
 
@@ -809,59 +810,12 @@ eqopt    ({sp}=)?
 
 %%
 
-/* Read bytes from FP into buffer BUF of size SIZE.  Return the
-   number of bytes read.  Remove '\r' from input, treating \r\n
-   and isolated \r as \n.  */
-
-static size_t
-no_cr_read (FILE *fp, char *buf, size_t size)
-{
-  size_t bytes_read = fread (buf, 1, size, fp);
-  if (bytes_read)
-    {
-      char *w = memchr (buf, '\r', bytes_read);
-      if (w)
-        {
-          char const *r = ++w;
-          char const *lim = buf + bytes_read;
-
-          for (;;)
-            {
-              /* Found an '\r'.  Treat it like '\n', but ignore any
-                 '\n' that immediately follows.  */
-              w[-1] = '\n';
-              if (r == lim)
-                {
-                  int ch = getc (fp);
-                  if (ch != '\n' && ungetc (ch, fp) != ch)
-                    break;
-                }
-              else if (*r == '\n')
-                r++;
-
-              /* Copy until the next '\r'.  */
-              do
-                {
-                  if (r == lim)
-                    return w - buf;
-                }
-              while ((*w++ = *r++) != '\r');
-            }
-
-          return w - buf;
-        }
-    }
-
-  return bytes_read;
-}
-
-
 
 /*------------------------------------------------------.
 | Scan NUMBER for a base-BASE integer at location LOC.  |
 `------------------------------------------------------*/
 
-static unsigned long
+static int
 scan_integer (char const *number, int base, location loc)
 {
   verify (INT_MAX < ULONG_MAX);
@@ -869,9 +823,10 @@ scan_integer (char const *number, int base, location loc)
     complain (&loc, Wyacc,
               _("POSIX Yacc does not support hexadecimal literals"));
 
-  unsigned long num = strtoul (number, NULL, base);
+  errno = 0;
+  long num = strtol (number, NULL, base);
 
-  if (INT_MAX < num)
+  if (! (0 <= num && num <= INT_MAX && errno == 0))
     {
       complain (&loc, complaint, _("integer out of range: %s"),
                 quote (number));
@@ -892,7 +847,7 @@ static int
 convert_ucn_to_byte (char const *ucn)
 {
   verify (UCHAR_MAX <= INT_MAX);
-  unsigned long code = strtoul (ucn + 2, NULL, 16);
+  long code = strtol (ucn + 2, NULL, 16);
 
   /* FIXME: Currently we assume Unicode-compatible unibyte characters
      on ASCII hosts (i.e., Latin-1 on hosts with 8-bit bytes).  On
@@ -900,7 +855,7 @@ convert_ucn_to_byte (char const *ucn)
      These limitations should be removed once we add support for
      multibyte characters.  */
 
-  if (UCHAR_MAX < code)
+  if (! (0 <= code && code <= UCHAR_MAX))
     return -1;
 
 #if ! ('$' == 0x24 && '@' == 0x40 && '`' == 0x60 && '~' == 0x7e)
@@ -947,8 +902,9 @@ static void
 handle_syncline (char *args, location loc)
 {
   char *file;
-  unsigned long lineno = strtoul (args, &file, 10);
-  if (INT_MAX <= lineno)
+  errno = 0;
+  long lineno = strtol (args, &file, 10);
+  if (! (0 <= lineno && lineno <= INT_MAX && errno == 0))
     {
       complain (&loc, Wother, _("line number overflow"));
       lineno = INT_MAX;
@@ -1018,25 +974,29 @@ unexpected_newline (boundary start, char const *token_end)
 }
 
 
-/*-------------------------.
-| Initialize the scanner.  |
-`-------------------------*/
-
 void
-gram_scanner_initialize (void)
+gram_scanner_open (const char *gram)
 {
+  gram__flex_debug = trace_flag & trace_scan;
+  gram_debug = trace_flag & trace_parse;
   obstack_init (&obstack_for_string);
+  current_file = gram;
+  gram_in = xfopen (gram, "r");
 }
 
 
-/*-----------------------------------------------.
-| Free all the memory allocated to the scanner.  |
-`-----------------------------------------------*/
+void
+gram_scanner_close ()
+{
+  xfclose (gram_in);
+  /* Reclaim Flex's buffers.  */
+  yylex_destroy ();
+}
+
+
 
 void
 gram_scanner_free (void)
 {
   obstack_free (&obstack_for_string, 0);
-  /* Reclaim Flex's buffers.  */
-  yylex_destroy ();
 }

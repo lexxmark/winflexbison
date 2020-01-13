@@ -192,7 +192,7 @@ m4_define([b4_error],
 #   @warn(1@)
 #   @warn(1@,2@)
 m4_define([b4_warn],
-[b4_error([[warn]], [], [], $@)])
+[b4_warn_at([], [], $@)])
 
 # b4_warn_at(START, END, FORMAT, [ARG1], [ARG2], ...)
 # ---------------------------------------------------
@@ -210,7 +210,7 @@ m4_define([b4_warn_at],
 #
 # See b4_warn example.
 m4_define([b4_complain],
-[b4_error([[complain]], [], [], $@)])
+[b4_complain_at([], [], $@)])
 
 # b4_complain_at(START, END, FORMAT, [ARG1], [ARG2], ...)
 # -------------------------------------------------------
@@ -226,8 +226,7 @@ m4_define([b4_complain_at],
 #
 # See b4_warn example.
 m4_define([b4_fatal],
-[b4_error([[fatal]], [], [], $@)dnl
-m4_exit(1)])
+[b4_fatal_at([], [], $@)])
 
 # b4_fatal_at(START, END, FORMAT, [ARG1], [ARG2], ...)
 # ----------------------------------------------------
@@ -449,7 +448,7 @@ m4_define([b4_symbol_action],
                    [(*yylocationp)])dnl
     _b4_symbol_case([$1])[]dnl
 b4_syncline([b4_symbol([$1], [$2_line])], [b4_symbol([$1], [$2_file])])dnl
-      b4_symbol([$1], [$2])
+b4_symbol([$1], [$2])
 b4_syncline([@oline@], [@ofile@])dnl
         break;
 
@@ -535,7 +534,7 @@ m4_define([b4_token_format],
 [b4_token_visible_if([$2],
 [m4_quote(m4_format([$1],
                      [b4_symbol([$2], [id])],
-                     [b4_symbol([$2], [user_number])]))])])
+                     [b4_symbol([$2], b4_api_token_raw_if([[number]], [[user_number]]))]))])])
 
 
 ## ------- ##
@@ -976,8 +975,8 @@ m4_define([b4_percent_code_get],
 [m4_pushdef([b4_macro_name], [[b4_percent_code(]$1[)]])dnl
 m4_ifval([$1], [m4_define([b4_percent_code_bison_qualifiers(]$1[)])])dnl
 m4_ifdef(b4_macro_name,
-[b4_comment([m4_if([$#], [0], [[Unqualified %code]],
-                   [["%code ]$1["]])[ blocks.]])
+[b4_comment(m4_if([$#], [0], [[[Unqualified %code blocks.]]],
+                  [[["%code ]$1[" blocks.]]]))
 b4_user_code([m4_indir(b4_macro_name)])])dnl
 m4_popdef([b4_macro_name])])
 
@@ -1002,6 +1001,7 @@ m4_define([b4_percent_code_ifdef],
 # b4_parse_trace_if([IF-DEBUG-TRACES-ARE-ENABLED], [IF-NOT])
 # b4_token_ctor_if([IF-YYLEX-RETURNS-A-TOKEN], [IF-NOT])
 # ----------------------------------------------------------
+b4_percent_define_if_define([api.token.raw])
 b4_percent_define_if_define([token_ctor], [api.token.constructor])
 b4_percent_define_if_define([locations])     # Whether locations are tracked.
 b4_percent_define_if_define([parse.assert])

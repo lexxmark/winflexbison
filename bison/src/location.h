@@ -33,25 +33,25 @@ typedef struct
   /* The name of the file that contains the boundary.  */
   uniqstr file;
 
-  /* If nonnegative, the (origin-1) line that contains the boundary.
+  /* If positive, the line (starting at 1) that contains the boundary.
      If this is INT_MAX, the line number has overflowed.
 
-     Meaningless and not displayed if negative.
+     Meaningless and not displayed if nonpositive.
   */
   int line;
 
-  /* If nonnegative, the (origin-1) column just after the boundary.
+  /* If positive, the column (starting at 1) just after the boundary.
      This is neither a byte count, nor a character count; it is a
      column count.  If this is INT_MAX, the column number has
      overflowed.
 
-     Meaningless and not displayed if negative.
+     Meaningless and not displayed if nonpositive.
   */
   int column;
 
-  /* If nonnegative, (origin-0) bytes number in the current line.
+  /* If nonnegative, the byte number (starting at 0) in the current line.
      Never displayed, used when printing error messages with colors to
-     know where colors start and ends.  */
+     know where colors start and end.  */
   int byte;
 
 } boundary;
@@ -71,7 +71,12 @@ boundary_set (boundary *p, const char *f, int l, int c, int b)
 static inline int
 boundary_cmp (boundary a, boundary b)
 {
-  int res = strcmp (a.file, b.file);
+  /* Locations with no file first.  */
+  int res =
+    a.file && b.file ? strcmp (a.file, b.file)
+    : a.file ? 1
+    : b.file ? -1
+    : 0;
   if (!res)
     res = a.line - b.line;
   if (!res)
@@ -112,14 +117,22 @@ void location_compute (location *loc,
 /* Print location to file.
    Return number of actually printed characters.
    Warning: uses quotearg's slot 3. */
-unsigned location_print (location loc, FILE *out);
+int location_print (location loc, FILE *out);
+
+/* Prepare the use of location_caret.  */
+void caret_init (void);
 
 /* Free any allocated resources and close any open file handles that are
    left-over by the usage of location_caret.  */
 void caret_free (void);
 
-/* Output to OUT the line and caret corresponding to location LOC.  */
+/* Quote the line containing LOC onto OUT.  Highlight the part of LOC
+   with the color STYLE.  */
 void location_caret (location loc, const char* style, FILE *out);
+
+/* Display a suggestion of replacement for LOC with S.  To call after
+   location_caret.  */
+void location_caret_suggestion (location loc, const char *s, FILE *out);
 
 /* Return -1, 0, 1, depending whether a is before, equal, or
    after b.  */

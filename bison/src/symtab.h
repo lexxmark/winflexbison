@@ -38,9 +38,15 @@
 /** Symbol classes.  */
 typedef enum
 {
-  unknown_sym,          /**< Undefined.  */
-  token_sym,            /**< Terminal. */
-  nterm_sym             /**< Nonterminal. */
+  /** Undefined.  */
+  unknown_sym,
+  /** Declared with %type: same as Undefined, but triggered a Wyacc if
+      applied to a terminal. */
+  pct_type_sym,
+  /** Terminal. */
+  token_sym,
+  /** Nonterminal. */
+  nterm_sym
 } symbol_class;
 
 
@@ -219,7 +225,7 @@ void symbol_precedence_set (symbol *sym, int prec, assoc a, location loc);
 /** Set the \c class associated with \c sym.
 
     Whether \c declaring means whether this class definition comes
-    from %nterm or %token.  */
+    from %nterm or %token (but not %type, prec/assoc, etc.).  */
 void symbol_class_set (symbol *sym, symbol_class class, location loc,
                        bool declaring);
 
@@ -345,7 +351,8 @@ void semantic_type_code_props_set (semantic_type *type,
 | Symbol and semantic type tables.  |
 `----------------------------------*/
 
-/** Create the symbol and semantic type tables.  */
+/** Create the symbol and semantic type tables, and the built-in
+    symbols.  */
 void symbols_new (void);
 
 /** Free all the memory allocated for symbols and semantic types.  */

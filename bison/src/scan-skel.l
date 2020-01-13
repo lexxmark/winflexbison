@@ -209,22 +209,23 @@ at_basename (int argc, char *argv[], char **out_namep, int *out_linenop)
 static void
 at_complain (int argc, char *argv[], char **out_namep, int *out_linenop)
 {
-  static unsigned indent;
-  warnings w = flag (argv[1]);
-  location loc;
-  location *locp = NULL;
+  if (argc < 4)
+    fail_for_at_directive_too_few_args (argv[0]);
 
   (void) out_namep;
   (void) out_linenop;
 
-  if (argc < 4)
-    fail_for_at_directive_too_few_args (argv[0]);
+  warnings w = flag (argv[1]);
+
+  location loc;
+  location *locp = NULL;
   if (argv[2] && argv[2][0])
     {
       boundary_set_from_string (&loc.start, argv[2]);
       boundary_set_from_string (&loc.end, argv[3]);
       locp = &loc;
     }
+  static int indent;
   if (w & silent)
     indent += SUB_INDENT;
   else

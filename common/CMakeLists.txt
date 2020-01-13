@@ -12,6 +12,8 @@ file(GLOB SOURCE_FILES
 	"misc/*.h"
     "misc/bitset/*.c"
 	"misc/bitset/*.h"
+    "misc/glthread/*.c"
+	"misc/glthread/*.h"
 	"m4/*.c"
 	"m4/*.h"
 	"m4/lib/*.c"

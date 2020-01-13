@@ -60,7 +60,7 @@ void grammar_current_rule_action_append (const char *action, location loc,
                                          named_ref *nref, uniqstr tag);
 /* Attach a PREDICATE to the current rule.  */
 void grammar_current_rule_predicate_append (const char *predicate, location loc);
-void reader (void);
+void reader (const char *gram);
 void free_merger_functions (void);
 
 extern merger_list *merge_functions;

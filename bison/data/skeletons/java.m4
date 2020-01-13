@@ -184,8 +184,19 @@ b4_percent_define_check_kind([[throws]],            [code], [deprecated])
 m4_define([b4_yystype], [b4_percent_define_get([[api.value.type]])])
 b4_percent_define_default([[api.value.type]], [[Object]])
 
-# %name-prefix
-m4_define_default([b4_prefix], [[YY]])
+# b4_api_prefix, b4_api_PREFIX
+# ----------------------------
+# Corresponds to %define api.prefix
+b4_percent_define_default([[api.prefix]], [[YY]])
+m4_define([b4_api_prefix],
+[b4_percent_define_get([[api.prefix]])])
+m4_define([b4_api_PREFIX],
+[m4_toupper(b4_api_prefix)])
+
+# b4_prefix
+# ---------
+# If the %name-prefix is not given, it is api.prefix.
+m4_define_default([b4_prefix], [b4_api_prefix])
 
 b4_percent_define_default([[api.parser.class]], [b4_prefix[]Parser])
 m4_define([b4_parser_class], [b4_percent_define_get([[api.parser.class]])])

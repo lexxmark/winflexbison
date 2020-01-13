@@ -32,21 +32,23 @@
 %code
 {
   #include "system.h"
-  #include <errno.h>
 
-  #include "c-ctype.h"
+  #include <c-ctype.h>
+  #include <errno.h>
+  #include <intprops.h>
+  #include <quotearg.h>
+  #include <vasnprintf.h>
+  #include <xmemdup0.h>
+
   #include "complain.h"
   #include "conflicts.h"
   #include "files.h"
   #include "getargs.h"
   #include "gram.h"
   #include "named-ref.h"
-  #include "quotearg.h"
   #include "reader.h"
   #include "scan-code.h"
   #include "scan-gram.h"
-  #include "vasnprintf.h"
-  #include "xmemdup0.h"
 
   static int current_prec = 0;
   static location current_lhs_loc;
@@ -104,17 +106,13 @@
   static void handle_skeleton (location const *loc, char const *skel);
 
   /* Handle a %yacc directive.  */
-  static void handle_yacc (location const *loc, char const *directive);
+  static void handle_yacc (location const *loc);
 
+  /* Implementation of yyerror.  */
   static void gram_error (location const *, char const *);
 
   /* A string that describes a char (e.g., 'a' -> "'a'").  */
   static char const *char_name (char);
-
-  #define YYTYPE_INT16 int_fast16_t
-  #define YYTYPE_INT8 int_fast8_t
-  #define YYTYPE_UINT16 uint_fast16_t
-  #define YYTYPE_UINT8 uint_fast8_t
 
   /* Add style to semantic values in traces.  */
   static void tron (FILE *yyo);
@@ -124,6 +122,7 @@
 %define api.header.include {"parse-gram.h"}
 %define api.prefix {gram_}
 %define api.pure full
+%define api.token.raw
 %define api.value.type union
 %define locations
 %define parse.error verbose
@@ -137,8 +136,8 @@
 {
   /* Bison's grammar can initial empty locations, hence a default
      location is needed. */
-  boundary_set (&@$.start, current_file, 1, 1, 1);
-  boundary_set (&@$.end, current_file, 1, 1, 1);
+  boundary_set (&@$.start, grammar_file, 1, 1, 1);
+  boundary_set (&@$.end, grammar_file, 1, 1, 1);
 }
 
 /* Define the tokens together with their human representation.  */
@@ -196,7 +195,7 @@
 %token BRACED_CODE     "{...}"
 %token BRACED_PREDICATE "%?{...}"
 %token BRACKETED_ID    "[identifier]"
-%token CHAR            "char"
+%token CHAR            "character literal"
 %token COLON           ":"
 %token EPILOGUE        "epilogue"
 %token EQUAL           "="
@@ -223,7 +222,7 @@
 %type <uniqstr>
   BRACKETED_ID ID ID_COLON
   PERCENT_ERROR_VERBOSE PERCENT_FILE_PREFIX PERCENT_FLAG PERCENT_NAME_PREFIX
-  PERCENT_PURE_PARSER PERCENT_YACC
+  PERCENT_PURE_PARSER
   TAG tag tag.opt variable
 %printer { fputs ($$, yyo); } <uniqstr>
 %printer { fprintf (yyo, "[%s]", $$); } BRACKETED_ID
@@ -352,7 +351,7 @@ prologue_declaration:
 | "%skeleton" STRING            { handle_skeleton (&@2, $2); }
 | "%token-table"                { token_table_flag = true; }
 | "%verbose"                    { report_flag |= report_states; }
-| "%yacc"                       { handle_yacc (&@$, $1); }
+| "%yacc"                       { handle_yacc (&@$); }
 | error ";"                     { current_class = unknown_sym; yyerrok; }
 | /*FIXME: Err?  What is this horror doing here? */ ";"
 ;
@@ -593,11 +592,11 @@ token_decl_for_prec:
 ;
 
 
-/*-----------------------.
-| symbol_decls (%type).  |
-`-----------------------*/
+/*-----------------------------------.
+| symbol_decls (argument of %type).  |
+`-----------------------------------*/
 
-// A non empty list of typed symbols.
+// A non empty list of typed symbols (for %type).
 symbol_decls:
   symbol_decl.1[syms]
     {
@@ -613,10 +612,18 @@ symbol_decls:
     }
 ;
 
-// One or more token declarations.
+// One or more token declarations (for %type).
 symbol_decl.1:
-  symbol                { $$ = symbol_list_sym_new ($1, @1); }
-| symbol_decl.1 symbol  { $$ = symbol_list_append ($1, symbol_list_sym_new ($2, @2)); }
+  symbol
+    {
+      symbol_class_set ($symbol, pct_type_sym, @symbol, false);
+      $$ = symbol_list_sym_new ($symbol, @symbol);
+    }
+  | symbol_decl.1 symbol
+    {
+      symbol_class_set ($symbol, pct_type_sym, @symbol, false);
+      $$ = symbol_list_append ($1, symbol_list_sym_new ($symbol, @symbol));
+    }
 ;
 
         /*------------------------------------------.
@@ -732,11 +739,23 @@ id:
     { $$ = symbol_from_uniqstr ($1, @1); }
 | CHAR
     {
+      const char *var = "api.token.raw";
       if (current_class == nterm_sym)
         {
-          gram_error (&@1,
-                      _("character literals cannot be nonterminals"));
+          complain (&@1, complaint,
+                    _("character literals cannot be nonterminals"));
           YYERROR;
+        }
+      if (muscle_percent_define_ifdef (var))
+        {
+          int indent = 0;
+          complain_indent (&@1, complaint, &indent,
+                           _("character literals cannot be used together"
+                             " with %s"), var);
+          indent += SUB_INDENT;
+          location loc = muscle_percent_define_get_loc (var);
+          complain_indent (&loc, complaint, &indent,
+                           _("definition of %s"), var);
         }
       $$ = symbol_get (char_name ($1), @1);
       symbol_class_set ($$, token_sym, @1, false);
@@ -960,36 +979,55 @@ handle_pure_parser (location const *loc, char const *directive)
 }
 
 
+/* Convert VERSION into an int (MAJOR * 100 + MINOR).  Return -1 on
+   errors.
+
+   Changes of behavior are only on minor version changes, so "3.0.5"
+   is the same as "3.0": 300. */
+static int
+str_to_version (char const *version)
+{
+  IGNORE_TYPE_LIMITS_BEGIN
+  int res = 0;
+  errno = 0;
+  char *cp = NULL;
+  long major = strtol (version, &cp, 10);
+  if (errno || cp == version || *cp != '.' || major < 0
+      || INT_MULTIPLY_WRAPV (major, 100, &res))
+    return -1;
+
+  ++cp;
+  char *cp1 = NULL;
+  long minor = strtol (cp, &cp1, 10);
+  if (errno || cp1 == cp || (*cp1 != '\0' && *cp1 != '.')
+      || ! (0 <= minor && minor < 100)
+      || INT_ADD_WRAPV (minor, res, &res))
+    return -1;
+
+  IGNORE_TYPE_LIMITS_END
+  return res;
+}
+
+
 static void
 handle_require (location const *loc, char const *version)
 {
-  /* Changes of behavior are only on minor version changes, so "3.0.5"
-     is the same as "3.0". */
-  errno = 0;
-  char* cp = NULL;
-  unsigned long major = strtoul (version, &cp, 10);
-  if (errno || *cp != '.')
+  required_version = str_to_version (version);
+  if (required_version == -1)
     {
       complain (loc, complaint, _("invalid version requirement: %s"),
                 version);
+      required_version = 0;
       return;
     }
-  ++cp;
-  unsigned long minor = strtoul (cp, NULL, 10);
-  if (errno)
-    {
-      complain (loc, complaint, _("invalid version requirement: %s"),
-                version);
-      return;
-    }
-  required_version = major * 100 + minor;
-  /* Pretend to be at least 3.4, to check features published in 3.4
-     while developping it.  */
-  const char* api_version = "3.4";
+
+  /* Pretend to be at least 3.5, to check features published in that
+     version while developping it.  */
+  const char* api_version = "3.5";
   const char* package_version =
-    strverscmp (api_version, PACKAGE_VERSION) > 0
+    0 < strverscmp (api_version, PACKAGE_VERSION)
     ? api_version : PACKAGE_VERSION;
-  if (strverscmp (version, package_version) > 0)
+  if (0 < strverscmp (version, package_version))
     {
       complain (loc, complaint, _("require bison %s, but have %s"),
                 version, package_version);
@@ -1003,16 +1041,16 @@ handle_skeleton (location const *loc, char const *skel)
   char const *skeleton_user = skel;
   if (strchr (skeleton_user, '/'))
     {
-      size_t dir_length = strlen (current_file);
-      while (dir_length && current_file[dir_length - 1] != '/')
+      size_t dir_length = strlen (grammar_file);
+      while (dir_length && grammar_file[dir_length - 1] != '/')
         --dir_length;
-      while (dir_length && current_file[dir_length - 1] == '/')
+      while (dir_length && grammar_file[dir_length - 1] == '/')
         --dir_length;
       char *skeleton_build =
         xmalloc (dir_length + 1 + strlen (skeleton_user) + 1);
       if (dir_length > 0)
         {
-          memcpy (skeleton_build, current_file, dir_length);
+          memcpy (skeleton_build, grammar_file, dir_length);
           skeleton_build[dir_length++] = '/';
         }
       strcpy (skeleton_build + dir_length, skeleton_user);
@@ -1024,23 +1062,14 @@ handle_skeleton (location const *loc, char const *skel)
 
 
 static void
-handle_yacc (location const *loc, char const *directive)
+handle_yacc (location const *loc)
 {
+  const char *directive = "%yacc";
   bison_directive (loc, directive);
-  bool warned = false;
-
   if (location_empty (yacc_loc))
     yacc_loc = *loc;
   else
-    {
-      duplicate_directive (directive, yacc_loc, *loc);
-      warned = true;
-    }
-
-  if (!warned
-      && STRNEQ (directive, "%fixed-output-files")
-      && STRNEQ (directive, "%yacc"))
-    deprecated_directive (loc, directive, "%fixed-output-files");
+    duplicate_directive (directive, yacc_loc, *loc);
 }
 
 

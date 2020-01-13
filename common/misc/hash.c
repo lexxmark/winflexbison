@@ -1,6 +1,6 @@
 /* hash - hashing table processing.
 
-   Copyright (C) 1998-2004, 2006-2007, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 1998-2004, 2006-2007, 2009-2019 Free Software Foundation, Inc.
 
    Written by Jim Meyering, 1992.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* A generic hash table package.  */
 
@@ -63,7 +63,7 @@ struct hash_table
     /* Tuning arguments, kept in a physically separate structure.  */
     const Hash_tuning *tuning;
 
-    /* Three functions are given to `hash_initialize', see the documentation
+    /* Three functions are given to 'hash_initialize', see the documentation
        block for this function.  In a word, HASHER randomizes a user entry
        into a number up from 0 up to some maximum minus 1; COMPARATOR returns
        true if two user entries compare equally; and DATA_FREER is the cleanup
@@ -87,23 +87,23 @@ struct hash_table
    some user-provided data (also called a user entry).  An entry indistinctly
    refers to both the internal entry and its associated user entry.  A user
    entry contents may be hashed by a randomization function (the hashing
-   function, or just `hasher' for short) into a number (or `slot') between 0
+   function, or just "hasher" for short) into a number (or "slot") between 0
    and the current table size.  At each slot position in the hash table,
    starts a linked chain of entries for which the user data all hash to this
    slot.  A bucket is the collection of all entries hashing to the same slot.
 
-   A good `hasher' function will distribute entries rather evenly in buckets.
+   A good "hasher" function will distribute entries rather evenly in buckets.
    In the ideal case, the length of each bucket is roughly the number of
    entries divided by the table size.  Finding the slot for a data is usually
-   done in constant time by the `hasher', and the later finding of a precise
+   done in constant time by the "hasher", and the later finding of a precise
    entry is linear in time with the size of the bucket.  Consequently, a
    larger hash table size (that is, a larger number of buckets) is prone to
-   yielding shorter chains, *given* the `hasher' function behaves properly.
+   yielding shorter chains, *given* the "hasher" function behaves properly.
 
    Long buckets slow down the lookup algorithm.  One might use big hash table
    sizes in hope to reduce the average length of buckets, but this might
    become inordinate, as unused slots in the hash table take some space.  The
-   best bet is to make sure you are using a good `hasher' function (beware
+   best bet is to make sure you are using a good "hasher" function (beware
    that those are not that easy to write! :-), and to use a table size
    larger than the actual number of entries.  */
 
@@ -300,7 +300,7 @@ hash_get_first (const Hash_table *table)
 }
 
 /* Return the user data for the entry following ENTRY, where ENTRY has been
-   returned by a previous call to either `hash_get_first' or `hash_get_next'.
+   returned by a previous call to either 'hash_get_first' or 'hash_get_next'.
    Return NULL if there are no more entries.  */
 
 void *
@@ -419,9 +419,9 @@ hash_string (const char *string, size_t n_buckets)
 
 #else /* not USE_DIFF_HASH */
 
-/* This one comes from `recode', and performs a bit better than the above as
+/* This one comes from 'recode', and performs a bit better than the above as
    per a few experiments.  It is inspired from a hashing routine found in the
-   very old Cyber `snoop', itself written in typical Greg Mansfield style.
+   very old Cyber 'snoop', itself written in typical Greg Mansfield style.
    (By the way, what happened to this excellent man?  Is he still alive?)  */
 
 size_t
@@ -440,7 +440,7 @@ hash_string (const char *string, size_t n_buckets)
 /* Return true if CANDIDATE is a prime number.  CANDIDATE should be an odd
    number at least equal to 11.  */
 
-static bool
+static bool _GL_ATTRIBUTE_CONST
 is_prime (size_t candidate)
 {
   size_t divisor = 3;
@@ -459,7 +459,7 @@ is_prime (size_t candidate)
 /* Round a given CANDIDATE number up to the nearest prime, and return that
    prime.  Primes lower than 10 are merely skipped.  */
 
-static size_t
+static size_t _GL_ATTRIBUTE_CONST
 next_prime (size_t candidate)
 {
   /* Skip small primes.  */
@@ -540,7 +540,7 @@ check_tuning (Hash_table *table)
    TUNING, or return 0 if there is no possible way to allocate that
    many entries.  */
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 compute_bucket_size (size_t candidate, const Hash_tuning *tuning)
 {
   if (!tuning->is_n_buckets)
@@ -548,7 +548,7 @@ compute_bucket_size (size_t candidate, const Hash_tuning *tuning)
       float new_candidate = candidate / tuning->growth_threshold;
       if (SIZE_MAX <= new_candidate)
         return 0;
-      candidate = (size_t)new_candidate;
+      candidate = new_candidate;
     }
   candidate = next_prime (candidate);
   if (xalloc_oversized (candidate, sizeof (struct hash_entry *)))
@@ -584,9 +584,9 @@ compute_bucket_size (size_t candidate, const Hash_tuning *tuning)
 
    The user-supplied DATA_FREER function, when not NULL, may be later called
    with the user data as an argument, just before the entry containing the
-   data gets freed.  This happens from within `hash_free' or `hash_clear'.
+   data gets freed.  This happens from within 'hash_free' or 'hash_clear'.
    You should specify this function only if you want these functions to free
-   all of your `data' data.  This is typically the case when your data is
+   all of your 'data' data.  This is typically the case when your data is
    simply an auxiliary struct that you have malloc'd to aggregate several
    values.  */
 
@@ -1018,7 +1018,9 @@ hash_rehash (Hash_table *table, size_t candidate)
   return false;
 }
 
-/* Return -1 upon memory allocation failure.
+/* Insert ENTRY into hash TABLE if there is not already a matching entry.
+
+   Return -1 upon memory allocation failure.
    Return 1 if insertion succeeded.
    Return 0 if there is already a matching entry in the table,
    and in that case, if MATCHED_ENT is non-NULL, set *MATCHED_ENT
@@ -1030,10 +1032,11 @@ hash_rehash (Hash_table *table, size_t candidate)
    hash_insert, the only way to distinguish those cases is to compare
    the return value and ENTRY.  That works only when you can have two
    different ENTRY values that point to data that compares "equal".  Thus,
-   when the ENTRY value is a simple scalar, you must use hash_insert0.
-   ENTRY must not be NULL.  */
+   when the ENTRY value is a simple scalar, you must use
+   hash_insert_if_absent.  ENTRY must not be NULL.  */
 int
-hash_insert0 (Hash_table *table, void const *entry, void const **matched_ent)
+hash_insert_if_absent (Hash_table *table, void const *entry,
+                       void const **matched_ent)
 {
   void *data;
   struct hash_entry *bucket;
@@ -1077,7 +1080,7 @@ hash_insert0 (Hash_table *table, void const *entry, void const **matched_ent)
             return -1;
 
           /* If the rehash fails, arrange to return NULL.  */
-          if (!hash_rehash (table, (size_t)candidate))
+          if (!hash_rehash (table, candidate))
             return -1;
 
           /* Update the bucket we are interested in.  */
@@ -1123,7 +1126,7 @@ void *
 hash_insert (Hash_table *table, void const *entry)
 {
   void const *matched_ent;
-  int err = hash_insert0 (table, entry, &matched_ent);
+  int err = hash_insert_if_absent (table, entry, &matched_ent);
   return (err == -1
           ? NULL
           : (void *) (err == 0 ? matched_ent : entry));
@@ -1161,13 +1164,13 @@ hash_delete (Hash_table *table, const void *entry)
               < table->tuning->shrink_threshold * table->n_buckets)
             {
               const Hash_tuning *tuning = table->tuning;
-              float candidate =
+              size_t candidate =
                 (tuning->is_n_buckets
                  ? table->n_buckets * tuning->shrink_factor
                  : (table->n_buckets * tuning->shrink_factor
                     * tuning->growth_threshold));
 
-              if (!hash_rehash (table, (size_t)candidate))
+              if (!hash_rehash (table, candidate))
                 {
                   /* Failure to allocate memory in an attempt to
                      shrink the table is not fatal.  But since memory

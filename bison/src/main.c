@@ -22,6 +22,7 @@
 #include "system.h"
 
 #include <bitset.h>
+#include <bitset/stats.h>
 #include <closeout.h>
 //#include <configmake.h>
 #include <progname.h>
@@ -100,7 +101,7 @@ main (int argc, char *argv[])
      the grammar; see gram.h.  */
 
   timevar_push (tv_reader);
-  reader ();
+  reader (grammar_file);
   timevar_pop (tv_reader);
 
   if (complaint_status == status_complaint)
@@ -206,6 +207,8 @@ main (int argc, char *argv[])
       timevar_pop (tv_parser);
     }
 
+ finish:
+
   timevar_push (tv_free);
   nullable_free ();
   derives_free ();
@@ -222,13 +225,10 @@ main (int argc, char *argv[])
   muscle_free ();
   code_scanner_free ();
   skel_scanner_free ();
-  quotearg_free ();
   timevar_pop (tv_free);
 
   if (trace_flag & trace_bitsets)
     bitset_stats_dump (stderr);
-
- finish:
 
   /* Stop timing and print the times.  */
   timevar_stop (tv_total);
@@ -248,6 +248,7 @@ main (int argc, char *argv[])
   uniqstrs_free ();
 
   complain_free ();
+  quotearg_free ();
 
   return complaint_status ? EXIT_FAILURE : EXIT_SUCCESS;
 }

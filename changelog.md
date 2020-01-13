@@ -4,6 +4,9 @@
   * 2.4.x versions include bison version 2.7
   * 2.5.x versions include bison version 3.x
   
+### version 2.5.22
+  * upgrade win_bison to version 3.5.0
+
 ### version 2.5.21
   * avoid _m4eof lines in generated bison code while printing warnings
 

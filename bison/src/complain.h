@@ -45,20 +45,24 @@ void flush (FILE *out);
 /** The bits assigned to each warning type.  */
 typedef enum
   {
-    warning_midrule_values, /**< Unset or unused midrule values.  */
+    warning_conflicts_rr,
+    warning_conflicts_sr,
+    warning_dangling_alias,
+    warning_deprecated,
+    warning_empty_rule,
+    warning_midrule_values,
+    warning_other,
+    warning_precedence,
     warning_yacc,           /**< POSIXME.  */
-    warning_conflicts_sr,   /**< S/R conflicts.  */
-    warning_conflicts_rr,   /**< R/R conflicts.  */
-    warning_empty_rule,     /**< Implicitly empty rules.  */
-    warning_deprecated,     /**< Obsolete constructs.  */
-    warning_precedence,     /**< Useless precedence and associativity.  */
-    warning_other,          /**< All other warnings.  */
 
     warnings_size           /**< The number of warnings.  Must be last.  */
   } warning_bit;
 
 /** Whether -Werror was set. */
 extern bool warnings_are_errors;
+
+/** Document --warning arguments.  */
+void warning_usage (FILE *out);
 
 /** Decode a single argument from -W.
  *
@@ -96,20 +100,20 @@ void complain_free (void);
 /** Initialize support for colored messages.  */
 void complain_init_color (void);
 
+/** Flags passed to diagnostics functions.  */
 typedef enum
   {
     Wnone             = 0,       /**< Issue no warnings.  */
 
-    Wmidrule_values   = 1 << warning_midrule_values,
-    Wyacc             = 1 << warning_yacc,
-    Wconflicts_sr     = 1 << warning_conflicts_sr,
     Wconflicts_rr     = 1 << warning_conflicts_rr,
+    Wconflicts_sr     = 1 << warning_conflicts_sr,
+    Wdangling_alias   = 1 << warning_dangling_alias,
     Wdeprecated       = 1 << warning_deprecated,
     Wempty_rule       = 1 << warning_empty_rule,
-    Wprecedence       = 1 << warning_precedence,
+    Wmidrule_values   = 1 << warning_midrule_values,
     Wother            = 1 << warning_other,
-
-    Werror            = 1 << 10, /** This bit is no longer used. */
+    Wprecedence       = 1 << warning_precedence,
+    Wyacc             = 1 << warning_yacc,
 
     complaint         = 1 << 11, /**< All complaints.  */
     fatal             = 1 << 12, /**< All fatal errors.  */
@@ -118,7 +122,7 @@ typedef enum
 
     /**< All above warnings.  */
     Weverything       = ~complaint & ~fatal & ~silent,
-    Wall              = Weverything & ~Wyacc
+    Wall              = Weverything & ~Wdangling_alias & ~Wyacc
   } warnings;
 
 /** Whether the warnings of \a flags are all unset.
@@ -133,11 +137,11 @@ void complain (location const *loc, warnings flags, char const *message, ...)
   __attribute__ ((__format__ (__printf__, 3, 4)));
 
 /** Likewise, but with an \a argc/argv interface.  */
-void complain_args (location const *loc, warnings w, unsigned *indent,
+void complain_args (location const *loc, warnings w, int *indent,
                     int argc, char *arg[]);
 
 /** Make a complaint with location and some indentation.  */
-void complain_indent (location const *loc, warnings flags, unsigned *indent,
+void complain_indent (location const *loc, warnings flags, int *indent,
                       char const *message, ...)
   __attribute__ ((__format__ (__printf__, 4, 5)));
 

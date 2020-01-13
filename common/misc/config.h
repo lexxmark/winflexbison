@@ -12,6 +12,7 @@
 #define _GL_ATTRIBUTE_PURE
 #define _GL_ATTRIBUTE_CONST
 #define _GL_UNUSED
+#define _GL_INLINE
 //#define _USE_32BIT_TIME_T
 #define HAVE_LONG_LONG_INT 1
 

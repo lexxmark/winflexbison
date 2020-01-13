@@ -21,13 +21,13 @@
 #include "system.h"
 
 #include <hash.h>
+#include <quote.h>
 
 #include "complain.h"
 #include "files.h"
 #include "fixits.h"
 #include "getargs.h"
 #include "muscle-tab.h"
-#include "quote.h"
 
 muscle_kind
 muscle_kind_new (char const *k)
@@ -126,8 +126,8 @@ muscle_init (void)
   /* Initialize the muscle obstack.  */
   obstack_init (&muscle_obstack);
 
-  muscle_table = hash_initialize (HT_INITIAL_CAPACITY, NULL, hash_muscle,
-                                  hash_compare_muscles, muscle_entry_free);
+  muscle_table = hash_xinitialize (HT_INITIAL_CAPACITY, NULL, hash_muscle,
+                                   hash_compare_muscles, muscle_entry_free);
 
   /* Version and input file.  */
   MUSCLE_INSERT_STRING ("version", VERSION);
@@ -525,7 +525,7 @@ muscle_percent_define_insert (char const *var, location variable_loc,
             = atoi (muscle_find_const (how_name));
           if (how_old == MUSCLE_PERCENT_DEFINE_F)
             goto end;
-          unsigned i = 0;
+          int i = 0;
           /* If assigning the same value, make it a warning.  */
           warnings warn = STREQ (value, current_value) ? Wother : complaint;
           complain_indent (&variable_loc, warn, &i,
@@ -626,17 +626,17 @@ muscle_percent_define_check_kind (char const *variable, muscle_kind kind)
         {
         case muscle_code:
           complain (&loc, Wdeprecated,
-                    "%%define variable '%s' requires '{...}' values",
+                    _("%%define variable '%s' requires '{...}' values"),
                     variable);
           break;
         case muscle_keyword:
           complain (&loc, Wdeprecated,
-                    "%%define variable '%s' requires keyword values",
+                    _("%%define variable '%s' requires keyword values"),
                     variable);
           break;
         case muscle_string:
           complain (&loc, Wdeprecated,
-                    "%%define variable '%s' requires '\"...\"' values",
+                    _("%%define variable '%s' requires '\"...\"' values"),
                     variable);
           break;
         }
@@ -739,7 +739,7 @@ muscle_percent_define_check_values (char const * const *values)
           if (!*values)
             {
               location loc = muscle_percent_define_get_loc (*variablep);
-              unsigned i = 0;
+              int i = 0;
               complain_indent (&loc, complaint, &i,
                                _("invalid value for %%define variable %s: %s"),
                                quote (*variablep), quote_n (1, value));

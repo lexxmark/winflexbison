@@ -122,8 +122,8 @@ extern base_number *base;
    keep parser tables small.  */
 extern base_number base_ninf;
 
-extern unsigned *conflict_table;
-extern unsigned *conflict_list;
+extern int *conflict_table;
+extern int *conflict_list;
 extern int conflict_list_cnt;
 
 extern base_number *table;

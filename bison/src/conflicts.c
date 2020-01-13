@@ -38,7 +38,10 @@
 /* -1 stands for not specified. */
 int expected_sr_conflicts = -1;
 int expected_rr_conflicts = -1;
-static char *conflicts;
+
+/* CONFLICTS[STATE-NUM] -- Whether that state has unresolved conflicts.  */
+static bool *conflicts;
+
 static struct obstack solved_conflicts_obstack;
 static struct obstack solved_conflicts_xml_obstack;
 
@@ -73,8 +76,9 @@ log_resolution (rule *r, symbol_number token,
         {
         case shift_resolution:
         case right_resolution:
+          obstack_sgrow (&solved_conflicts_obstack, "    ");
           obstack_printf (&solved_conflicts_obstack,
-                          _("    Conflict between rule %d and token %s"
+                          _("Conflict between rule %d and token %s"
                             " resolved as shift"),
                           r->number,
                           symbols[token]->tag);
@@ -82,16 +86,18 @@ log_resolution (rule *r, symbol_number token,
 
         case reduce_resolution:
         case left_resolution:
+          obstack_sgrow (&solved_conflicts_obstack, "    ");
           obstack_printf (&solved_conflicts_obstack,
-                          _("    Conflict between rule %d and token %s"
+                          _("Conflict between rule %d and token %s"
                             " resolved as reduce"),
                           r->number,
                           symbols[token]->tag);
           break;
 
         case nonassoc_resolution:
+          obstack_sgrow (&solved_conflicts_obstack, "    ");
           obstack_printf (&solved_conflicts_obstack,
-                          _("    Conflict between rule %d and token %s"
+                          _("Conflict between rule %d and token %s"
                             " resolved as an error"),
                           r->number,
                           symbols[token]->tag);
@@ -376,7 +382,7 @@ set_conflicts (state *s, symbol **errors)
     for (int i = 0; i < reds->num; ++i)
       {
         if (!bitset_disjoint_p (reds->lookahead_tokens[i], lookahead_set))
-          conflicts[s->number] = 1;
+          conflicts[s->number] = true;
         bitset_or (lookahead_set, lookahead_set, reds->lookahead_tokens[i]);
       }
 }
@@ -428,7 +434,7 @@ conflicts_update_state_numbers (state_number old_to_new[],
 `---------------------------------------------*/
 
 static size_t
-count_state_sr_conflicts (state *s)
+count_state_sr_conflicts (const state *s)
 {
   transitions *trans = s->transitions;
   reductions *reds = s->reductions;
@@ -476,7 +482,7 @@ count_sr_conflicts (void)
 `-----------------------------------------------------------------*/
 
 static size_t
-count_state_rr_conflicts (state *s)
+count_state_rr_conflicts (const state *s)
 {
   reductions *reds = s->reductions;
   size_t res = 0;
@@ -588,24 +594,22 @@ conflicts_output (FILE *out)
 {
   bool printed_sth = false;
   for (state_number i = 0; i < nstates; ++i)
-    {
-      state *s = states[i];
-      if (conflicts[i])
-        {
-          int src = count_state_sr_conflicts (s);
-          int rrc = count_state_rr_conflicts (s);
-          fprintf (out, _("State %d "), i);
-          if (src && rrc)
-            fprintf (out,
-                     _("conflicts: %d shift/reduce, %d reduce/reduce\n"),
-                     src, rrc);
-          else if (src)
-            fprintf (out, _("conflicts: %d shift/reduce\n"), src);
-          else if (rrc)
-            fprintf (out, _("conflicts: %d reduce/reduce\n"), rrc);
-          printed_sth = true;
-        }
-    }
+    if (conflicts[i])
+      {
+        const state *s = states[i];
+        int src = count_state_sr_conflicts (s);
+        int rrc = count_state_rr_conflicts (s);
+        fprintf (out, _("State %d "), i);
+        if (src && rrc)
+          fprintf (out,
+                   _("conflicts: %d shift/reduce, %d reduce/reduce\n"),
+                   src, rrc);
+        else if (src)
+          fprintf (out, _("conflicts: %d shift/reduce\n"), src);
+        else if (rrc)
+          fprintf (out, _("conflicts: %d reduce/reduce\n"), rrc);
+        printed_sth = true;
+      }
   if (printed_sth)
     fputs ("\n\n", out);
 }
