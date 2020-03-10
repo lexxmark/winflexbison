@@ -48,8 +48,6 @@ if (MSVC)
             string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
         endforeach()    
         message(STATUS "Using /MT STATIC runtime")
-    else ()
-        message(STATUS "Using /MD DYNAMIC runtime")
     endif ()
 endif ()
 
