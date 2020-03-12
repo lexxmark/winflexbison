@@ -9,6 +9,7 @@ platform:
   - Win32
 
 environment:
+  CMAKE_OPTIONS: "-A \"%platform%\" -DCMAKE_BUILD_TYPE=\"%configuration%\" -DUSE_STATIC_RUNTIME=ON"
   # VS VERSION IN CMAKE STYLE
   matrix:
     - VSVERSION: "16 2019"
@@ -26,7 +27,7 @@ before_build:
   - if "%APPVEYOR_REPO_TAG_NAME%"=="" ( set "APPVEYOR_REPO_TAG_NAME=dev-%VSVERSIONSHORT%-%platform%-%configuration%" )
   - mkdir build
   - cd build
-  - cmake -G "Visual Studio %VSVERSION%" -A "%platform%" -DCPACK_PACKAGE_VERSION="%APPVEYOR_REPO_TAG_NAME%" -DCMAKE_BUILD_TYPE="%configuration%" ..
+  - cmake -G "Visual Studio %VSVERSION%" -DCPACK_PACKAGE_VERSION="%APPVEYOR_REPO_TAG_NAME%" %CMAKE_OPTIONS%  ..
 
 build:
   project: "build\\winflexbison.sln"
