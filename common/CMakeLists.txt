@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
-set(PROJECT_NAME common_lib)
+set(PROJECT_NAME winflexbison_common)
 
 project(${PROJECT_NAME} C)
 

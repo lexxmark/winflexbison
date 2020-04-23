@@ -25,4 +25,4 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE "src")
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-target_link_libraries(${PROJECT_NAME} common_lib kernel32.lib user32.lib)
+target_link_libraries(${PROJECT_NAME} winflexbison_common kernel32.lib user32.lib)
