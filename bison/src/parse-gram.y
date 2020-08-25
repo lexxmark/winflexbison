@@ -1,6 +1,6 @@
 /* Bison Grammar Parser                             -*- C -*-
 
-   Copyright (C) 2002-2015, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2002-2015, 2018-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -21,6 +21,14 @@
 {
   #include "symlist.h"
   #include "symtab.h"
+}
+
+%code provides
+{
+  /* Initialize unquote.  */
+  void parser_init (void);
+  /* Deallocate storage for unquote.  */
+  void parser_free (void);
 }
 
 %code top
@@ -50,6 +58,10 @@
   #include "scan-code.h"
   #include "scan-gram.h"
 
+  /* Pretend to be at least that version, to check features published
+     in that version while developping it.  */
+  static const char* api_version = "3.7";
+
   static int current_prec = 0;
   static location current_lhs_loc;
   static named_ref *current_lhs_named_ref;
@@ -73,16 +85,19 @@
   static char *strip_braces (char *code);
 
   /* Convert CODE by calling code_props_plain_init if PLAIN, otherwise
-     code_props_symbol_action_init.  Call
+     code_props_symbol_action_init.  Calls
      gram_scanner_last_string_free to release the latest string from
      the scanner (should be CODE). */
   static char const *translate_code (char *code, location loc, bool plain);
 
   /* Convert CODE by calling code_props_plain_init after having
      stripped the first and last characters (expected to be '{', and
-     '}').  Call gram_scanner_last_string_free to release the latest
+     '}').  Calls gram_scanner_last_string_free to release the latest
      string from the scanner (should be CODE). */
   static char const *translate_code_braceless (char *code, location loc);
+
+  /* Handle a %defines directive.  */
+  static void handle_defines (char const *value);
 
   /* Handle a %error-verbose directive.  */
   static void handle_error_verbose (location const *loc, char const *directive);
@@ -91,6 +106,9 @@
   static void handle_file_prefix (location const *loc,
                                   location const *dir_loc,
                                   char const *directive, char const *value);
+
+  /* Handle a %language directive.  */
+  static void handle_language (location const *loc, char const *lang);
 
   /* Handle a %name-prefix directive.  */
   static void handle_name_prefix (location const *loc,
@@ -117,6 +135,13 @@
   /* Add style to semantic values in traces.  */
   static void tron (FILE *yyo);
   static void troff (FILE *yyo);
+
+  /* Interpret a quoted string (such as `"Hello, \"World\"\n\""`).
+     Manages the memory of the result.  */
+  static char *unquote (const char *str);
+
+  /* Discard the latest unquoted string.  */
+  static void unquote_free (char *last_string);
 }
 
 %define api.header.include {"parse-gram.h"}
@@ -125,7 +150,7 @@
 %define api.token.raw
 %define api.value.type union
 %define locations
-%define parse.error verbose
+%define parse.error custom
 %define parse.lac full
 %define parse.trace
 %defines
@@ -140,31 +165,26 @@
   boundary_set (&@$.end, grammar_file, 1, 1, 1);
 }
 
-/* Define the tokens together with their human representation.  */
-%token GRAM_EOF 0 "end of file"
-%token STRING     "string"
-
-%token PERCENT_TOKEN       "%token"
-%token PERCENT_NTERM       "%nterm"
-
-%token PERCENT_TYPE        "%type"
-%token PERCENT_DESTRUCTOR  "%destructor"
-%token PERCENT_PRINTER     "%printer"
-
-%token PERCENT_LEFT        "%left"
-%token PERCENT_RIGHT       "%right"
-%token PERCENT_NONASSOC    "%nonassoc"
-%token PERCENT_PRECEDENCE  "%precedence"
-
-%token PERCENT_PREC          "%prec"
-%token PERCENT_DPREC         "%dprec"
-%token PERCENT_MERGE         "%merge"
-
-/*----------------------.
-| Global Declarations.  |
-`----------------------*/
-
 %token
+  STRING              _("string")
+  TSTRING             _("translatable string")
+
+  PERCENT_TOKEN       "%token"
+  PERCENT_NTERM       "%nterm"
+
+  PERCENT_TYPE        "%type"
+  PERCENT_DESTRUCTOR  "%destructor"
+  PERCENT_PRINTER     "%printer"
+
+  PERCENT_LEFT        "%left"
+  PERCENT_RIGHT       "%right"
+  PERCENT_NONASSOC    "%nonassoc"
+  PERCENT_PRECEDENCE  "%precedence"
+
+  PERCENT_PREC        "%prec"
+  PERCENT_DPREC       "%dprec"
+  PERCENT_MERGE       "%merge"
+
   PERCENT_CODE            "%code"
   PERCENT_DEFAULT_PREC    "%default-prec"
   PERCENT_DEFINE          "%define"
@@ -190,34 +210,33 @@
   PERCENT_TOKEN_TABLE     "%token-table"
   PERCENT_VERBOSE         "%verbose"
   PERCENT_YACC            "%yacc"
-;
 
-%token BRACED_CODE     "{...}"
-%token BRACED_PREDICATE "%?{...}"
-%token BRACKETED_ID    "[identifier]"
-%token CHAR            "character literal"
-%token COLON           ":"
-%token EPILOGUE        "epilogue"
-%token EQUAL           "="
-%token ID              "identifier"
-%token ID_COLON        "identifier:"
-%token PERCENT_PERCENT "%%"
-%token PIPE            "|"
-%token PROLOGUE        "%{...%}"
-%token SEMICOLON       ";"
-%token TAG             "<tag>"
-%token TAG_ANY         "<*>"
-%token TAG_NONE        "<>"
+  BRACED_CODE       "{...}"
+  BRACED_PREDICATE  "%?{...}"
+  BRACKETED_ID      _("[identifier]")
+  CHAR_LITERAL      _("character literal")
+  COLON             ":"
+  EPILOGUE          _("epilogue")
+  EQUAL             "="
+  ID                _("identifier")
+  ID_COLON          _("identifier:")
+  PERCENT_PERCENT   "%%"
+  PIPE              "|"
+  PROLOGUE          "%{...%}"
+  SEMICOLON         ";"
+  TAG               _("<tag>")
+  TAG_ANY           "<*>"
+  TAG_NONE          "<>"
 
  /* Experimental feature, don't rely on it.  */
 %code pre-printer  {tron (yyo);}
 %code post-printer {troff (yyo);}
 
-%type <unsigned char> CHAR
+%type <unsigned char> CHAR_LITERAL
 %printer { fputs (char_name ($$), yyo); } <unsigned char>
 
-%type <char*> "{...}" "%?{...}" "%{...%}" EPILOGUE STRING
-%printer { fputs ($$, yyo); }  <char*>
+%type <char*> "{...}" "%?{...}" "%{...%}" EPILOGUE STRING TSTRING
+%printer { fputs ($$, yyo); } <char*>
 
 %type <uniqstr>
   BRACKETED_ID ID ID_COLON
@@ -230,7 +249,7 @@
 %printer { fprintf (yyo, "%%%s", $$); } PERCENT_FLAG
 %printer { fprintf (yyo, "<%s>", $$); } TAG tag
 
-%token <int> INT "integer"
+%token <int> INT_LITERAL _("integer literal")
 %printer { fprintf (yyo, "%d", $$); } <int>
 
 %type <symbol*> id id_colon string_as_id symbol token_decl token_decl_for_prec
@@ -321,14 +340,10 @@ prologue_declaration:
                                     MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE);
     }
 | "%defines"                       { defines_flag = true; }
-| "%defines" STRING
-    {
-      defines_flag = true;
-      spec_header_file = xstrdup ($2);
-    }
+| "%defines" STRING                { handle_defines ($2); }
 | "%error-verbose"                 { handle_error_verbose (&@$, $1); }
-| "%expect" INT                    { expected_sr_conflicts = $2; }
-| "%expect-rr" INT                 { expected_rr_conflicts = $2; }
+| "%expect" INT_LITERAL            { expected_sr_conflicts = $2; }
+| "%expect-rr" INT_LITERAL         { expected_rr_conflicts = $2; }
 | "%file-prefix" STRING            { handle_file_prefix (&@$, &@1, $1, $2); }
 | "%glr-parser"
     {
@@ -340,11 +355,11 @@ prologue_declaration:
       muscle_code_grow ("initial_action", translate_code ($2, @2, false), @2);
       code_scanner_last_string_free ();
     }
-| "%language" STRING            { language_argmatch ($2, grammar_prio, @1); }
+| "%language" STRING            { handle_language (&@1, $2); }
 | "%name-prefix" STRING         { handle_name_prefix (&@$, $1, $2); }
 | "%no-lines"                   { no_lines_flag = true; }
 | "%nondeterministic-parser"    { nondeterministic_parser = true; }
-| "%output" STRING              { spec_outfile = $2; }
+| "%output" STRING              { spec_outfile = unquote ($2); gram_scanner_last_string_free (); }
 | "%param" { current_param = $1; } params { current_param = param_none; }
 | "%pure-parser"                { handle_pure_parser (&@$, $1); }
 | "%require" STRING             { handle_require (&@2, $2); }
@@ -517,11 +532,11 @@ token_decls:
     }
 | TAG token_decl.1[syms]
     {
-      $$ = symbol_list_type_set ($syms, $TAG, @TAG);
+      $$ = symbol_list_type_set ($syms, $TAG);
     }
 | token_decls TAG token_decl.1[syms]
     {
-      $$ = symbol_list_append ($1, symbol_list_type_set ($syms, $TAG, @TAG));
+      $$ = symbol_list_append ($1, symbol_list_type_set ($syms, $TAG));
     }
 ;
 
@@ -532,12 +547,12 @@ token_decl.1:
 
 // One symbol declaration for %token or %nterm.
 token_decl:
-  id int.opt[num] string_as_id.opt[alias]
+  id int.opt[num] alias
     {
       $$ = $id;
       symbol_class_set ($id, current_class, @id, true);
       if (0 <= $num)
-        symbol_user_token_number_set ($id, $num, @num);
+        symbol_code_set ($id, $num, @num);
       if ($alias)
         symbol_make_alias ($id, $alias, @alias);
     }
@@ -546,8 +561,21 @@ token_decl:
 %type <int> int.opt;
 int.opt:
   %empty  { $$ = -1; }
-| INT
+| INT_LITERAL
 ;
+
+%type <symbol*> alias;
+alias:
+  %empty         { $$ = NULL; }
+| string_as_id   { $$ = $1; }
+| TSTRING
+    {
+      $$ = symbol_get ($1, @1);
+      symbol_class_set ($$, token_sym, @1, false);
+      $$->translatable = true;
+    }
+;
+
 
 /*-------------------------------------.
 | token_decls_for_prec (%left, etc.).  |
@@ -564,11 +592,11 @@ token_decls_for_prec:
     }
 | TAG token_decl_for_prec.1[syms]
     {
-      $$ = symbol_list_type_set ($syms, $TAG, @TAG);
+      $$ = symbol_list_type_set ($syms, $TAG);
     }
 | token_decls_for_prec TAG token_decl_for_prec.1[syms]
     {
-      $$ = symbol_list_append ($1, symbol_list_type_set ($syms, $TAG, @TAG));
+      $$ = symbol_list_append ($1, symbol_list_type_set ($syms, $TAG));
     }
 ;
 
@@ -586,7 +614,7 @@ token_decl_for_prec:
       $$ = $id;
       symbol_class_set ($id, token_sym, @id, false);
       if (0 <= $num)
-        symbol_user_token_number_set ($id, $num, @num);
+        symbol_code_set ($id, $num, @num);
     }
 | string_as_id
 ;
@@ -604,11 +632,11 @@ symbol_decls:
     }
 | TAG symbol_decl.1[syms]
     {
-      $$ = symbol_list_type_set ($syms, $TAG, @TAG);
+      $$ = symbol_list_type_set ($syms, $TAG);
     }
 | symbol_decls TAG symbol_decl.1[syms]
     {
-      $$ = symbol_list_append ($1, symbol_list_type_set ($syms, $TAG, @TAG));
+      $$ = symbol_list_append ($1, symbol_list_type_set ($syms, $TAG));
     }
 ;
 
@@ -667,21 +695,21 @@ rhs:
                                   current_lhs_named_ref); }
 | rhs symbol named_ref.opt
     { grammar_current_rule_symbol_append ($2, @2, $3); }
-| rhs tag.opt "{...}"[act] named_ref.opt[name]
-    { grammar_current_rule_action_append ($act, @act, $name, $[tag.opt]); }
+| rhs tag.opt "{...}"[action] named_ref.opt[name]
+    { grammar_current_rule_action_append ($action, @action, $name, $[tag.opt]); }
 | rhs "%?{...}"
     { grammar_current_rule_predicate_append ($2, @2); }
 | rhs "%empty"
     { grammar_current_rule_empty_set (@2); }
 | rhs "%prec" symbol
     { grammar_current_rule_prec_set ($3, @3); }
-| rhs "%dprec" INT
+| rhs "%dprec" INT_LITERAL
     { grammar_current_rule_dprec_set ($3, @3); }
 | rhs "%merge" TAG
     { grammar_current_rule_merge_set ($3, @3); }
-| rhs "%expect" INT
+| rhs "%expect" INT_LITERAL
     { grammar_current_rule_expect_sr ($3, @3); }
-| rhs "%expect-rr" INT
+| rhs "%expect-rr" INT_LITERAL
     { grammar_current_rule_expect_rr ($3, @3); }
 ;
 
@@ -722,8 +750,8 @@ variable:
 value:
   %empty  { $$.kind = muscle_keyword; $$.chars = ""; }
 | ID      { $$.kind = muscle_keyword; $$.chars = $1; }
-| STRING  { $$.kind = muscle_string;  $$.chars = $1; }
-| "{...}" { $$.kind = muscle_code;    $$.chars = strip_braces ($1); }
+| STRING  { $$.kind = muscle_string;  $$.chars = unquote ($1); gram_scanner_last_string_free ();}
+| "{...}" { $$.kind = muscle_code;    $$.chars = strip_braces ($1); gram_scanner_last_string_free (); }
 ;
 
 
@@ -737,7 +765,7 @@ value:
 id:
   ID
     { $$ = symbol_from_uniqstr ($1, @1); }
-| CHAR
+| CHAR_LITERAL
     {
       const char *var = "api.token.raw";
       if (current_class == nterm_sym)
@@ -748,18 +776,15 @@ id:
         }
       if (muscle_percent_define_ifdef (var))
         {
-          int indent = 0;
-          complain_indent (&@1, complaint, &indent,
-                           _("character literals cannot be used together"
-                             " with %s"), var);
-          indent += SUB_INDENT;
+          complain (&@1, complaint,
+                    _("character literals cannot be used together"
+                    " with %s"), var);
           location loc = muscle_percent_define_get_loc (var);
-          complain_indent (&loc, complaint, &indent,
-                           _("definition of %s"), var);
+          subcomplain (&loc, complaint, _("definition of %s"), var);
         }
       $$ = symbol_get (char_name ($1), @1);
       symbol_class_set ($$, token_sym, @1, false);
-      symbol_user_token_number_set ($$, $1, @1);
+      symbol_code_set ($$, $1, @1);
     }
 ;
 
@@ -773,19 +798,13 @@ symbol:
 | string_as_id
 ;
 
-/* A string used as an ID: quote it.  */
+/* A string used as an ID.  */
 string_as_id:
   STRING
     {
-      $$ = symbol_get (quotearg_style (c_quoting_style, $1), @1);
+      $$ = symbol_get ($1, @1);
       symbol_class_set ($$, token_sym, @1, false);
     }
-;
-
-%type <symbol*> string_as_id.opt;
-string_as_id.opt:
-  %empty             { $$ = NULL; }
-| string_as_id
 ;
 
 epilogue.opt:
@@ -798,6 +817,32 @@ epilogue.opt:
 ;
 
 %%
+
+int
+yyreport_syntax_error (const yypcontext_t *ctx)
+{
+  int res = 0;
+  /* Arguments of format: reported tokens (one for the "unexpected",
+     one per "expected"). */
+  enum { ARGS_MAX = 5 };
+  const char *argv[ARGS_MAX];
+  int argc = 0;
+  yysymbol_kind_t unexpected = yypcontext_token (ctx);
+  if (unexpected != YYSYMBOL_YYEMPTY)
+    {
+      argv[argc++] = yysymbol_name (unexpected);
+      yysymbol_kind_t expected[ARGS_MAX - 1];
+      int nexpected = yypcontext_expected_tokens (ctx, expected, ARGS_MAX - 1);
+      if (nexpected < 0)
+        res = nexpected;
+      else
+        for (int i = 0; i < nexpected; ++i)
+          argv[argc++] = yysymbol_name (expected[i]);
+    }
+  syntax_error (*yypcontext_location (ctx), argc, argv);
+  return res;
+}
+
 
 /* Return the location of the left-hand side of a rule whose
    right-hand side is RHS[1] ... RHS[N].  Ignore empty nonterminals in
@@ -902,6 +947,17 @@ add_param (param_type type, char *decl, location loc)
 
 
 static void
+handle_defines (char const *value)
+{
+  defines_flag = true;
+  char *file = unquote (value);
+  spec_header_file = xstrdup (file);
+  gram_scanner_last_string_free ();
+  unquote_free (file);
+}
+
+
+static void
 handle_error_verbose (location const *loc, char const *directive)
 {
   bison_directive (loc, directive);
@@ -913,8 +969,9 @@ handle_error_verbose (location const *loc, char const *directive)
 static void
 handle_file_prefix (location const *loc,
                     location const *dir_loc,
-                    char const *directive, char const *value)
+                    char const *directive, char const *value_quoted)
 {
+  char *value = unquote (value_quoted);
   bison_directive (loc, directive);
   bool warned = false;
 
@@ -934,11 +991,18 @@ handle_file_prefix (location const *loc,
     deprecated_directive (dir_loc, directive, "%file-prefix");
 }
 
+static void
+handle_language (location const *loc, char const *lang)
+{
+  language_argmatch (unquote (lang), grammar_prio, *loc);
+}
+
 
 static void
 handle_name_prefix (location const *loc,
-                    char const *directive, char const *value)
+                    char const *directive, char const *value_quoted)
 {
+  char *value = unquote (value_quoted);
   bison_directive (loc, directive);
 
   char buf1[1024];
@@ -1010,34 +1074,36 @@ str_to_version (char const *version)
 
 
 static void
-handle_require (location const *loc, char const *version)
+handle_require (location const *loc, char const *version_quoted)
 {
+  char *version = unquote (version_quoted);
   required_version = str_to_version (version);
   if (required_version == -1)
     {
       complain (loc, complaint, _("invalid version requirement: %s"),
                 version);
       required_version = 0;
-      return;
     }
-
-  /* Pretend to be at least 3.5, to check features published in that
-     version while developping it.  */
-  const char* api_version = "3.5";
-  const char* package_version =
-    0 < strverscmp (api_version, PACKAGE_VERSION)
-    ? api_version : PACKAGE_VERSION;
-  if (0 < strverscmp (version, package_version))
+  else
     {
-      complain (loc, complaint, _("require bison %s, but have %s"),
-                version, package_version);
-      exit (EX_MISMATCH);
+      const char* package_version =
+        0 < strverscmp (api_version, PACKAGE_VERSION)
+        ? api_version : PACKAGE_VERSION;
+      if (0 < strverscmp (version, package_version))
+        {
+          complain (loc, complaint, _("require bison %s, but have %s"),
+                    version, package_version);
+          exit (EX_MISMATCH);
+        }
     }
+  unquote_free (version);
+  gram_scanner_last_string_free ();
 }
 
 static void
-handle_skeleton (location const *loc, char const *skel)
+handle_skeleton (location const *loc, char const *skel_quoted)
 {
+  char *skel = unquote (skel_quoted);
   char const *skeleton_user = skel;
   if (strchr (skeleton_user, '/'))
     {
@@ -1117,4 +1183,96 @@ static void tron (FILE *yyo)
 static void troff (FILE *yyo)
 {
   end_use_class ("value", yyo);
+}
+
+
+/*----------.
+| Unquote.  |
+`----------*/
+
+struct obstack obstack_for_unquote;
+
+void
+parser_init (void)
+{
+  obstack_init (&obstack_for_unquote);
+}
+
+void
+parser_free (void)
+{
+  obstack_free (&obstack_for_unquote, 0);
+}
+
+static void
+unquote_free (char *last_string)
+{
+  obstack_free (&obstack_for_unquote, last_string);
+}
+
+static char *
+unquote (const char *cp)
+{
+#define GROW(Char)                              \
+  obstack_1grow (&obstack_for_unquote, Char);
+  for (++cp; *cp && *cp != '"'; ++cp)
+    switch (*cp)
+      {
+      case '"':
+        break;
+      case '\\':
+        ++cp;
+        switch (*cp)
+          {
+          case '0': case '1': case '2': case '3': case '4':
+          case '5': case '6': case '7': case '8': case '9':
+            {
+              int c = cp[0] - '0';
+              if (c_isdigit (cp[1]))
+                {
+                  ++cp;
+                  c = c * 8 + cp[0] - '0';
+                }
+              if (c_isdigit (cp[1]))
+                {
+                  ++cp;
+                  c = c * 8 + cp[0] - '0';
+                }
+              GROW (c);
+            }
+            break;
+
+          case 'a': GROW ('\a'); break;
+          case 'b': GROW ('\b'); break;
+          case 'f': GROW ('\f'); break;
+          case 'n': GROW ('\n'); break;
+          case 'r': GROW ('\r'); break;
+          case 't': GROW ('\t'); break;
+          case 'v': GROW ('\v'); break;
+
+          case 'x':
+            {
+              int c = 0;
+              while (c_isxdigit (cp[1]))
+                {
+                  ++cp;
+                  c = (c * 16 + (c_isdigit (cp[0]) ? cp[0] - '0'
+                                 : c_isupper (cp[0]) ? cp[0] - 'A'
+                                 : cp[0] - '0'));
+                }
+              GROW (c);
+              break;
+            }
+          }
+        break;
+
+      default:
+        GROW (*cp);
+        break;
+      }
+  assert (*cp == '"');
+  ++cp;
+  assert (*cp == '\0');
+#undef GROW
+  return obstack_finish0 (&obstack_for_unquote);
 }

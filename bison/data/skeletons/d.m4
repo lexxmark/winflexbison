@@ -2,7 +2,7 @@
 
 # D language support for Bison
 
-# Copyright (C) 2018-2019 Free Software Foundation, Inc.
+# Copyright (C) 2018-2020 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -148,9 +148,11 @@ private static immutable b4_int_type_for([$2])[[]] yy$1_ =
 ])
 
 
-## ------------------------- ##
-## Assigning token numbers.  ##
-## ------------------------- ##
+## ------------- ##
+## Token kinds.  ##
+## ------------- ##
+
+m4_define([b4_symbol(-2, id)],  [[YYEMPTY]])
 
 # b4_token_enum(TOKEN-NAME, TOKEN-NUMBER)
 # ---------------------------------------
@@ -159,22 +161,61 @@ m4_define([b4_token_enum],
 [b4_token_format([  %s = %s,
 ], [$1])])
 
-# b4_token_enums(LIST-OF-PAIRS-TOKEN-NAME-TOKEN-NUMBER)
-# -----------------------------------------------------
+# b4_token_enums
+# --------------
 # Output the definition of the tokens as enums.
 m4_define([b4_token_enums],
-[/* Tokens.  */
-public enum YYTokenType {
-
-  /** Token returned by the scanner to signal the end of its input.  */
-  EOF = 0,
-b4_symbol_foreach([b4_token_enum])
+[/* Token kinds.  */
+public enum TokenKind {
+  ]b4_symbol_kind([-2])[ = -2,
+b4_symbol_foreach([b4_token_enum])dnl
 }
 ])
 
-# b4-case(ID, CODE)
-# -----------------
-m4_define([b4_case], [    case $1:
+
+
+## -------------- ##
+## Symbol kinds.  ##
+## -------------- ##
+
+b4_percent_define_default([[api.symbol.prefix]], [[S_]])
+
+# b4_symbol_kind(NUM)
+# -------------------
+m4_define([b4_symbol_kind],
+[SymbolKind.b4_symbol_kind_base($@)])
+
+
+# b4_symbol_enum(SYMBOL-NUM)
+# --------------------------
+# Output the definition of this symbol as an enum.
+m4_define([b4_symbol_enum],
+[m4_format([    %-30s %s],
+           m4_format([[%s = %s,]],
+                     b4_symbol([$1], [kind_base]),
+                     [$1]),
+           [b4_symbol_tag_comment([$1])])])
+
+
+# b4_declare_symbol_enum
+# ----------------------
+# The definition of the symbol internal numbers as an enum.
+# Defining YYEMPTY here is important: it forces the compiler
+# to use a signed type, which matters for yytoken.
+m4_define([b4_declare_symbol_enum],
+[[  /* Symbol kinds.  */
+  public enum SymbolKind
+  {
+    ]b4_symbol(-2, kind_base)[ = -2,  /* No symbol.  */
+]b4_symbol_foreach([b4_symbol_enum])dnl
+[  };
+]])])
+
+
+
+# b4-case(ID, CODE, [COMMENTS])
+# -----------------------------
+m4_define([b4_case], [    case $1:m4_ifval([$3], [ b4_comment([$3])])
 $2
       break;])
 

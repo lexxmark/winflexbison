@@ -1,6 +1,6 @@
 /* Bison code properties structure and scanner.
 
-   Copyright (C) 2006-2007, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2006-2007, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -145,6 +145,7 @@ void code_props_symbol_action_init (code_props *self, char const *code,
                                     location code_loc);
 
 /**
+ * \param  type   type for midrule actions
  * \pre
  *   - <tt>self != NULL</tt>.
  *   - <tt>code != NULL</tt>.

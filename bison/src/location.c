@@ -1,6 +1,6 @@
 /* Locations for Bison
 
-   Copyright (C) 2002, 2005-2015, 2018-2019 Free Software Foundation,
+   Copyright (C) 2002, 2005-2015, 2018-2020 Free Software Foundation,
    Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -39,18 +39,6 @@
 #include "location.h"
 
 location const empty_loc = EMPTY_LOCATION_INIT;
-
-static int
-min_int (int a, int b)
-{
-  return a < b ? a : b;
-}
-
-static int
-max_int (int a, int b)
-{
-  return a >= b ? a : b;
-}
 
 /* The terminal width.  Not less than 40.  */
 static int
@@ -175,6 +163,8 @@ location_print (location loc, FILE *out)
     }
   else
     {
+      aver (loc.start.file);
+      aver (loc.end.file);
       int end_col = 0 != loc.end.column ? loc.end.column - 1 : 0;
       res += fprintf (out, "%s",
                       quotearg_n_style (3, escape_quoting_style, loc.start.file));
@@ -317,7 +307,7 @@ caret_getc_internal (mbchar_t *res)
 
 /* Move CARET_INFO (which has a valid FILE) to the line number LINE.
    Compute and cache that line's length in CARET_INFO.LINE_LEN.
-   Return whether succesful.*/
+   Return whether successful.  */
 static bool
 caret_set_line (int line)
 {
@@ -400,6 +390,8 @@ caret_set_column (int col)
 void
 location_caret (location loc, const char *style, FILE *out)
 {
+  if (!(feature_flag & feature_caret))
+    return;
   if (!loc.start.line)
     return;
   if (!caret_set_file (loc.start.file))
@@ -421,12 +413,14 @@ location_caret (location loc, const char *style, FILE *out)
       {
         /* The last column to highlight.  Only the first line of
            multiline locations are quoted, in which case the ending
-           column is the end of line.  Single point locations (with
-           equal boundaries) denote the character that they
-           follow.  */
-        int col_end
+           column is the end of line.
+
+           We used to work with byte offsets, and that was much
+           easier.  However, we went back to using (visual) columns to
+           support truncating of long lines.  */
+        const int col_end
           = loc.start.line == loc.end.line
-          ? loc.end.column + (loc.start.column == loc.end.column)
+          ? loc.end.column
           : caret_info.line_len;
         /* Quote the file (at most the first line in the case of
            multiline locations).  */
@@ -436,30 +430,40 @@ location_caret (location loc, const char *style, FILE *out)
              expected (maybe the file was changed since the scanner
              ran), we might reach the end before we actually saw the
              opening column.  */
-          bool opened = false;
+          enum { before, inside, after } state = before;
           while (!mb_iseof (c) && !mb_iseq (c, '\n'))
             {
-              if (caret_info.pos.column == loc.start.column)
+              // We might have already opened (and even closed!) the
+              // style and yet have the equality of the columns if we
+              // just saw zero-width characters.
+              if (state == before
+                  && caret_info.pos.column == loc.start.column)
                 {
                   begin_use_class (style, out);
-                  opened = true;
+                  state = inside;
                 }
               if (skip < caret_info.pos.column)
                 mb_putc (c, out);
               boundary_compute (&caret_info.pos, mb_ptr (c), mb_len (c));
               caret_getc (c);
-              if (opened
+              if (state == inside
                   && (caret_info.pos.column == col_end
                       || width < caret_info.pos.column - skip))
                 {
                   end_use_class (style, out);
-                  opened = false;
+                  state = after;
                 }
               if (width < caret_info.pos.column - skip)
                 {
                   fputs (ellipsis, out);
                   break;
                 }
+            }
+          if (state == inside)
+            {
+              // The line is shorter than expected.
+              end_use_class (style, out);
+              state = after;
             }
           putc ('\n', out);
         }
@@ -486,6 +490,8 @@ location_caret (location loc, const char *style, FILE *out)
 void
 location_caret_suggestion (location loc, const char *s, FILE *out)
 {
+  if (!(feature_flag & feature_caret))
+    return;
   const char *style = "fixit-insert";
   fprintf (out, "      | %*s",
            loc.start.column - 1 - caret_info.skip

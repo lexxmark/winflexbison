@@ -1,6 +1,6 @@
 /* Definitions for symtab.c and callers, part of Bison.
 
-   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2015, 2018-2019 Free
+   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2015, 2018-2020 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -97,6 +97,9 @@ struct symbol
   /** The "defining" location.  */
   location location;
 
+  /** Whether this symbol is translatable. */
+  bool translatable;
+
   /** Whether \a location is about the first uses as left-hand side
       symbol of a rule (true), or simply the first occurrence (e.g.,
       in a %type, or as a rhs symbol of a rule).  The former type of
@@ -117,6 +120,8 @@ struct symbol
 
 struct sym_content
 {
+  /** The main symbol that denotes this content (it contains the
+      possible alias). */
   symbol *symbol;
 
   /** Its \c \%type.
@@ -130,7 +135,7 @@ struct sym_content
   /** Its \c \%type's location.  */
   location type_loc;
 
-  /** Any \c \%destructor (resp. \%printer) declared specificially for this
+  /** Any \c \%destructor (resp. \%printer) declared specifically for this
       symbol.
 
       Access this field only through <tt>symbol</tt>'s interface functions. For
@@ -144,20 +149,12 @@ struct sym_content
   int prec;
   assoc assoc;
 
-  /** The user specified token number.
-
-      E.g., %token FOO 42.*/
-  int user_token_number;
+  /** Token code, possibly specified by the user (%token FOO 42).  */
+  int code;
 
   symbol_class class;
   declaration_status status;
 };
-
-/** Undefined user number.  */
-# define USER_NUMBER_UNDEFINED -1
-
-/* Undefined internal token number.  */
-# define NUMBER_UNDEFINED (-1)
 
 /** Fetch (or create) the symbol associated to KEY.  */
 symbol *symbol_from_uniqstr (const uniqstr key, location loc);
@@ -179,7 +176,7 @@ symbol *dummy_symbol_get (location loc);
 void symbol_print (symbol const *s, FILE *f);
 
 /** Is this a dummy nonterminal?  */
-bool symbol_is_dummy (const symbol *sym);
+bool symbol_is_dummy (symbol const *sym);
 
 /** The name of the code_props type: "\%destructor" or "\%printer".  */
 char const *code_props_type_string (code_props_type kind);
@@ -225,12 +222,13 @@ void symbol_precedence_set (symbol *sym, int prec, assoc a, location loc);
 /** Set the \c class associated with \c sym.
 
     Whether \c declaring means whether this class definition comes
-    from %nterm or %token (but not %type, prec/assoc, etc.).  */
+    from %nterm or %token (but not %type, prec/assoc, etc.).  A symbol
+    can have "declaring" set only at most once.  */
 void symbol_class_set (symbol *sym, symbol_class class, location loc,
                        bool declaring);
 
-/** Set the \c user_token_number associated with \c sym.  */
-void symbol_user_token_number_set (symbol *sym, int user_number, location loc);
+/** Set the \c code associated with \c sym.  */
+void symbol_code_set (symbol *sym, int code, location loc);
 
 
 
@@ -243,11 +241,11 @@ extern symbol *errtoken;
 /** The token for unknown tokens.  */
 extern symbol *undeftoken;
 /** The end of input token.  */
-extern symbol *endtoken;
+extern symbol *eoftoken;
 /** The genuine start symbol.
 
    $accept: start-symbol $end */
-extern symbol *accept;
+extern symbol *acceptsymbol;
 
 /** The user start symbol. */
 extern symbol *startsymbol;

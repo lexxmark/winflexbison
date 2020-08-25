@@ -1,7 +1,7 @@
 /* Input parser for Bison
 
    Copyright (C) 1984, 1986, 1989, 1992, 1998, 2000-2003, 2005-2007,
-   2009-2015, 2018-2019 Free Software Foundation, Inc.
+   2009-2015, 2018-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -124,16 +124,13 @@ record_merge_function_type (int merger, uniqstr type, location declaration_loc)
   aver (merge_function != NULL && merger_find == merger);
   if (merge_function->type != NULL && !UNIQSTR_EQ (merge_function->type, type))
     {
-      int indent = 0;
-      complain_indent (&declaration_loc, complaint, &indent,
-                       _("result type clash on merge function %s: "
-                         "<%s> != <%s>"),
-                       quote (merge_function->name), type,
-                       merge_function->type);
-      indent += SUB_INDENT;
-      complain_indent (&merge_function->type_declaration_loc, complaint,
-                       &indent,
-                       _("previous declaration"));
+      complain (&declaration_loc, complaint,
+                _("result type clash on merge function %s: "
+                "<%s> != <%s>"),
+                quote (merge_function->name), type,
+                merge_function->type);
+      subcomplain (&merge_function->type_declaration_loc, complaint,
+                   _("previous declaration"));
     }
   merge_function->type = uniqstr_new (type);
   merge_function->type_declaration_loc = declaration_loc;
@@ -579,8 +576,8 @@ grammar_current_rule_predicate_append (const char *pred, location loc)
                                /* is_predicate */ true);
 }
 
-/* Set the expected number of shift-reduce (reduce-reduce) conflicts for
- * the current rule.  If a midrule is encountered later, the count
+/* Set the expected number of shift/reduce (reduce/reduce) conflicts
+ * for the current rule.  If a midrule is encountered later, the count
  * is transferred to it and reset in the current rule to -1. */
 
 void
@@ -610,7 +607,7 @@ packgram (void)
 {
   int itemno = 0;
   ritem = xnmalloc (nritems + 1, sizeof *ritem);
-  /* This sentinel is used by build_relations in gram.c.  */
+  /* This sentinel is used by build_relations() in lalr.c.  */
   *ritem++ = 0;
 
   rule_number ruleno = 0;
@@ -637,7 +634,7 @@ packgram (void)
       if (lhs != grammar)
         grammar_rule_check_and_complete (lhs);
 
-      rules[ruleno].user_number = ruleno;
+      rules[ruleno].code = ruleno;
       rules[ruleno].number = ruleno;
       rules[ruleno].lhs = lhs->content.sym->content;
       rules[ruleno].rhs = ritem + itemno;
@@ -698,12 +695,10 @@ packgram (void)
 }
 
 
-/*------------------------------------------------------------------.
-| Read in the grammar specification and record it in the format     |
-| described in gram.h.  All actions are copied into ACTION_OBSTACK, |
-| in each case forming the body of a C function (YYACTION) which    |
-| contains a switch statement to decide which action to execute.    |
-`------------------------------------------------------------------*/
+/*--------------------------------------------------------------.
+| Read in the grammar specification and record it in the format |
+| described in gram.h.                                          |
+`--------------------------------------------------------------*/
 
 void
 reader (const char *gram)
@@ -713,6 +708,7 @@ reader (const char *gram)
   symbols_new ();
 
   gram_scanner_open (gram);
+  parser_init ();
   gram_parse ();
   gram_scanner_close ();
 
@@ -778,14 +774,19 @@ check_and_convert_grammar (void)
   if (nrules == 0)
     complain (NULL, fatal, _("no rules in the input grammar"));
 
-  /* If the user did not define her ENDTOKEN, do it now. */
-  if (!endtoken)
+  /* If the user did not define her EOFTOKEN, do it now. */
+  if (!eoftoken)
     {
-      endtoken = symbol_get ("$end", empty_loc);
-      endtoken->content->class = token_sym;
-      endtoken->content->number = 0;
+      eoftoken = symbol_get ("YYEOF", empty_loc);
+      eoftoken->content->class = token_sym;
+      eoftoken->content->number = 0;
       /* Value specified by POSIX.  */
-      endtoken->content->user_token_number = 0;
+      eoftoken->content->code = 0;
+      {
+        symbol *alias = symbol_get ("$end", empty_loc);
+        symbol_class_set (alias, token_sym, empty_loc, false);
+        symbol_make_alias (eoftoken, alias, empty_loc);
+      }
     }
 
   /* Report any undefined symbols and consider them nonterminals.  */
@@ -803,10 +804,10 @@ check_and_convert_grammar (void)
 
      $accept: %start $end.  */
   {
-    symbol_list *p = symbol_list_sym_new (accept, empty_loc);
+    symbol_list *p = symbol_list_sym_new (acceptsymbol, empty_loc);
     p->rhs_loc = grammar->rhs_loc;
     p->next = symbol_list_sym_new (startsymbol, empty_loc);
-    p->next->next = symbol_list_sym_new (endtoken, empty_loc);
+    p->next->next = symbol_list_sym_new (eoftoken, empty_loc);
     p->next->next->next = symbol_list_sym_new (NULL, empty_loc);
     p->next->next->next->next = grammar;
     nrules += 1;
@@ -815,14 +816,14 @@ check_and_convert_grammar (void)
   }
 
   aver (nsyms <= SYMBOL_NUMBER_MAXIMUM);
-  aver (nsyms == ntokens + nvars);
+  aver (nsyms == ntokens + nnterms);
 
   /* Assign the symbols their symbol numbers.  */
   symbols_pack ();
 
-  /* Scan rule actions after invoking symbol_check_alias_consistency (in
-     symbols_pack above) so that token types are set correctly before the rule
-     action type checking.
+  /* Scan rule actions after invoking symbol_check_alias_consistency
+     (in symbols_pack above) so that token types are set correctly
+     before the rule action type checking.
 
      Before invoking grammar_rule_check_and_complete (in packgram
      below) on any rule, make sure all actions have already been

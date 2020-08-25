@@ -3,7 +3,7 @@
 <!--
     xml2text.xsl - transform Bison XML Report into plain text.
 
-    Copyright (C) 2007-2015, 2018-2019 Free Software Foundation, Inc.
+    Copyright (C) 2007-2015, 2018-2020 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -52,7 +52,7 @@
   <xsl:if test="nonterminal[@usefulness='useless-in-grammar']">
     <xsl:text>Nonterminals useless in grammar&#10;&#10;</xsl:text>
     <xsl:for-each select="nonterminal[@usefulness='useless-in-grammar']">
-      <xsl:text>   </xsl:text>
+      <xsl:text>    </xsl:text>
       <xsl:value-of select="@name"/>
       <xsl:text>&#10;</xsl:text>
     </xsl:for-each>
@@ -65,7 +65,7 @@
     <xsl:text>Terminals unused in grammar&#10;&#10;</xsl:text>
     <xsl:for-each select="terminal[@usefulness='unused-in-grammar']">
       <xsl:sort select="@symbol-number" data-type="number"/>
-      <xsl:text>   </xsl:text>
+      <xsl:text>    </xsl:text>
       <xsl:value-of select="@name"/>
       <xsl:text>&#10;</xsl:text>
     </xsl:for-each>
@@ -136,6 +136,7 @@
 </xsl:template>
 
 <xsl:template match="terminal">
+  <xsl:text>    </xsl:text>
   <xsl:value-of select="@name"/>
   <xsl:call-template name="line-wrap">
     <xsl:with-param name="first-line-length">
@@ -148,6 +149,9 @@
     </xsl:with-param>
     <xsl:with-param name="line-length" select="66" />
     <xsl:with-param name="text">
+      <xsl:if test="string-length(@type) != 0">
+        <xsl:value-of select="concat(' &lt;', @type, '&gt;')"/>
+      </xsl:if>
       <xsl:value-of select="concat(' (', @token-number, ')')"/>
       <xsl:for-each select="key('bison:ruleByRhs', @name)">
         <xsl:value-of select="concat(' ', @number)"/>
@@ -157,14 +161,18 @@
 </xsl:template>
 
 <xsl:template match="nonterminal">
+  <xsl:text>    </xsl:text>
   <xsl:value-of select="@name"/>
+  <xsl:if test="string-length(@type) != 0">
+    <xsl:value-of select="concat(' &lt;', @type, '&gt;')"/>
+  </xsl:if>
   <xsl:value-of select="concat(' (', @symbol-number, ')')"/>
   <xsl:text>&#10;</xsl:text>
   <xsl:variable name="output">
     <xsl:call-template name="line-wrap">
       <xsl:with-param name="line-length" select="66" />
       <xsl:with-param name="text">
-        <xsl:text>    </xsl:text>
+        <xsl:text>        </xsl:text>
         <xsl:if test="key('bison:ruleByLhs', @name)">
           <xsl:text>on@left:</xsl:text>
           <xsl:for-each select="key('bison:ruleByLhs', @name)">
@@ -173,7 +181,7 @@
         </xsl:if>
         <xsl:if test="key('bison:ruleByRhs', @name)">
           <xsl:if test="key('bison:ruleByLhs', @name)">
-            <xsl:text>, </xsl:text>
+            <xsl:text>&#10;        </xsl:text>
           </xsl:if>
           <xsl:text>on@right:</xsl:text>
           <xsl:for-each select="key('bison:ruleByRhs', @name)">
@@ -300,7 +308,7 @@
       name="prev-lhs"
       select="key('bison:ruleByNumber', $prev-rule-number)/lhs[text()]"
    />
-    <xsl:with-param name="point" select="@point"/>
+    <xsl:with-param name="dot" select="@dot"/>
     <xsl:with-param name="lookaheads">
       <xsl:apply-templates select="lookaheads"/>
     </xsl:with-param>
@@ -311,7 +319,7 @@
   <xsl:param name="itemset"/>
   <xsl:param name="pad"/>
   <xsl:param name="prev-lhs"/>
-  <xsl:param name="point"/>
+  <xsl:param name="dot"/>
   <xsl:param name="lookaheads"/>
 
   <xsl:if test="$itemset != 'true' and not($prev-lhs = lhs[text()])">
@@ -347,12 +355,12 @@
 
   <!-- RHS -->
   <xsl:for-each select="rhs/*">
-    <xsl:if test="position() = $point + 1">
-      <xsl:text> .</xsl:text>
+    <xsl:if test="position() = $dot + 1">
+      <xsl:text> •</xsl:text>
     </xsl:if>
     <xsl:apply-templates select="."/>
-    <xsl:if test="position() = last() and position() = $point">
-      <xsl:text> .</xsl:text>
+    <xsl:if test="position() = last() and position() = $dot">
+      <xsl:text> •</xsl:text>
     </xsl:if>
   </xsl:for-each>
   <xsl:if test="$lookaheads">

@@ -1,6 +1,6 @@
 /* Match rules with nonterminals for bison,
 
-   Copyright (C) 1984, 1989, 2000-2003, 2005, 2009-2015, 2018-2019 Free
+   Copyright (C) 1984, 1989, 2000-2003, 2005, 2009-2015, 2018-2020 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -47,7 +47,7 @@ print_derives (void)
       fprintf (stderr, "  %s derives\n", symbols[i]->tag);
       for (rule **rp = derives[i - ntokens]; *rp; ++rp)
         {
-          fprintf (stderr, "    %3d ", (*rp)->user_number);
+          fprintf (stderr, "    %3d ", (*rp)->code);
           rule_rhs_print (*rp, stderr);
           fprintf (stderr, "\n");
         }
@@ -62,7 +62,7 @@ derives_compute (void)
 {
   /* DSET[NTERM - NTOKENS] -- A linked list of the numbers of the rules
      whose LHS is NTERM.  */
-  rule_list **dset = xcalloc (nvars, sizeof *dset);
+  rule_list **dset = xcalloc (nnterms, sizeof *dset);
 
   /* DELTS[RULE] -- There are NRULES rule number to attach to nterms.
      Instead of performing NRULES allocations for each, have an array
@@ -82,9 +82,9 @@ derives_compute (void)
   /* DSET contains what we need under the form of a linked list.  Make
      it a single array.  */
 
-  derives = xnmalloc (nvars, sizeof *derives);
+  derives = xnmalloc (nnterms, sizeof *derives);
   /* Q is the storage for DERIVES[...] (DERIVES[0] = q).  */
-  rule **q = xnmalloc (nvars + nrules, sizeof *q);
+  rule **q = xnmalloc (nnterms + nrules, sizeof *q);
 
   for (symbol_number i = ntokens; i < nsyms; ++i)
     {

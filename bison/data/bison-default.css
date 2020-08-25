@@ -1,5 +1,5 @@
 /* Default styling rules for Bison when doing terminal output.
-   Copyright (C) 2019 Free Software Foundation, Inc.
+   Copyright (C) 2019-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,3 +29,33 @@
 
 /* "Sections" in traces (--trace).  */
 .trace0    { color: green; }
+
+/* Syntax error messages.  */
+.expected   { color: green; }
+.unexpected { color: red; }
+
+
+/* Counterexamples.  */
+
+/* Cex: point in rule.  */
+.cex-dot { color: red; }
+
+/* Cex: coloring various rules.  */
+.cex-0   { color: yellow; }
+.cex-1   { color: green; }
+.cex-2   { color: blue; }
+.cex-3   { color: purple; }
+.cex-4   { color: violet; }
+.cex-5   { color: orange; }
+.cex-6   { color: brown; }
+.cex-7   { color: mauve; }
+.cex-8   { color: #013220; } /* Dark green. */
+.cex-9   { color: #e75480; } /* Dark pink. */
+.cex-10  { color: cyan; }
+.cex-11  { color: orange; }
+
+/* Cex: derivation rewriting steps.  */
+.cex-step { font-style: italic; }
+
+/* Cex: leaves of a derivation.  */
+.cex-leaf { font-weight: 600; }

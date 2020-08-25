@@ -1,5 +1,5 @@
-/* Ordered set data type implemented by a binary tree.
-   Copyright (C) 2006, 2009-2011 Free Software Foundation, Inc.
+/* Sequential list data type implemented by a linked list.
+   Copyright (C) 2006, 2009-2020 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2006.
 
    This program is free software: you can redistribute it and/or modify
@@ -13,22 +13,22 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-#ifndef _GL_AVLTREE_OSET_H
-#define _GL_AVLTREE_OSET_H
+#ifndef _GL_LINKED_LIST_H
+#define _GL_LINKED_LIST_H
 
-#include "gl_oset.h"
+#include "gl_list.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern const struct gl_oset_implementation gl_avltree_oset_implementation;
-#define GL_AVLTREE_OSET &gl_avltree_oset_implementation
+extern const struct gl_list_implementation gl_linked_list_implementation;
+#define GL_LINKED_LIST &gl_linked_list_implementation
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _GL_AVLTREE_OSET_H */
+#endif /* _GL_LINKED_LIST_H */

@@ -1,6 +1,6 @@
 /* Support for fixing grammar files.
 
-   Copyright (C) 2019 Free Software Foundation, Inc.
+   Copyright (C) 2019-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -21,19 +21,19 @@
 
 #include "fixits.h"
 
+#include <error.h>
+#include <get-errno.h>
+#include <gl_array_list.h>
+#include <gl_xlist.h>
+#include <progname.h>
+#include <quote.h>
+#include <quotearg.h>
+#include <vasnprintf.h>
+
 #include "system.h"
 
-#include "error.h"
-#include "get-errno.h"
-#include "getargs.h"
-#include "gl_array_list.h"
-#include "gl_xlist.h"
-#include "progname.h"
-#include "quote.h"
-#include "quotearg.h"
-#include "vasnprintf.h"
-
 #include "files.h"
+#include "getargs.h"
 
 typedef struct
 {
@@ -124,10 +124,11 @@ fixits_run (void)
   FILE *out = xfopen (input, "w");
   size_t line = 1;
   size_t offset = 1;
-  fixit const *f = NULL;
+  void const *p = NULL;
   gl_list_iterator_t iter = gl_list_iterator (fixits);
-  while (gl_list_iterator_next (&iter, (const void**) &f, NULL))
+  while (gl_list_iterator_next (&iter, &p, NULL))
     {
+      fixit const *f = p;
       /* Look for the correct line. */
       while (line < f->location.start.line)
         {

@@ -700,7 +700,7 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static const flex_int16_t yy_accept[91] =
+static const flex_int16_t yy_accept[82] =
     {   0,
         0,    0,    0,    0,    3,    3,    4,    4,    4,    4,
         0,    0,    0,    0,   19,   17,   16,   17,    2,   17,
@@ -708,9 +708,9 @@ static const flex_int16_t yy_accept[91] =
         1,    0,    0,    3,    4,    4,    4,    4,   12,    0,
        12,   12,    0,    0,    9,   10,    0,   13,    0,   13,
        13,    0,   14,    0,   15,    0,    0,    0,    0,    0,
-        0,    0,   12,    0,    0,    0,    0,    0,   13,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,   12,    0,
-       12,   12,    0,   14,   12,   12,    0,    0,    0,    0
+        0,    0,   12,    0,    0,    0,    0,    0,    0,   13,
+        0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+        0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -747,89 +747,85 @@ static const YY_CHAR yy_ec[256] =
 
 static const YY_CHAR yy_meta[19] =
     {   0,
-        1,    1,    2,    1,    1,    1,    1,    3,    3,    1,
-        3,    1,    2,    1,    1,    1,    1,    2
+        1,    1,    1,    1,    1,    1,    1,    2,    2,    1,
+        2,    1,    1,    1,    1,    1,    1,    1
     } ;
 
-static const flex_int16_t yy_base[97] =
+static const flex_int16_t yy_base[88] =
     {   0,
-        0,   13,  121,  120,    0,    3,    4,    5,    6,    7,
-       27,    0,   20,   21,  125,  178,  178,   26,  178,    8,
-      178,   41,  178,  178,   53,  178,   62,   74,   33,  119,
-      178,   37,   44,  105,  178,   46,  101,   48,  178,   99,
-        0,   96,   98,   91,  178,  178,   50,  178,   87,    0,
-       86,   87,  178,   76,  178,   52,   50,   68,   71,   73,
-       78,   74,    0,   16,   78,   84,   85,    0,    0,   94,
-       86,   96,   55,  107,    0,    0,   58,  118,  100,  124,
-      130,  136,  142,  106,   46,    0,  148,   43,    0,  178,
-      165,  168,    4,  171,    1,  174
-
+        0,   13,  101,  100,    0,    3,    4,    5,    6,    7,
+       27,    0,   20,   21,  104,  182,  182,   26,  182,    8,
+      182,   41,  182,  182,   53,  182,   62,   74,   33,   98,
+      182,   37,   44,   86,  182,   46,   85,   48,  182,   88,
+        0,   87,   87,   87,  182,  182,   50,  182,   83,    0,
+       82,   79,  182,  103,  182,   52,   50,   68,   71,   73,
+       78,   81,    0,  119,   64,   50,  130,   84,    0,    0,
+      140,  155,   43,   16,   79,   12,    0,    0,   54,    2,
+      182,  173,  175,    2,  177,    0,  179
     } ;
 
-static const flex_int16_t yy_def[97] =
+static const flex_int16_t yy_def[88] =
     {   0,
-       91,   91,    2,    2,    2,    2,    2,    2,    2,    2,
-        2,   11,   11,   11,   90,   90,   90,   90,   90,   90,
-       90,   92,   90,   90,   90,   90,   90,   90,   90,   90,
-       90,   90,   90,   90,   90,   90,   90,   90,   90,   90,
-       93,   90,   94,   90,   90,   90,   90,   90,   90,   95,
-       90,   90,   90,   96,   90,   90,   90,   90,   90,   90,
-       90,   92,   93,   94,   94,   90,   90,   27,   95,   90,
-       96,   96,   25,   94,   66,   70,   90,   96,   94,   94,
-       94,   94,   94,   96,   81,   81,   81,   87,   87,    0,
-       90,   90,   90,   90,   90,   90
-
+       82,   82,    2,    2,    2,    2,    2,    2,    2,    2,
+        2,   11,   11,   11,   81,   81,   81,   81,   81,   81,
+       81,   83,   81,   81,   81,   81,   81,   81,   81,   81,
+       81,   81,   81,   81,   81,   81,   81,   81,   81,   81,
+       84,   81,   85,   81,   81,   81,   81,   81,   81,   86,
+       81,   81,   81,   87,   81,   81,   81,   81,   81,   81,
+       81,   83,   84,   85,   81,   64,   81,   81,   27,   86,
+       81,   87,   81,   72,   25,   25,   67,   71,   81,   81,
+        0,   81,   81,   81,   81,   81,   81
     } ;
 
-static const flex_int16_t yy_nxt[197] =
+static const flex_int16_t yy_nxt[201] =
     {   0,
-       90,   90,   19,   69,   17,   19,   63,   21,   21,   33,
+       81,   70,   19,   63,   17,   19,   53,   21,   21,   33,
        34,   23,   23,   17,   17,   20,   17,   17,   20,   22,
-       22,   22,   22,   65,   29,   29,   17,   17,   73,   17,
+       22,   22,   22,   81,   29,   29,   17,   17,   72,   17,
        24,   25,   26,   30,   30,   31,   27,   53,   56,   57,
        28,   32,   36,   37,   54,   33,   34,   59,   37,   61,
-       62,   67,   68,   56,   57,   74,   38,   39,   74,   31,
-       40,   41,   53,   42,   43,   32,   90,   44,   45,   33,
-       34,   46,   59,   37,   59,   37,   90,   47,   48,   61,
-       62,   49,   50,   72,   51,   65,   67,   68,   52,   38,
-       74,   75,   75,   72,   75,   70,   51,   51,   77,   66,
+       62,   68,   69,   56,   57,   80,   38,   39,   53,   31,
+       40,   41,   64,   42,   43,   32,   80,   44,   45,   33,
+       34,   46,   59,   37,   59,   37,   76,   47,   48,   61,
+       62,   49,   50,   81,   51,   68,   69,   71,   52,   65,
+       81,   76,   51,   51,   66,   67,   38,   42,   42,   65,
 
-       39,   76,   76,   72,   76,   65,   42,   65,   78,   42,
-       48,   79,   73,   72,   80,   81,   60,   82,   77,   73,
-       58,   83,   84,   55,   90,   72,   18,   18,   90,   90,
-       77,   65,   90,   90,   82,   90,   74,   85,   86,   90,
-       86,   90,   73,   65,   90,   90,   82,   90,   73,   65,
-       87,   90,   90,   90,   73,   88,   89,   90,   89,   90,
-       90,   90,   90,   90,   79,   16,   16,   16,   35,   35,
-       35,   64,   90,   64,   71,   90,   71,   15,   90,   90,
-       90,   90,   90,   90,   90,   90,   90,   90,   90,   90,
-       90,   90,   90,   90,   90,   90
+       60,   58,   55,   81,   65,   73,   18,   18,   81,   81,
+       74,   81,   81,   81,   81,   73,   81,   81,   81,   81,
+       73,   65,   81,   81,   81,   81,   66,   81,   81,   81,
+       81,   75,   81,   81,   81,   81,   65,   77,   77,   81,
+       77,   81,   81,   81,   81,   81,   39,   78,   78,   81,
+       78,   81,   81,   81,   81,   81,   48,   73,   81,   81,
+       81,   81,   74,   81,   81,   81,   81,   79,   81,   81,
+       81,   81,   73,   16,   16,   35,   35,   64,   64,   72,
+       72,   15,   81,   81,   81,   81,   81,   81,   81,   81,
+       81,   81,   81,   81,   81,   81,   81,   81,   81,   81
 
     } ;
 
-static const flex_int16_t yy_chk[197] =
+static const flex_int16_t yy_chk[201] =
     {   0,
-        0,    0,    5,   95,    1,    6,   93,    7,    8,   20,
+        0,   86,    5,   84,    1,    6,   80,    7,    8,   20,
        20,    9,   10,    1,    1,    5,    1,    2,    6,    7,
-        8,    9,   10,   64,   13,   14,    2,    2,   64,    2,
+        8,    9,   10,   76,   13,   14,    2,    2,   74,    2,
        11,   11,   11,   13,   14,   18,   11,   29,   32,   32,
        11,   18,   22,   22,   29,   33,   33,   36,   36,   38,
-       38,   47,   47,   56,   56,   88,   22,   25,   85,   57,
-       25,   25,   77,   25,   25,   57,   73,   25,   27,   58,
-       58,   27,   59,   59,   60,   60,   62,   27,   28,   61,
-       61,   28,   28,   54,   28,   65,   67,   67,   28,   62,
-       65,   66,   66,   71,   66,   52,   51,   49,   71,   44,
+       38,   47,   47,   56,   56,   73,   22,   25,   79,   57,
+       25,   25,   66,   25,   25,   57,   79,   25,   27,   58,
+       58,   27,   59,   59,   60,   60,   65,   27,   28,   61,
+       61,   28,   28,   62,   28,   68,   68,   52,   28,   43,
+       75,   75,   51,   49,   43,   44,   62,   42,   40,   43,
 
-       66,   70,   70,   72,   70,   43,   42,   79,   72,   40,
-       70,   74,   79,   84,   74,   74,   37,   74,   84,   74,
-       34,   74,   78,   30,   15,   78,    4,    3,    0,    0,
-       78,   80,    0,    0,   80,    0,   80,   81,   81,    0,
-       81,    0,   81,   82,    0,    0,   82,    0,   82,   83,
-       83,    0,    0,    0,   83,   87,   87,    0,   87,    0,
-        0,    0,    0,    0,   87,   91,   91,   91,   92,   92,
-       92,   94,    0,   94,   96,    0,   96,   90,   90,   90,
-       90,   90,   90,   90,   90,   90,   90,   90,   90,   90,
-       90,   90,   90,   90,   90,   90
+       37,   34,   30,   15,   43,   54,    4,    3,    0,    0,
+       54,    0,    0,    0,    0,   54,    0,    0,    0,    0,
+       54,   64,    0,    0,    0,    0,   64,    0,    0,    0,
+        0,   64,    0,    0,    0,    0,   64,   67,   67,    0,
+       67,    0,    0,    0,    0,    0,   67,   71,   71,    0,
+       71,    0,    0,    0,    0,    0,   71,   72,    0,    0,
+        0,    0,   72,    0,    0,    0,    0,   72,    0,    0,
+        0,    0,   72,   82,   82,   83,   83,   85,   85,   87,
+       87,   81,   81,   81,   81,   81,   81,   81,   81,   81,
+       81,   81,   81,   81,   81,   81,   81,   81,   81,   81
 
     } ;
 
@@ -856,7 +852,7 @@ char *yytext;
 #line 1 "/Users/akim/src/gnu/bison/src/scan-code.l"
 /* Bison Action Scanner                             -*- C -*-
 
-   Copyright (C) 2006-2015, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2006-2015, 2018-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -878,15 +874,15 @@ char *yytext;
 #include <get-errno.h>
 #include <quote.h>
 
-#include <src/complain.h>
-#include <src/getargs.h>
-#include <src/muscle-tab.h>
-#include <src/reader.h>
-#include <src/scan-code.h>
-#include <src/symlist.h>
+#include "src/complain.h"
+#include "src/getargs.h"
+#include "src/muscle-tab.h"
+#include "src/reader.h"
+#include "src/scan-code.h"
+#include "src/symlist.h"
 
 #define FLEX_PREFIX(Id) code_ ## Id
-#include <src/flex-scanner.h>
+#include "src/flex-scanner.h"
 
 /* Work around a bug in flex 2.5.31.  See Debian bug 333231
    <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=333231>.  */
@@ -920,7 +916,7 @@ static char *last_string;
 /* True if an untyped $$ or $n was seen.  */
 static bool untyped_var_seen;
 
-#line 923 "src/scan-code.c"
+#line 919 "src/scan-code.c"
 #line 72 "/Users/akim/src/gnu/bison/src/scan-code.l"
  /* C and C++ comments in code. */
 
@@ -938,7 +934,7 @@ static bool untyped_var_seen;
 /* C style identifier. Must start with letter. Will be used for
    named symbol references. Shall be kept synchronized with
    scan-gram.l "letter" and "id". */
-#line 941 "src/scan-code.c"
+#line 937 "src/scan-code.c"
 
 #define INITIAL 0
 #define SC_COMMENT 1
@@ -1239,7 +1235,7 @@ YY_DECL
   | Scanning a C comment.  The initial '/ *' is already eaten.  |
   `------------------------------------------------------------*/
 
-#line 1242 "src/scan-code.c"
+#line 1238 "src/scan-code.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1268,13 +1264,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 91 )
+				if ( yy_current_state >= 82 )
 					yy_c = yy_meta[yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_current_state != 90 );
+		while ( yy_current_state != 81 );
 		yy_cp = (yy_last_accepting_cpos);
 		yy_current_state = (yy_last_accepting_state);
 
@@ -1319,7 +1315,7 @@ case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
 #line 116 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW; BEGIN sc_context;
+STRING_GROW (); BEGIN sc_context;
 	YY_BREAK
 
 /*--------------------------------------------------------------.
@@ -1331,13 +1327,13 @@ case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
 #line 126 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW; BEGIN sc_context;
+STRING_GROW (); BEGIN sc_context;
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
 #line 127 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW;
+STRING_GROW ();
 	YY_BREAK
 
 /*--------------------------------------------.
@@ -1349,7 +1345,7 @@ case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
 #line 137 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW;
+STRING_GROW ();
 	YY_BREAK
 
 
@@ -1357,7 +1353,7 @@ STRING_GROW;
 case 5:
 YY_RULE_SETUP
 #line 142 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW; BEGIN sc_context;
+STRING_GROW (); BEGIN sc_context;
 	YY_BREAK
 
 
@@ -1365,7 +1361,7 @@ STRING_GROW; BEGIN sc_context;
 case 6:
 YY_RULE_SETUP
 #line 147 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW; BEGIN sc_context;
+STRING_GROW (); BEGIN sc_context;
 	YY_BREAK
 
 
@@ -1373,24 +1369,24 @@ STRING_GROW; BEGIN sc_context;
 case 7:
 YY_RULE_SETUP
 #line 153 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW; BEGIN SC_CHARACTER;
+STRING_GROW (); BEGIN SC_CHARACTER;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
 #line 154 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW; BEGIN SC_STRING;
+STRING_GROW (); BEGIN SC_STRING;
 	YY_BREAK
 case 9:
 /* rule 9 can match eol */
 YY_RULE_SETUP
 #line 155 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW; BEGIN SC_COMMENT;
+STRING_GROW (); BEGIN SC_COMMENT;
 	YY_BREAK
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
 #line 156 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW; BEGIN SC_LINE_COMMENT;
+STRING_GROW (); BEGIN SC_LINE_COMMENT;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
@@ -1404,6 +1400,7 @@ YY_RULE_SETUP
 
 
 case 12:
+/* rule 12 can match eol */
 YY_RULE_SETUP
 #line 166 "/Users/akim/src/gnu/bison/src/scan-code.l"
 {
@@ -1427,6 +1424,7 @@ YY_RULE_SETUP
 
 
 case 14:
+/* rule 14 can match eol */
 YY_RULE_SETUP
 #line 182 "/Users/akim/src/gnu/bison/src/scan-code.l"
 {
@@ -1460,7 +1458,7 @@ case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
 #line 203 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_GROW;
+STRING_GROW ();
 	YY_BREAK
 /* End of processing. */
 case YY_STATE_EOF(INITIAL):
@@ -1471,7 +1469,7 @@ case YY_STATE_EOF(SC_CHARACTER):
 case YY_STATE_EOF(SC_RULE_ACTION):
 case YY_STATE_EOF(SC_SYMBOL_ACTION):
 #line 206 "/Users/akim/src/gnu/bison/src/scan-code.l"
-STRING_FINISH; return last_string;
+STRING_FINISH (); return last_string;
 	YY_BREAK
 
 case 18:
@@ -1479,7 +1477,7 @@ YY_RULE_SETUP
 #line 209 "/Users/akim/src/gnu/bison/src/scan-code.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1482 "src/scan-code.c"
+#line 1480 "src/scan-code.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1798,7 +1796,7 @@ static int yy_get_next_buffer (void)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 91 )
+			if ( yy_current_state >= 82 )
 				yy_c = yy_meta[yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
@@ -1831,11 +1829,11 @@ static int yy_get_next_buffer (void)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 91 )
+		if ( yy_current_state >= 82 )
 			yy_c = yy_meta[yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
-	yy_is_jam = (yy_current_state == 90);
+	yy_is_jam = (yy_current_state == 81);
 
 		return yy_is_jam ? 0 : yy_current_state;
 }
@@ -2701,14 +2699,14 @@ static void
 show_sub_message (warnings warning,
                   const char* cp, bool explicit_bracketing,
                   int midrule_rhs_index, char dollar_or_at,
-                  int indent, const variant *var)
+                  const variant *var)
 {
   const char *at_spec = get_at_spec (var->symbol_index);
 
   if (var->err == 0)
-    complain_indent (&var->loc, warning, &indent,
-                     _("refers to: %c%s at %s"), dollar_or_at,
-                     var->id, at_spec);
+    subcomplain (&var->loc, warning,
+                 _("refers to: %c%s at %s"), dollar_or_at,
+                 var->id, at_spec);
   else
     {
       const char *id;
@@ -2755,8 +2753,8 @@ show_sub_message (warnings warning,
                         _(", cannot be accessed from midrule action at $%d"),
                         midrule_rhs_index);
 
-      complain_indent (&id_loc, warning, &indent, "%s",
-                        obstack_finish0 (&msg_buf));
+      subcomplain (&id_loc, warning, "%s",
+                   obstack_finish0 (&msg_buf));
       obstack_free (&msg_buf, 0);
     }
 }
@@ -2764,14 +2762,13 @@ show_sub_message (warnings warning,
 static void
 show_sub_messages (warnings warning,
                    const char* cp, bool explicit_bracketing,
-                   int midrule_rhs_index, char dollar_or_at,
-                   int indent)
+                   int midrule_rhs_index, char dollar_or_at)
 {
   for (int i = 0; i < variant_count; ++i)
     show_sub_message (warning | silent,
                       cp, explicit_bracketing,
                       midrule_rhs_index, dollar_or_at,
-                      indent, &variant_table[i]);
+                      &variant_table[i]);
 }
 
 /* Returned from "parse_ref" when the reference
@@ -2872,47 +2869,44 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
       {
         int len = (explicit_bracketing || !ref_tail_fields) ?
           cp_end - cp : ref_tail_fields - cp;
-        int indent = 0;
 
-        complain_indent (text_loc, complaint, &indent,
-                         _("invalid reference: %s"), quote (text));
-        indent += SUB_INDENT;
+        complain (text_loc, complaint,
+                     _("invalid reference: %s"), quote (text));
         if (len == 0)
           {
             location sym_loc = *text_loc;
             sym_loc.start.column += 1;
             sym_loc.end = sym_loc.start;
-            complain_indent (&sym_loc, complaint, &indent,
-                             _("syntax error after '%c', expecting integer, "
-                               "letter, '_', '[', or '$'"),
-                             dollar_or_at);
+            subcomplain (&sym_loc, complaint,
+                         _("syntax error after '%c', expecting integer, "
+                         "letter, '_', '[', or '$'"),
+                         dollar_or_at);
           }
         else if (midrule_rhs_index)
-          complain_indent (&rule->rhs_loc, complaint, &indent,
-                           _("symbol not found in production before $%d: "
-                             "%.*s"),
-                           midrule_rhs_index, len, cp);
+          subcomplain (&rule->rhs_loc, complaint,
+                       _("symbol not found in production before $%d: "
+                       "%.*s"),
+                       midrule_rhs_index, len, cp);
         else
-          complain_indent (&rule->rhs_loc, complaint, &indent,
-                           _("symbol not found in production: %.*s"),
-                           len, cp);
+          subcomplain (&rule->rhs_loc, complaint,
+                       _("symbol not found in production: %.*s"),
+                       len, cp);
 
         if (variant_count > 0)
           show_sub_messages (complaint,
                              cp, explicit_bracketing, midrule_rhs_index,
-                             dollar_or_at, indent);
+                             dollar_or_at);
         return INVALID_REF;
       }
     case 1:
       {
-        int indent = 0;
         if (variant_count > 1)
           {
-            complain_indent (text_loc, Wother, &indent,
-                             _("misleading reference: %s"), quote (text));
+            complain (text_loc, Wother,
+                         _("misleading reference: %s"), quote (text));
             show_sub_messages (Wother,
                                cp, explicit_bracketing, midrule_rhs_index,
-                               dollar_or_at, indent + SUB_INDENT);
+                               dollar_or_at);
           }
         {
           int symbol_index =
@@ -2923,12 +2917,11 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
     case 2:
     default:
       {
-        int indent = 0;
-        complain_indent (text_loc, complaint, &indent,
-                         _("ambiguous reference: %s"), quote (text));
+        complain (text_loc, complaint,
+                  _("ambiguous reference: %s"), quote (text));
         show_sub_messages (complaint,
                            cp, explicit_bracketing, midrule_rhs_index,
-                           dollar_or_at, indent + SUB_INDENT);
+                           dollar_or_at);
         return INVALID_REF;
       }
     }
@@ -2997,7 +2990,7 @@ handle_action_dollar (symbol_list *rule, char *text, const location *dollar_loc)
   char *cp = fetch_type_name (text + 1, &type_name, dollar_loc);
   int n = parse_ref (cp, effective_rule, effective_rule_length,
                      rule->midrule_parent_rhs_index, text, dollar_loc, '$');
-  /* End type_name.  Don't do it ealier: parse_ref depends on TEXT.  */
+  /* End type_name.  Don't do it earlier: parse_ref depends on TEXT.  */
   if (type_name)
     cp[-1] = '\0';
 
@@ -3220,7 +3213,7 @@ code_props_translate_code (code_props *self)
 void
 code_scanner_last_string_free (void)
 {
-  STRING_FREE;
+  STRING_FREE ();
 }
 
 void

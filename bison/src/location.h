@@ -1,6 +1,6 @@
 /* Locations for Bison
 
-   Copyright (C) 2002, 2004-2015, 2018-2019 Free Software Foundation,
+   Copyright (C) 2002, 2004-2015, 2018-2020 Free Software Foundation,
    Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -42,16 +42,14 @@ typedef struct
 
   /* If positive, the column (starting at 1) just after the boundary.
      This is neither a byte count, nor a character count; it is a
-     column count.  If this is INT_MAX, the column number has
+     (visual) column count.  If this is INT_MAX, the column number has
      overflowed.
 
-     Meaningless and not displayed if nonpositive.
-  */
+     Meaningless and not displayed if nonpositive.  */
   int column;
 
-  /* If nonnegative, the byte number (starting at 0) in the current line.
-     Never displayed, used when printing error messages with colors to
-     know where colors start and end.  */
+  /* If nonnegative, the byte number (starting at 0) in the current
+     line.  Not displayed (unless --trace=location).  */
   int byte;
 
 } boundary;
@@ -126,12 +124,12 @@ void caret_init (void);
    left-over by the usage of location_caret.  */
 void caret_free (void);
 
-/* Quote the line containing LOC onto OUT.  Highlight the part of LOC
-   with the color STYLE.  */
+/* If -fcaret is enabled, quote the line containing LOC onto OUT.
+   Highlight the part of LOC with the color STYLE.  */
 void location_caret (location loc, const char* style, FILE *out);
 
-/* Display a suggestion of replacement for LOC with S.  To call after
-   location_caret.  */
+/* If -fcaret is enabled, display a suggestion of replacement for LOC
+   with S.  To call after location_caret.  */
 void location_caret_suggestion (location loc, const char *s, FILE *out);
 
 /* Return -1, 0, 1, depending whether a is before, equal, or

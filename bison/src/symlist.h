@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -110,8 +110,7 @@ symbol_list *symbol_list_type_new (uniqstr type_name, location loc);
 
 /** Assign the type \c type_name to all the members of \c syms.
  ** \returns \c syms */
-symbol_list *symbol_list_type_set (symbol_list *syms,
-                                   uniqstr type_name, location loc);
+symbol_list *symbol_list_type_set (symbol_list *syms, uniqstr type_name);
 
 /** Print this list.
 

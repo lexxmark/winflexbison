@@ -1,6 +1,6 @@
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2015, 2018-2019 Free Software Foundation, Inc.
+# Copyright (C) 2002-2015, 2018-2020 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 m4_pushdef([b4_copyright_years],
-           [2002-2015, 2018-2019])
+           [2002-2015, 2018-2020])
 
 
 # b4_position_file
@@ -48,7 +48,7 @@ m4_ifdef([b4_location_file],
                                   ["b4_location_file"])])
  m4_define([b4_location_path],
            b4_percent_define_get([[api.location.include]],
-                                 ["b4_dir_prefix[]b4_location_file"]))
+                                 ["b4_mapped_dir_prefix[]b4_location_file"]))
  m4_define([b4_location_path],
            m4_substr(m4_defn([b4_location_path]), 1, m4_eval(m4_len(m4_defn([b4_location_path])) - 2)))
  ])
@@ -63,11 +63,13 @@ m4_define([b4_location_define],
   class position
   {
   public:
+    /// Type for file name.
+    typedef ]b4_percent_define_get([[api.filename.type]])[ filename_type;
     /// Type for line and column numbers.
     typedef int counter_type;
 ]m4_ifdef([b4_location_constructors], [[
     /// Construct a position.
-    explicit position (]b4_percent_define_get([[filename_type]])[* f = YY_NULLPTR,
+    explicit position (filename_type* f = YY_NULLPTR,
                        counter_type l = ]b4_location_initial_line[,
                        counter_type c = ]b4_location_initial_column[)
       : filename (f)
@@ -77,7 +79,7 @@ m4_define([b4_location_define],
 
 ]])[
     /// Initialization.
-    void initialize (]b4_percent_define_get([[filename_type]])[* fn = YY_NULLPTR,
+    void initialize (filename_type* fn = YY_NULLPTR,
                      counter_type l = ]b4_location_initial_line[,
                      counter_type c = ]b4_location_initial_column[)
     {
@@ -106,7 +108,7 @@ m4_define([b4_location_define],
     /** \} */
 
     /// File name to which this position refers.
-    ]b4_percent_define_get([[filename_type]])[* filename;
+    filename_type* filename;
     /// Current line number.
     counter_type line;
     /// Current column number.
@@ -184,6 +186,8 @@ m4_define([b4_location_define],
   class location
   {
   public:
+    /// Type for file name.
+    typedef position::filename_type filename_type;
     /// Type for line and column numbers.
     typedef position::counter_type counter_type;
 ]m4_ifdef([b4_location_constructors], [
@@ -200,7 +204,7 @@ m4_define([b4_location_define],
     {}
 
     /// Construct a 0-width location in \a f, \a l, \a c.
-    explicit location (]b4_percent_define_get([[filename_type]])[* f,
+    explicit location (filename_type* f,
                        counter_type l = ]b4_location_initial_line[,
                        counter_type c = ]b4_location_initial_column[)
       : begin (f, l, c)
@@ -209,7 +213,7 @@ m4_define([b4_location_define],
 
 ])[
     /// Initialization.
-    void initialize (]b4_percent_define_get([[filename_type]])[* f = YY_NULLPTR,
+    void initialize (filename_type* f = YY_NULLPTR,
                      counter_type l = ]b4_location_initial_line[,
                      counter_type c = ]b4_location_initial_column[)
     {

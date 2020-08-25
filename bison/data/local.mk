@@ -1,4 +1,4 @@
-## Copyright (C) 2002, 2005-2015, 2018-2019 Free Software Foundation,
+## Copyright (C) 2002, 2005-2015, 2018-2020 Free Software Foundation,
 ## Inc.
 
 ## This program is free software: you can redistribute it and/or modify
@@ -34,6 +34,7 @@ dist_skeletons_DATA =                           \
   data/skeletons/lalr1.java                     \
   data/skeletons/location.cc                    \
   data/skeletons/stack.hh                       \
+  data/skeletons/traceon.m4                     \
   data/skeletons/variant.hh                     \
   data/skeletons/yacc.c
 

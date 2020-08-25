@@ -1,5 +1,5 @@
 /* Dummy replacement for part of the public API of the libtextstyle library.
-   Copyright (C) 2006-2007, 2019 Free Software Foundation, Inc.
+   Copyright (C) 2006-2007, 2019-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,17 +31,20 @@
 #define _TEXTSTYLE_H
 
 #include <errno.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 //#include <unistd.h>
-#define _GL_UNUSED
-#define STDERR_FILENO 2
 #if HAVE_TCDRAIN
 # include <termios.h>
 #endif
+
+// winflexbison
+extern int vasprintf(char** resultp, const char* format, va_list args);
+// winflexbison
 
 /* ----------------------------- From ostream.h ----------------------------- */
 
@@ -114,6 +117,51 @@ ostream_write_str (ostream_t stream, const char *string)
   ostream_write_mem (stream, string, strlen (string));
 }
 
+static inline ptrdiff_t ostream_printf (ostream_t stream,
+                                        const char *format, ...)
+#if (__GNUC__ == 3 && __GNUC_MINOR__ >= 1) || __GNUC__ > 3
+  __attribute__ ((__format__ (__printf__, 2, 3)))
+#endif
+  ;
+static inline ptrdiff_t
+ostream_printf (ostream_t stream, const char *format, ...)
+{
+  va_list args;
+  char *temp_string;
+  ptrdiff_t ret;
+
+  va_start (args, format);
+  ret = vasprintf (&temp_string, format, args);
+  va_end (args);
+  if (ret >= 0)
+    {
+      if (ret > 0)
+        ostream_write_str (stream, temp_string);
+      free (temp_string);
+    }
+  return ret;
+}
+
+static inline ptrdiff_t ostream_vprintf (ostream_t stream,
+                                         const char *format, va_list args)
+#if (__GNUC__ == 3 && __GNUC_MINOR__ >= 1) || __GNUC__ > 3
+  __attribute__ ((__format__ (__printf__, 2, 0)))
+#endif
+  ;
+static inline ptrdiff_t
+ostream_vprintf (ostream_t stream, const char *format, va_list args)
+{
+  char *temp_string;
+  ptrdiff_t ret = vasprintf (&temp_string, format, args);
+  if (ret >= 0)
+    {
+      if (ret > 0)
+        ostream_write_str (stream, temp_string);
+      free (temp_string);
+    }
+  return ret;
+}
+
 /* ------------------------- From styled-ostream.h ------------------------- */
 
 typedef ostream_t styled_ostream_t;
@@ -131,6 +179,25 @@ styled_ostream_begin_use_class (styled_ostream_t stream _GL_UNUSED,
 static inline void
 styled_ostream_end_use_class (styled_ostream_t stream _GL_UNUSED,
                               const char *classname _GL_UNUSED)
+{
+}
+
+static inline const char *
+styled_ostream_get_hyperlink_ref (styled_ostream_t stream _GL_UNUSED)
+{
+  return NULL;
+}
+
+static inline const char *
+styled_ostream_get_hyperlink_id (styled_ostream_t stream _GL_UNUSED)
+{
+  return NULL;
+}
+
+static inline void
+styled_ostream_set_hyperlink (styled_ostream_t stream _GL_UNUSED,
+                              const char *ref _GL_UNUSED,
+                              const char *id _GL_UNUSED)
 {
 }
 
@@ -268,6 +335,25 @@ term_ostream_set_underline (term_ostream_t stream _GL_UNUSED,
 {
 }
 
+static inline const char *
+term_ostream_get_hyperlink_ref (term_ostream_t stream _GL_UNUSED)
+{
+  return NULL;
+}
+
+static inline const char *
+term_ostream_get_hyperlink_id (term_ostream_t stream _GL_UNUSED)
+{
+  return NULL;
+}
+
+static inline void
+term_ostream_set_hyperlink (term_ostream_t stream _GL_UNUSED,
+                            const char *ref _GL_UNUSED,
+                            const char *id _GL_UNUSED)
+{
+}
+
 static inline void
 term_ostream_flush_to_current_style (term_ostream_t stream)
 {
@@ -306,6 +392,9 @@ typedef styled_ostream_t term_styled_ostream_t;
 #define term_styled_ostream_free ostream_free
 #define term_styled_ostream_begin_use_class styled_ostream_begin_use_class
 #define term_styled_ostream_end_use_class styled_ostream_end_use_class
+#define term_styled_ostream_get_hyperlink_ref styled_ostream_get_hyperlink_ref
+#define term_styled_ostream_get_hyperlink_id styled_ostream_get_hyperlink_id
+#define term_styled_ostream_set_hyperlink styled_ostream_set_hyperlink
 #define term_styled_ostream_flush_to_current_style styled_ostream_flush_to_current_style
 
 static inline term_styled_ostream_t

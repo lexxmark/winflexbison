@@ -23,7 +23,8 @@
 #include <limits.h>
 #include <sys/stat.h>
 
-#include "gl_avltree_oset.h"
+#include <config.h>
+#include "gl_rbtree_oset.h"
 #include "gl_xoset.h"
 
 /* Size of initial in-memory buffer size for diversions.  Small diversions
@@ -384,7 +385,7 @@ m4_tmprename (int oldnum, int newnum)
 void
 output_init (FILE* out)
 {
-  diversion_table = gl_oset_create_empty (GL_AVLTREE_OSET, cmp_diversion_CB,
+  diversion_table = gl_oset_create_empty (GL_RBTREE_OSET, cmp_diversion_CB,
                                           NULL);
   div0.u.file = out;//stdout;
   output_diversion = &div0;

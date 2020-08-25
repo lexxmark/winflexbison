@@ -21,14 +21,13 @@
 #define XTIME_H_ 1
 
 #define _GL_INLINE_HEADER_BEGIN
-# define _GL_INLINE inline
 
 #ifndef _GL_INLINE_HEADER_BEGIN
  #error "Please include config.h first."
 #endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef XTIME_INLINE
-# define XTIME_INLINE _GL_INLINE
+# define XTIME_INLINE inline
 #endif
 
 /* xtime_t is a signed type used for timestamps.  It is an integer
