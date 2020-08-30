@@ -4,6 +4,9 @@
   * 2.4.x versions include bison version 2.7
   * 2.5.x versions include bison version 3.x
   
+### version 2.5.23
+  * upgrade win_bison to version 3.7.1
+
 ### version 2.5.22
   * upgrade win_bison to version 3.5.0
 
