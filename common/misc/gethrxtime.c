@@ -18,6 +18,10 @@
 /* Written by Paul Eggert.  */
 
 #include <config.h>
+#ifdef __MINGW32__
+#include <Windows.h>
+#include <stdint.h>
+#endif
 
 #define GETHRXTIME_INLINE _GL_EXTERN_INLINE
 #include "gethrxtime.h"
@@ -63,9 +67,18 @@ gethrxtime (void)
      clock that might jump backwards, since it's the best we can do.  */
   {
     struct timespec ts;
-	//gettime(&ts);
-	timespec_get(&ts, TIME_UTC);
+    #ifndef __MINGW32__
+    //gettime(&ts);
+    timespec_get(&ts, TIME_UTC);
     return xtime_make (ts.tv_sec, ts.tv_nsec);
+    #else
+    uint64_t t; 
+    GetSystemTimeAsFileTime((LPFILETIME)&t);
+    enum {
+      hundredsOfNanosecondsInASecond = 10000000
+    };
+    return xtime_make (t / hundredsOfNanosecondsInASecond, t % hundredsOfNanosecondsInASecond);
+    #endif
   }
 #  endif
 # endif
