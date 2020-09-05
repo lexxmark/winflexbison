@@ -192,6 +192,7 @@ xcopy "$(ProjectDir)..\..\bison\data\*" "$(TargetDir)\data" /s /i /y</Command>
     <ClInclude Include="..\..\bison\src\symtab.h" />
     <ClInclude Include="..\..\bison\src\system.h" />
     <ClInclude Include="..\..\bison\src\tables.h" />
+    <ClInclude Include="..\..\bison\src\textstyle.h" />
     <ClInclude Include="..\..\bison\src\uniqstr.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

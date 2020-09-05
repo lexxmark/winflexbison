@@ -273,5 +273,8 @@
     <ClInclude Include="..\..\bison\src\glyphs.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\bison\src\textstyle.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
