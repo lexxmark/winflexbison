@@ -173,8 +173,14 @@ int flex_main (int argc, char *argv[])
     }
 #endif
 
-	(void)_setmode(_fileno(stdout), _O_BINARY);
-	(void)_setmode(_fileno(stderr), _O_BINARY);
+	{
+		char const* cp = getenv("WINFLEXBISON_BINARY_OUTPUT");
+		if (cp && (strcmp(cp, "Y") == 0))
+		{
+			(void)_setmode(_fileno(stdout), _O_BINARY);
+			(void)_setmode(_fileno(stderr), _O_BINARY);
+		}
+	}
 
 	flexinit (argc, argv);
 

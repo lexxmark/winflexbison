@@ -87,9 +87,14 @@ main (int argc, char *argv[])
       set_quoting_style (&quote_quoting_options, locale_quoting_style);
   }
 
-  (void)_setmode(_fileno(stdout), _O_BINARY);
-  (void)_setmode(_fileno(stderr), _O_BINARY);
-
+  {
+      char const* cp = getenv("WINFLEXBISON_BINARY_OUTPUT");
+      if (cp && STREQ(cp, "Y"))
+      {
+          (void)_setmode(_fileno(stdout), _O_BINARY);
+          (void)_setmode(_fileno(stderr), _O_BINARY);
+      }
+  }
 
   atexit (close_stdout);
 
