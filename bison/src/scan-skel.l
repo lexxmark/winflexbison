@@ -1,6 +1,6 @@
 /* Scan Bison Skeletons.                                       -*- C -*-
 
-   Copyright (C) 2001-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2015, 2018-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -21,22 +21,23 @@
 %option prefix="skel_" outfile="lex.yy.c"
 
 %{
+#include <dirname.h>
+#include <error.h>
+#include <path-join.h>
+#include <quotearg.h>
+
+#include "src/complain.h"
+#include "src/files.h"
+#include "src/getargs.h"
+#include "src/scan-skel.h"
+
+#define FLEX_PREFIX(Id) skel_ ## Id
+#include "src/flex-scanner.h"
+
 /* Work around a bug in flex 2.5.31.  See Debian bug 333231
    <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=333231>.  */
 #undef skel_wrap
 #define skel_wrap() 1
-
-#define FLEX_PREFIX(Id) skel_ ## Id
-#include <src/flex-scanner.h>
-
-#include <dirname.h>
-#include <error.h>
-#include <quotearg.h>
-
-#include <src/complain.h>
-#include <src/getargs.h>
-#include <src/files.h>
-#include <src/scan-skel.h>
 
 #define YY_DECL static int skel_lex (void)
 YY_DECL;
@@ -49,6 +50,7 @@ static void at_output (int argc, char *argv[], char **name, int *lineno);
 static void fail_for_at_directive_too_many_args (char const *at_directive_name);
 static void fail_for_at_directive_too_few_args (char const *at_directive_name);
 static void fail_for_invalid_at (char const *at);
+static void output_mapped_file (char const *name);
 %}
 
 %x SC_AT_DIRECTIVE_ARGS
@@ -76,14 +78,14 @@ static void fail_for_invalid_at (char const *at);
 @\n  continue;
 
 "@oline@"  fprintf (yyout, "%d", out_lineno + 1);
-"@ofile@"  fputs (quotearg_style (c_quoting_style, out_name), yyout);
+"@ofile@"  output_mapped_file (out_name);
 
 "@basename("    at_init (&argc, argv, &at_ptr, &at_basename);
 "@complain("    at_init (&argc, argv, &at_ptr, &at_complain);
 "@output("      at_init (&argc, argv, &at_ptr, &at_output);
 
   /* This pattern must not match more than the previous @ patterns. */
-@[^@{}\'(\n]*   fail_for_invalid_at (yytext);
+@[^@{}''(\n]*   fail_for_invalid_at (yytext);
 \n              out_lineno++; ECHO;
 [^@\n]+         ECHO;
 
@@ -98,11 +100,11 @@ static void fail_for_invalid_at (char const *at);
 
 <SC_AT_DIRECTIVE_ARGS>
 {
-  [^@]+  STRING_GROW;
+  [^@]+  STRING_GROW ();
 
-  "@@"   obstack_1grow (&obstack_for_string, '@');
-  "@{"   obstack_1grow (&obstack_for_string, '[');
-  "@}"   obstack_1grow (&obstack_for_string, ']');
+  "@@"   STRING_1GROW ('@');
+  "@{"   STRING_1GROW ('[');
+  "@}"   STRING_1GROW (']');
   "@'"   continue; /* For starting an argument that begins with whitespace. */
   @\n    continue;
 
@@ -188,7 +190,7 @@ flag (const char *arg)
   else if (STREQ (arg, "fatal"))
     return fatal;
   else if (STREQ (arg, "note"))
-    return silent | complaint | no_caret;
+    return silent | complaint | no_caret | note;
   else if (STREQ (arg, "warn"))
     return Wother;
   else
@@ -208,45 +210,39 @@ at_basename (int argc, char *argv[], char **out_namep, int *out_linenop)
 static void
 at_complain (int argc, char *argv[], char **out_namep, int *out_linenop)
 {
-  static unsigned indent;
-  warnings w = flag (argv[1]);
-  location loc;
-  location *locp = NULL;
+  if (argc < 4)
+    fail_for_at_directive_too_few_args (argv[0]);
 
   (void) out_namep;
   (void) out_linenop;
 
-  if (argc < 4)
-    fail_for_at_directive_too_few_args (argv[0]);
+  warnings w = flag (argv[1]);
+
+  location loc;
+  location *locp = NULL;
   if (argv[2] && argv[2][0])
     {
       boundary_set_from_string (&loc.start, argv[2]);
       boundary_set_from_string (&loc.end, argv[3]);
       locp = &loc;
     }
-  if (w & silent)
-    indent += SUB_INDENT;
-  else
-    indent = 0;
-  complain_args (locp, w, &indent, argc - 4, argv + 4);
-  if (w & silent)
-    indent -= SUB_INDENT;
+  complain_args (locp, w, argc - 4, argv + 4);
 }
 
 static void
 at_output (int argc, char *argv[], char **out_namep, int *out_linenop)
 {
-  if (2 < argc)
+  if (3 < argc)
     fail_for_at_directive_too_many_args (argv[0]);
   if (*out_namep)
     {
       free (*out_namep);
       xfclose (yyout);
     }
-  *out_namep = xstrdup (argv[1]);
+  *out_namep = xpath_join (argv[1], 2 < argc ? argv[2] : NULL);
   output_file_name_check (out_namep, true);
   /* If there were errors, do not generate the output.  */
-  yyout = xfopen (complaint_status ? "/dev/null" : *out_namep, "wb");
+  yyout = xfopen (complaint_status ? "/dev/null" : *out_namep, "w");
   *out_linenop = 1;
 }
 
@@ -268,4 +264,12 @@ static void
 fail_for_invalid_at (char const *at)
 {
   complain (NULL, fatal, "invalid @ in skeleton: %s", at);
+}
+
+static void
+output_mapped_file (char const *name)
+{
+  char *f = map_file_name (name);
+  fputs (quotearg_style (c_quoting_style, f), yyout);
+  free (f);
 }

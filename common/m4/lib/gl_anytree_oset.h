@@ -1,5 +1,5 @@
 /* Ordered set data type implemented by a binary tree.
-   Copyright (C) 2006-2007, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2007, 2009-2020 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2006.
 
    This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Common code of gl_avltree_oset.c and gl_rbtree_oset.c.  */
 
@@ -51,6 +51,44 @@ static size_t
 gl_tree_size (gl_oset_t set)
 {
   return set->count;
+}
+
+/* Returns the next node in the tree, or NULL if there is none.  */
+static inline gl_oset_node_t
+gl_tree_next_node (gl_oset_node_t node)
+{
+  if (node->right != NULL)
+    {
+      node = node->right;
+      while (node->left != NULL)
+        node = node->left;
+    }
+  else
+    {
+      while (node->parent != NULL && node->parent->right == node)
+        node = node->parent;
+      node = node->parent;
+    }
+  return node;
+}
+
+/* Returns the previous node in the tree, or NULL if there is none.  */
+static inline gl_oset_node_t
+gl_tree_prev_node (gl_oset_node_t node)
+{
+  if (node->left != NULL)
+    {
+      node = node->left;
+      while (node->right != NULL)
+        node = node->right;
+    }
+  else
+    {
+      while (node->parent != NULL && node->parent->left == node)
+        node = node->parent;
+      node = node->parent;
+    }
+  return node;
 }
 
 static bool
@@ -91,7 +129,7 @@ gl_tree_search_atleast (gl_oset_t set,
         node = node->right;
       else
         {
-          /* We have an element >= VALUE.  But we need the leftmost such
+          /* We have an element >= THRESHOLD.  But we need the leftmost such
              element.  */
           gl_oset_node_t found = node;
           node = node->left;
@@ -194,6 +232,79 @@ gl_tree_remove (gl_oset_t set, const void *elt)
     return false;
 }
 
+static int
+gl_tree_update (gl_oset_t set, const void *elt,
+                void (*action) (const void * /*elt*/, void * /*action_data*/),
+                void *action_data)
+{
+  /* Like gl_tree_remove, action (...), gl_tree_nx_add, except that we don't
+     actually remove ELT.  */
+  /* Remember the old node.  Don't free it.  */
+  gl_oset_node_t old_node = gl_tree_search_node (set, elt);
+  /* Invoke ACTION.  */
+  action (elt, action_data);
+  /* Determine where to put the node now.  */
+  if (old_node != NULL)
+    {
+      if (set->count > 1)
+        {
+          gl_setelement_compar_fn compar = set->base.compar_fn;
+
+          gl_oset_node_t prev_node = gl_tree_prev_node (old_node);
+          gl_oset_node_t next_node = gl_tree_next_node (old_node);
+          if (!(compar != NULL
+                ? (prev_node == NULL || compar (prev_node->value, elt) < 0)
+                  && (next_node == NULL || compar (next_node->value, elt) > 0)
+                : (prev_node == NULL || prev_node->value < elt)
+                  && (next_node == NULL || next_node->value > elt)))
+            {
+              /* old_node needs to move in the tree.  */
+              gl_oset_node_t node;
+
+              /* Remove the node from the tree.  Don't free it.  */
+              gl_tree_remove_node_no_free (set, old_node);
+
+              node = set->root;
+
+              for (;;)
+                {
+                  int cmp = (compar != NULL
+                             ? compar (node->value, elt)
+                             : (node->value > elt ? 1 :
+                                node->value < elt ? -1 : 0));
+
+                  if (cmp < 0)
+                    {
+                      if (node->right == NULL)
+                        {
+                          gl_tree_add_node_after (set, node, old_node);
+                          return true;
+                        }
+                      node = node->right;
+                    }
+                  else if (cmp > 0)
+                    {
+                      if (node->left == NULL)
+                        {
+                          gl_tree_add_node_before (set, node, old_node);
+                          return true;
+                        }
+                      node = node->left;
+                    }
+                  else /* cmp == 0 */
+                    {
+                      /* Two elements are the same.  */
+                      NODE_PAYLOAD_DISPOSE (set, old_node)
+                      free (old_node);
+                      return -1;
+                    }
+                }
+            }
+        }
+    }
+  return 0;
+}
+
 static void
 gl_tree_oset_free (gl_oset_t set)
 {
@@ -255,7 +366,7 @@ gl_tree_iterator (gl_oset_t set)
   result.p = node;
   /* End point is past the rightmost node.  */
   result.q = NULL;
-#ifdef lint
+#if defined GCC_LINT || defined lint
   result.i = 0;
   result.j = 0;
   result.count = 0;
@@ -272,18 +383,7 @@ gl_tree_iterator_next (gl_oset_iterator_t *iterator, const void **eltp)
       gl_oset_node_t node = (gl_oset_node_t) iterator->p;
       *eltp = node->value;
       /* Advance to the next node.  */
-      if (node->right != NULL)
-        {
-          node = node->right;
-          while (node->left != NULL)
-            node = node->left;
-        }
-      else
-        {
-          while (node->parent != NULL && node->parent->right == node)
-            node = node->parent;
-          node = node->parent;
-        }
+      node = gl_tree_next_node (node);
       iterator->p = node;
       return true;
     }
@@ -292,6 +392,6 @@ gl_tree_iterator_next (gl_oset_iterator_t *iterator, const void **eltp)
 }
 
 static void
-gl_tree_iterator_free (gl_oset_iterator_t *iterator)
+gl_tree_iterator_free (gl_oset_iterator_t *iterator  _GL_ATTRIBUTE_MAYBE_UNUSED)
 {
 }

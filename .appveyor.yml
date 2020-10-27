@@ -1,4 +1,4 @@
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 configuration:
   - Release
@@ -9,32 +9,25 @@ platform:
   - Win32
 
 environment:
+  CMAKE_OPTIONS: "-A \"%platform%\" -DCMAKE_BUILD_TYPE=\"%configuration%\" -DUSE_STATIC_RUNTIME=ON"
   # VS VERSION IN CMAKE STYLE
   matrix:
+    - VSVERSION: "16 2019"
     - VSVERSION: "15 2017"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     - VSVERSION: "14 2015"
-    - VSVERSION: "12 2013"
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-
-matrix:
-  exclude:
-    - VSVERSION: "12 2013"
-      platform: x64
-    - VSVERSION: "12 2013"
-      configuration: Debug
 
 init:
   - cmake --version
   - msbuild /version
 
 before_build:
-  - if "%platform%"=="Win32" ( set "CMAKE_GENERATOR_NAME=Visual Studio %VSVERSION%" )
-  - if "%platform%"=="x64" ( set "CMAKE_GENERATOR_NAME=Visual Studio %VSVERSION% Win64" )
   - set VSVERSIONSHORT=%VSVERSION:~3,4%
   - if "%APPVEYOR_REPO_TAG_NAME%"=="" ( set "APPVEYOR_REPO_TAG_NAME=dev-%VSVERSIONSHORT%-%platform%-%configuration%" )
   - mkdir build
   - cd build
-  - cmake -G "%CMAKE_GENERATOR_NAME%" -DCPACK_PACKAGE_VERSION="%APPVEYOR_REPO_TAG_NAME%" -DCMAKE_BUILD_TYPE="%configuration%" ..
+  - cmake -G "Visual Studio %VSVERSION%" -DCPACK_PACKAGE_VERSION="%APPVEYOR_REPO_TAG_NAME%" %CMAKE_OPTIONS%  ..
 
 build:
   project: "build\\winflexbison.sln"

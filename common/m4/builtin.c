@@ -958,6 +958,7 @@ static int sysval;
 #include "vasnprintf.h"
 /* cat content */
 char *cat_string = NULL;
+FILE* cat_out = NULL;
 
 static void
 m4_syscmd (struct obstack *obs M4_GNUC_UNUSED, int argc, token_data **argv)
@@ -976,6 +977,14 @@ m4_syscmd (struct obstack *obs M4_GNUC_UNUSED, int argc, token_data **argv)
 
 	  if (old_cat_string != cat_string)
 		  free(old_cat_string);
+
+	  if (cat_out)
+	  {
+		  fprintf(cat_out, "%s", cat_string);
+		  fflush(cat_out);
+		  free(cat_string);
+		  cat_string = NULL;
+	  }
 
 	  sysval = 0;
 	  return;

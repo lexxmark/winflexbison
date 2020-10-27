@@ -96,6 +96,7 @@
     <ClInclude Include="..\..\common\m4\lib\gl_anylinked_list1.h" />
     <ClInclude Include="..\..\common\m4\lib\gl_anylinked_list2.h" />
     <ClInclude Include="..\..\common\m4\lib\gl_anytree_oset.h" />
+    <ClInclude Include="..\..\common\m4\lib\gl_array_list.h" />
     <ClInclude Include="..\..\common\m4\lib\gl_avltree_oset.h" />
     <ClInclude Include="..\..\common\m4\lib\gl_linkedhash_list.h" />
     <ClInclude Include="..\..\common\m4\lib\gl_list.h" />
@@ -127,56 +128,69 @@
     <ClInclude Include="..\..\common\m4\lib\xsize.h" />
     <ClInclude Include="..\..\common\m4\lib\xvasprintf.h" />
     <ClInclude Include="..\..\common\m4\m4.h" />
-    <ClInclude Include="..\..\common\misc\abitset.h" />
+    <ClInclude Include="..\..\common\misc\arg-nonnull.h" />
     <ClInclude Include="..\..\common\misc\argmatch.h" />
     <ClInclude Include="..\..\common\misc\bbitset.h" />
     <ClInclude Include="..\..\common\misc\bitrotate.h" />
     <ClInclude Include="..\..\common\misc\bitset.h" />
-    <ClInclude Include="..\..\common\misc\bitsetv-print.h" />
     <ClInclude Include="..\..\common\misc\bitsetv.h" />
-    <ClInclude Include="..\..\common\misc\bitset_stats.h" />
+    <ClInclude Include="..\..\common\misc\bitset\array.h" />
+    <ClInclude Include="..\..\common\misc\bitset\base.h" />
+    <ClInclude Include="..\..\common\misc\bitset\list.h" />
+    <ClInclude Include="..\..\common\misc\bitset\stats.h" />
+    <ClInclude Include="..\..\common\misc\bitset\table.h" />
+    <ClInclude Include="..\..\common\misc\bitset\vector.h" />
     <ClInclude Include="..\..\common\misc\c-ctype.h" />
     <ClInclude Include="..\..\common\misc\c-strcase.h" />
     <ClInclude Include="..\..\common\misc\c-strcaseeq.h" />
     <ClInclude Include="..\..\common\misc\cjk.h" />
+    <ClInclude Include="..\..\common\misc\concat-filename.h" />
     <ClInclude Include="..\..\common\misc\config.h" />
+    <ClInclude Include="..\..\common\misc\diffseq.h" />
     <ClInclude Include="..\..\common\misc\dirname.h" />
     <ClInclude Include="..\..\common\misc\dosname.h" />
-    <ClInclude Include="..\..\common\misc\ebitset.h" />
     <ClInclude Include="..\..\common\misc\error.h" />
     <ClInclude Include="..\..\common\misc\exitfail.h" />
+    <ClInclude Include="..\..\common\misc\filename.h" />
+    <ClInclude Include="..\..\common\misc\fstrcmp.h" />
     <ClInclude Include="..\..\common\misc\get-errno.h" />
+    <ClInclude Include="..\..\common\misc\gethrxtime.h" />
     <ClInclude Include="..\..\common\misc\getopt.h" />
     <ClInclude Include="..\..\common\misc\getopt_int.h" />
     <ClInclude Include="..\..\common\misc\gettext.h" />
+    <ClInclude Include="..\..\common\misc\glthread\lock.h" />
+    <ClInclude Include="..\..\common\misc\glthread\tls.h" />
     <ClInclude Include="..\..\common\misc\hash.h" />
-    <ClInclude Include="..\..\common\misc\lbitset.h" />
+    <ClInclude Include="..\..\common\misc\intprops.h" />
+    <ClInclude Include="..\..\common\misc\libiberty.h" />
     <ClInclude Include="..\..\common\misc\localcharset.h" />
+    <ClInclude Include="..\..\common\misc\mbchar.h" />
+    <ClInclude Include="..\..\common\misc\mbfile.h" />
     <ClInclude Include="..\..\common\misc\mbswidth.h" />
     <ClInclude Include="..\..\common\misc\obstack.h" />
+    <ClInclude Include="..\..\common\misc\path-join.h" />
     <ClInclude Include="..\..\common\misc\progname.h" />
     <ClInclude Include="..\..\common\misc\quote.h" />
     <ClInclude Include="..\..\common\misc\quotearg.h" />
+    <ClInclude Include="..\..\common\misc\relocatable.h" />
     <ClInclude Include="..\..\common\misc\stdbool.h" />
     <ClInclude Include="..\..\common\misc\stdio-safer.h" />
     <ClInclude Include="..\..\common\misc\streq.h" />
     <ClInclude Include="..\..\common\misc\system.h" />
+    <ClInclude Include="..\..\common\misc\timespec.h" />
     <ClInclude Include="..\..\common\misc\timevar.h" />
     <ClInclude Include="..\..\common\misc\unitypes.in.h" />
     <ClInclude Include="..\..\common\misc\uniwidth.in.h" />
-    <ClInclude Include="..\..\common\misc\vbitset.h" />
     <ClInclude Include="..\..\common\misc\verify.h" />
     <ClInclude Include="..\..\common\misc\xalloc.h" />
     <ClInclude Include="..\..\common\misc\xmemdup0.h" />
     <ClInclude Include="..\..\common\misc\xstrndup.h" />
+    <ClInclude Include="..\..\common\misc\xtime.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\m4\builtin.c" />
     <ClCompile Include="..\..\common\m4\debug.c" />
-    <ClCompile Include="..\..\common\m4\eval.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
-    </ClCompile>
+    <ClCompile Include="..\..\common\m4\eval.c" />
     <ClCompile Include="..\..\common\m4\format.c" />
     <ClCompile Include="..\..\common\m4\freeze.c" />
     <ClCompile Include="..\..\common\m4\input.c" />
@@ -188,6 +202,7 @@
     <ClCompile Include="..\..\common\m4\lib\execute.c" />
     <ClCompile Include="..\..\common\m4\lib\fd-safer.c" />
     <ClCompile Include="..\..\common\m4\lib\filenamecat-lgpl.c" />
+    <ClCompile Include="..\..\common\m4\lib\gl_array_list.c" />
     <ClCompile Include="..\..\common\m4\lib\gl_avltree_oset.c" />
     <ClCompile Include="..\..\common\m4\lib\gl_linkedhash_list.c" />
     <ClCompile Include="..\..\common\m4\lib\gl_list.c" />
@@ -200,15 +215,7 @@
     <ClCompile Include="..\..\common\m4\lib\mkstemp.c" />
     <ClCompile Include="..\..\common\m4\lib\printf-args.c" />
     <ClCompile Include="..\..\common\m4\lib\printf-parse.c" />
-    <ClCompile Include="..\..\common\m4\lib\regcomp.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\common\m4\lib\regex.c" />
-    <ClCompile Include="..\..\common\m4\lib\regexec.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\common\m4\lib\regex_internal.c" />
     <ClCompile Include="..\..\common\m4\lib\tempname.c" />
     <ClCompile Include="..\..\common\m4\lib\tmpdir.c" />
@@ -223,44 +230,57 @@
     <ClCompile Include="..\..\common\m4\output.c" />
     <ClCompile Include="..\..\common\m4\path.c" />
     <ClCompile Include="..\..\common\m4\symtab.c" />
-    <ClCompile Include="..\..\common\misc\abitset.c" />
     <ClCompile Include="..\..\common\misc\app_path.c" />
     <ClCompile Include="..\..\common\misc\argmatch.c" />
     <ClCompile Include="..\..\common\misc\basename-lgpl.c" />
     <ClCompile Include="..\..\common\misc\bitset.c" />
-    <ClCompile Include="..\..\common\misc\bitsetv-print.c" />
     <ClCompile Include="..\..\common\misc\bitsetv.c" />
-    <ClCompile Include="..\..\common\misc\bitset_stats.c" />
+    <ClCompile Include="..\..\common\misc\bitset\array.c" />
+    <ClCompile Include="..\..\common\misc\bitset\list.c" />
+    <ClCompile Include="..\..\common\misc\bitset\stats.c" />
+    <ClCompile Include="..\..\common\misc\bitset\table.c" />
+    <ClCompile Include="..\..\common\misc\bitset\vector.c" />
     <ClCompile Include="..\..\common\misc\c-ctype.c" />
     <ClCompile Include="..\..\common\misc\c-strcasecmp.c" />
     <ClCompile Include="..\..\common\misc\c-strncasecmp.c" />
+    <ClCompile Include="..\..\common\misc\concat-filename.c" />
     <ClCompile Include="..\..\common\misc\dirname-lgpl.c" />
     <ClCompile Include="..\..\common\misc\dirname.c" />
-    <ClCompile Include="..\..\common\misc\ebitset.c" />
     <ClCompile Include="..\..\common\misc\error.c" />
     <ClCompile Include="..\..\common\misc\exitfail.c" />
+    <ClCompile Include="..\..\common\misc\fstrcmp.c" />
     <ClCompile Include="..\..\common\misc\get-errno.c" />
     <ClCompile Include="..\..\common\misc\getdelim.c" />
+    <ClCompile Include="..\..\common\misc\gethrxtime.c" />
     <ClCompile Include="..\..\common\misc\getline.c" />
     <ClCompile Include="..\..\common\misc\getopt.c" />
     <ClCompile Include="..\..\common\misc\getopt1.c" />
+    <ClCompile Include="..\..\common\misc\glthread\lock.c" />
+    <ClCompile Include="..\..\common\misc\glthread\threadlib.c" />
+    <ClCompile Include="..\..\common\misc\glthread\tls.c" />
     <ClCompile Include="..\..\common\misc\hash.c" />
-    <ClCompile Include="..\..\common\misc\lbitset.c" />
     <ClCompile Include="..\..\common\misc\localcharset.c" />
+    <ClCompile Include="..\..\common\misc\mbchar.c" />
+    <ClCompile Include="..\..\common\misc\mbfile.c" />
     <ClCompile Include="..\..\common\misc\mbswidth.c" />
     <ClCompile Include="..\..\common\misc\obstack.c" />
     <ClCompile Include="..\..\common\misc\obstack_printf.c" />
+    <ClCompile Include="..\..\common\misc\path-join.c" />
     <ClCompile Include="..\..\common\misc\progname.c" />
     <ClCompile Include="..\..\common\misc\quotearg.c" />
+    <ClCompile Include="..\..\common\misc\relocatable.c" />
     <ClCompile Include="..\..\common\misc\strverscmp.c" />
+    <ClCompile Include="..\..\common\misc\timespec.c" />
     <ClCompile Include="..\..\common\misc\timevar.c" />
-    <ClCompile Include="..\..\common\misc\vbitset.c" />
     <ClCompile Include="..\..\common\misc\wcwidth.c" />
     <ClCompile Include="..\..\common\misc\width.c" />
     <ClCompile Include="..\..\common\misc\xalloc-die.c" />
+    <ClCompile Include="..\..\common\misc\xconcat-filename.c" />
+    <ClCompile Include="..\..\common\misc\xhash.c" />
     <ClCompile Include="..\..\common\misc\xmalloc.c" />
     <ClCompile Include="..\..\common\misc\xmemdup0.c" />
     <ClCompile Include="..\..\common\misc\xstrndup.c" />
+    <ClCompile Include="..\..\common\misc\xtime.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

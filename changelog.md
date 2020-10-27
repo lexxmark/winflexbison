@@ -2,11 +2,33 @@
 
 **NOTE**:
   * 2.4.x versions include bison version 2.7
-  * 2.5.x versions include bison version 3.0.x
+  * 2.5.x versions include bison version 3.x
   
+### version 2.5.23
+  * upgrade win_bison to version 3.7.1
+
+### version 2.5.22
+  * upgrade win_bison to version 3.5.0
+
+### version 2.5.21
+  * avoid _m4eof lines in generated bison code while printing warnings
+
+### version 2.5.20
+  * recovered invoking win_bison from different folders
+
+### version 2.5.19
+  * upgrade win_bison to version 3.4.1
+  
+### version 2.5.18
+  * upgrade win_bison to version 3.3.2
+
+### version 2.5.17
+  * upgrade win_bison to version 3.3.1
+
 ### version 2.5.16
   * upgrade win_bison to version 3.1
   * write output flex/bison files in binary mode "wb" that means use '\n' EOL not '\r\n'
+  * documentation about how to use the custom build-rules is now included
 
 ### versions 2.4.12/2.5.15
   * upgrade win_bison to version 3.0.5
@@ -98,7 +120,7 @@ see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=542482
 ### version 2.5
   * upgrade win_bison to version 3.0 and make temporary win_bison's files process unique (so parallel invocations of win_bison are possible)
 
-**NOTE**: There are several deprecated features were removed in bison 3.0 so this version can break your projects.
+**NOTE**: Several deprecated features were removed in bison 3.0 so this version can break your projects.
 Please see http://savannah.gnu.org/forum/forum.php?forum_id=7663
 For the reason of compatibility I don't change win_flex_bison-latest.zip to refer to win_flex_bison-2.5.zip file.
 It still refer to win_flex_bison-2.4.zip
@@ -129,4 +151,5 @@ fixed two "'<' : signed/unsigned mismatch" warnings in win_flex generated file
   * fixed win_flex.exe parallel invocations (now all temporary files are process specific)
   * added FLEX_TMP_DIR environment variable support to redirect temporary files folder
   * added '.exe' to program name in win_flex.exe --version output (CMake support)
-  * fixed win_bison.exe to use /data subfolder related to executable path rather than current working directory
+  * fixed win_bison.exe to use "/data" subfolder related to executable path rather than current working directory
+  * added BISON_PKGDATADIR environment variable to redirect "/data" subfolder to a different place

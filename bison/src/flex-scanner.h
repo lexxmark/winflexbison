@@ -1,6 +1,7 @@
 /* Common parts between scan-code.l, scan-gram.l, and scan-skel.l.
 
-   Copyright (C) 2006, 2009-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2015, 2018-2020 Free Software Foundation,
+   Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -27,6 +28,32 @@
    + (YY_FLEX_MINOR_VERSION) * 1000     \
    + (YY_FLEX_SUBMINOR_VERSION))
 
+// Pacify warnings in yy_init_buffer (observed with Flex 2.6.4 and GCC
+// 6.4.0 and 7.3.0).
+//
+// ./src/scan-skel.c: In function 'skel_restart':
+// ./src/scan-skel.c:2035:20: error: potential null pointer dereference [-Werror=null-dereference]
+//   b->yy_fill_buffer = 1;
+//   ~~~~~~~~~~~~~~~~~~^~~
+// ./src/scan-skel.c:2031:19: error: potential null pointer dereference [-Werror=null-dereference]
+//   b->yy_input_file = file;
+//   ~~~~~~~~~~~~~~~~~^~~~~~
+#if defined __GNUC__ && ! defined __clang__ && 6 <= __GNUC__
+# pragma GCC diagnostic ignored "-Wnull-dereference"
+#endif
+
+// Old versions of Flex (2.5.35) generate an incomplete documentation comment.
+//
+//  In file included from src/scan-code-c.c:3:
+//  src/scan-code.c:2198:21: error: empty paragraph passed to '@param' command
+//        [-Werror,-Wdocumentation]
+//   * @param line_number
+//     ~~~~~~~~~~~~~~~~~^
+//  1 error generated.
+#if FLEX_VERSION <= 20060000 && defined __clang__
+# pragma clang diagnostic ignored "-Wdocumentation"
+#endif
+
 /* Pacify "gcc -Wmissing-prototypes" when flex 2.5.31 is used.  */
 #if FLEX_VERSION <= 2005031
 int   FLEX_PREFIX (get_lineno) (void);
@@ -43,20 +70,6 @@ int   FLEX_PREFIX (lex_destroy) (void);
 #endif
 
 #define last_string    FLEX_PREFIX (last_string)
-
-// Pacify warnings in yy_init_buffer (observed with Flex 2.6.4 and GCC
-// 7.3.0).
-//
-// ./src/scan-skel.c: In function 'skel_restart':
-// ./src/scan-skel.c:2035:20: error: potential null pointer dereference [-Werror=null-dereference]
-//   b->yy_fill_buffer = 1;
-//   ~~~~~~~~~~~~~~~~~~^~~
-// ./src/scan-skel.c:2031:19: error: potential null pointer dereference [-Werror=null-dereference]
-//   b->yy_input_file = file;
-//   ~~~~~~~~~~~~~~~~~^~~~~~
-#if defined __GNUC__ && 7 <= __GNUC__
-# pragma GCC diagnostic ignored "-Wnull-dereference"
-#endif
 
 /* It seems to be a nice "feature" of Flex that one cannot use yytext,
    yyleng etc. when a prefix is given, since there is no longer a
@@ -81,22 +94,33 @@ int   FLEX_PREFIX (lex_destroy) (void);
    keep (to construct ID, STRINGS etc.).  Use the following macros to
    use it.
 
-   Use STRING_GROW to append what has just been matched, and
-   STRING_FINISH to end the string (it puts the ending 0).
-   STRING_FINISH also stores this string in LAST_STRING, which can be
-   used, and which is used by STRING_FREE to free the last string.  */
+   Use STRING_GROW () to append what has just been matched, and
+   STRING_FINISH () to end the string (it puts the ending 0).
+   STRING_FINISH () also stores this string in LAST_STRING, which can be
+   used, and which is used by STRING_FREE () to free the last string.  */
 
 #ifndef FLEX_NO_OBSTACK
 
 static struct obstack obstack_for_string;
 
-# define STRING_GROW                                    \
+# define STRING_GROW()                                  \
   obstack_grow (&obstack_for_string, yytext, yyleng)
 
-# define STRING_FINISH                                  \
+# define STRING_FINISH()                                \
   (last_string = obstack_finish0 (&obstack_for_string))
 
-# define STRING_FREE                                    \
+# define STRING_1GROW(Char)                     \
+  obstack_1grow (&obstack_for_string, Char)
+
+# ifdef NDEBUG
+#  define STRING_FREE()                                 \
   obstack_free (&obstack_for_string, last_string)
+# else
+#  define STRING_FREE()                                  \
+  do {                                                   \
+    obstack_free (&obstack_for_string, last_string);     \
+    last_string = NULL;                                  \
+  } while (0)
+# endif
 
 #endif

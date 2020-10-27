@@ -3,7 +3,7 @@
 <!--
     xml2dot.xsl - transform Bison XML Report into DOT.
 
-    Copyright (C) 2007-2015, 2018 Free Software Foundation, Inc.
+    Copyright (C) 2007-2015, 2018-2020 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -83,7 +83,7 @@
   <xsl:param name="staten"/>
   <xsl:for-each select='reduction'>
     <!-- These variables are needed because the current context can't be
-         refered to directly in XPath expressions. -->
+         referred to directly in XPath expressions. -->
     <xsl:variable name="rul">
       <xsl:value-of select="@rule"/>
     </xsl:variable>
@@ -95,7 +95,7 @@
     <xsl:if test='not(preceding-sibling::*[@rule=$rul and @enabled=$ena])'>
       <xsl:variable name="rule">
         <xsl:choose>
-          <!-- The acceptation state is refered to as 'accept' in the XML, but
+          <!-- The acceptation state is referred to as 'accept' in the XML, but
                just as '0' in the DOT. -->
           <xsl:when test="@rule='accept'">
             <xsl:text>0</xsl:text>
@@ -159,7 +159,7 @@
   <xsl:param name="prev-rule-number"
     select="preceding-sibling::item[1]/@rule-number"/>
   <xsl:apply-templates select="key('bison:ruleByNumber', @rule-number)">
-    <xsl:with-param name="point" select="@point"/>
+    <xsl:with-param name="dot" select="@dot"/>
     <xsl:with-param name="num" select="@rule-number"/>
     <xsl:with-param name="prev-lhs"
       select="key('bison:ruleByNumber', $prev-rule-number)/lhs[text()]"
@@ -169,7 +169,7 @@
 </xsl:template>
 
 <xsl:template match="rule">
-  <xsl:param name="point"/>
+  <xsl:param name="dot"/>
   <xsl:param name="num"/>
   <xsl:param name="prev-lhs"/>
   <xsl:text>&#10;</xsl:text>
@@ -198,14 +198,14 @@
       <xsl:text>:</xsl:text>
     </xsl:otherwise>
   </xsl:choose>
-  <xsl:if test="$point = 0">
+  <xsl:if test="$dot = 0">
     <xsl:text> .</xsl:text>
   </xsl:if>
 
   <!-- RHS -->
   <xsl:for-each select="rhs/symbol|rhs/empty">
     <xsl:apply-templates select="."/>
-    <xsl:if test="$point = position()">
+    <xsl:if test="$dot = position()">
       <xsl:text> .</xsl:text>
     </xsl:if>
   </xsl:for-each>

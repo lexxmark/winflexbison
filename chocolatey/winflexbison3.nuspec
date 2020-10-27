@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>winflexbison3</id>
+    <title>WinFlexBison (bison 3.7.1, flex 2.6.4)</title>
+    <version>2.5.23.20200904</version>
+    <authors>Alex Zhondin (in addition to original authors of flex and bison)</authors>
+    <owners>lexxmark</owners>
+    <summary>WinFlexBison is a port Flex/Bison tools to the Windows platform</summary>
+    <description>flex - The Fast Lexical Analyzer ( https://github.com/westes/flex ) and GNU Bison - parser generator ( https://www.gnu.org/software/bison )</description>
+    <projectUrl>https://github.com/lexxmark/winflexbison</projectUrl>
+    <tags>flex bison</tags>
+    <license type="expression">GPL-3.0-or-later</license>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+  </metadata>
+  <files>
+    <file src="tools\chocolateyInstall.ps1" target="tools" />
+  </files>
+</package>

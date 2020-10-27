@@ -37,7 +37,7 @@
       Name="OutputFile"
       Category="Flex Options"
       IsRequired="true"
-      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
       DisplayName="Output File Name"
       Description="Directs flex to write the scanner to the file ‘FILE’ instead of ‘lex.yy.c’. --outfile=value"
       Switch="outfile=&quot;[value]&quot;"
@@ -46,7 +46,7 @@
     <StringListProperty
       Name="HeaderFile"
       Category="Flex Options"
-      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
       DisplayName="Header File Name"
       Description="Instructs flex to write a C header to ‘FILE’. This file contains function prototypes, extern variables, and types used by the scanner. Only the external API is exported by the header file.         (--header-file=value)"
       Switch="header-file=&quot;[value]&quot;"
@@ -55,7 +55,7 @@
     <StringListProperty
       Name="Prefix"
       Category="Flex Options"
-      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
       DisplayName="Prefix"
       Description="Changes the default ‘yy’ prefix used by flex for all globally-visible variable and function names to instead be ‘PREFIX’. For example, ‘--prefix=foo’ changes the name of yytext to footext. It also changes the name of the default output file from lex.yy.c to lex.foo.c.         (--prefix=value)"
       Switch="prefix=&quot;[value]&quot;"
@@ -66,7 +66,7 @@
       Category="Flex Options"
       DisplayName="Windows compatibility mode"
       Description="This option changes 'unistd.h' unix header with windows analog 'io.h' and replaces isatty/fileno functions to safe windows analogs _isatty/_fileno.            (--wincompat)"
-      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
       Switch="wincompat" />
 
   <BoolProperty
@@ -74,7 +74,7 @@
       Category="Flex Options"
       DisplayName="Case-insensitive mode"
       Description="Instructs flex to generate a case-insensitive scanner. The case of letters given in the flex input patterns will be ignored, and tokens in the input will be matched regardless of case. The matched text given in yytext will have the preserved case (i.e., it will not be folded).            (--case-insensitive)"
-      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
       Switch="case-insensitive" />
 
     <BoolProperty
@@ -82,7 +82,7 @@
       Category="Flex Options"
       DisplayName="Lex-compatibility mode"
       Description="Turns on maximum compatibility with the original AT&amp;T lex implementation. Note that this does not mean full compatibility. Use of this option costs a considerable amount of performance, and it cannot be used with the ‘--c++’, ‘--full’, ‘--fast’, ‘-Cf’, or ‘-CF’ options.            (--lex-compat)"
-      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
       Switch="lex-compat" />
 
     <BoolProperty
@@ -90,7 +90,7 @@
       Category="Flex Options"
       DisplayName="Start Condition Stacks"
       Description="Enables the use of start condition stacks.            (--stack)"
-      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
       Switch="stack" />
 
     <BoolProperty
@@ -98,7 +98,7 @@
       Category="Flex Options"
       DisplayName="Bison Bridge Mode"
       Description="Instructs flex to generate a C scanner that is meant to be called by a GNU bison parser. The scanner has minor API changes for bison compatibility. In particular, the declaration of yylex is modified to take an additional parameter, yylval.            (--bison-bridge)"
-      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
       Switch="bison-bridge" />
 
     <BoolProperty
@@ -106,7 +106,7 @@
       Category="Flex Options"
       DisplayName="No #line Directives"
       Description="Instructs flex not to generate #line directives.            (--noline)"
-      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
       Switch="noline" />
 
     <BoolProperty
@@ -114,7 +114,7 @@
        Category="Flex Options"
        DisplayName="Generate Reentrant Scanner"
        Description="Instructs flex to generate a reentrant C scanner. The generated scanner may safely be used in a multi-threaded environment. The API for a reentrant scanner is different than for a non-reentrant scanner.            (--reentrant)"
-       HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+       HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
        Switch="reentrant" />
 
     <BoolProperty
@@ -122,13 +122,13 @@
        Category="Flex Options"
        DisplayName="Generate C++ Scanner"
        Description="Specifies that you want flex to generate a C++ scanner class.           (--c++)"
-       HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+       HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
        Switch="c++" />
 
     <StringListProperty
       Name="CppClassName"
       Category="Flex Options"
-      HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+      HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
       DisplayName="C++ Class Name"
       Description="Only applies when generating a C++ scanner (the ‘--c++’ option). It informs flex that you have derived NAME as a subclass of yyFlexLexer, so flex will place your actions in the member function foo::yylex() instead of yyFlexLexer::yylex(). It also generates a yyFlexLexer::yylex() member function that emits a run-time error (by invoking yyFlexLexer::LexerError()) if called.         (--yyclass=value)"
       Switch="yyclass=&quot;[value]&quot;" />
@@ -138,7 +138,7 @@
        Category="Flex Options"
        DisplayName="Debug Mode"
        Description="Makes the generated scanner run in debug mode. Whenever a pattern is recognized and the global variable yy_flex_debug is non-zero (which is the default), the scanner will write to ‘stderr’ a line of the form: -accepting rule at line 53 ('the matched text').           (--debug)"
-       HelpUrl="http://flex.sourceforge.net/manual/Scanner-Options.html#Scanner-Options"
+       HelpUrl="https://westes.github.io/flex/manual/Scanner-Options.html#Scanner-Options"
        Switch="debug" />
 
     <StringListProperty
