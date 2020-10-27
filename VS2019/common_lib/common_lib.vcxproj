@@ -257,6 +257,7 @@
     <ClCompile Include="..\..\common\misc\dirname.c" />
     <ClCompile Include="..\..\common\misc\error.c" />
     <ClCompile Include="..\..\common\misc\exitfail.c" />
+    <ClCompile Include="..\..\common\misc\fopen_unixlike.c" />
     <ClCompile Include="..\..\common\misc\fstrcmp.c" />
     <ClCompile Include="..\..\common\misc\get-errno.c" />
     <ClCompile Include="..\..\common\misc\getdelim.c" />

@@ -644,5 +644,8 @@
     <ClCompile Include="..\..\common\m4\lib\unicodeio.c">
       <Filter>m4\lib</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\misc\fopen_unixlike.c">
+      <Filter>m4\lib</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

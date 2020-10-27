@@ -13,3 +13,7 @@
 #define ssize_t ptrdiff_t
 
 extern char* _stpcpy(char *yydest, const char *yysrc);
+
+#include <stdio.h>
+extern FILE* fopen_unixlike(const char* file, const char* mode);
+#define fopen fopen_unixlike
