@@ -17,7 +17,9 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#if defined (_MSC_VER) && _MSC_VER >= 1900
+#include <corecrt_io.h>
+#endif
 #include "m4.h"
 
 #include <limits.h>
