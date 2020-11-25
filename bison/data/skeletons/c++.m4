@@ -321,8 +321,9 @@ m4_define([b4_symbol_type_define],
       /// Copy constructor.
       basic_symbol (const basic_symbol& that);]b4_variant_if([[
 
-      /// Constructor for valueless symbols, and symbols from each type.
-]b4_type_foreach([b4_basic_symbol_constructor_define])], [[
+      /// Constructors for typed symbols.
+]b4_type_foreach([b4_basic_symbol_constructor_define], [
+])], [[
       /// Constructor for valueless symbols.
       basic_symbol (typename Base::kind_type t]b4_locations_if([,
                     YY_MOVE_REF (location_type) l])[);

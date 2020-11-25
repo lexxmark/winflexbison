@@ -567,6 +567,8 @@ eqopt    ({sp}=)?
               _("POSIX Yacc does not support string literals"));
     RETURN_VALUE (STRING, last_string);
   }
+  <<EOF>>   unexpected_eof (token_start, "\"");
+  "\n"      unexpected_newline (token_start, "\"");
 }
 
 <SC_ESCAPED_TSTRING>
@@ -580,13 +582,10 @@ eqopt    ({sp}=)?
               _("POSIX Yacc does not support string literals"));
     RETURN_VALUE (TSTRING, last_string);
   }
+  <<EOF>>   unexpected_eof (token_start, "\")");
+  "\n"      unexpected_newline (token_start, "\")");
 }
 
-<SC_ESCAPED_STRING,SC_ESCAPED_TSTRING>
-{
-  <<EOF>>   unexpected_eof (token_start, "\"");
-  "\n"      unexpected_newline (token_start, "\"");
-}
 
 
   /*----------------------------------------------------------.
@@ -691,6 +690,15 @@ eqopt    ({sp}=)?
     complain (loc, complaint, _("invalid character after \\-escape: %s"),
               p);
     STRING_1GROW ('?');
+  }
+
+  "\\"             {
+    // None of the other rules matched: the last character of this
+    // file is "\".  But Flex does not support "\\<<EOF>>".
+    unexpected_eof (token_start,
+                    YY_START == SC_ESCAPED_CHARACTER ? "?'"
+                    : YY_START == SC_ESCAPED_STRING ? "?\""
+                    : "?\")");
   }
 }
 

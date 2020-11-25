@@ -61,7 +61,7 @@ on_success (const char *buf, size_t buflen, void *callback_arg)
 }
 
 static long
-on_failure (unsigned code , const char *msg ,
+on_failure (unsigned code, const char *msg,
             void *callback_arg)
 {
   callback_arg_t *arg = (callback_arg_t *) callback_arg;

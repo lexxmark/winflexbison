@@ -136,6 +136,9 @@
     <ClCompile Include="..\..\bison\src\glyphs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\bison\src\strversion.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\bison\src\AnnotationList.h">
@@ -274,6 +277,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\bison\src\textstyle.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\bison\src\strversion.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

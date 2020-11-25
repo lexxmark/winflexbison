@@ -172,7 +172,7 @@ m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
                            const location_type* yylocationp]])[) const
   {
     *yycdebug_ << (yykind < YYNTOKENS ? "token" : "nterm")
-               << ' ' << yytname[yykind] << " ("]b4_locations_if([[
+               << ' ' << yysymbol_name (yykind) << " ("]b4_locations_if([[
                << *yylocationp << ": "]])[;
     yy_symbol_value_print_ (yykind, yyvaluep]b4_locations_if([[, yylocationp]])[);
     *yycdebug_ << ')';

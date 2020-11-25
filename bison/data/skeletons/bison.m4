@@ -49,7 +49,7 @@ m4_define([m4_shift4], [m4_shift(m4_shift(m4_shift(m4_shift($@))))])
 # b4_generated_by
 # ---------------
 m4_define([b4_generated_by],
-[b4_comment([A Bison parser, made by GNU Bison b4_version.])
+[b4_comment([A Bison parser, made by GNU Bison b4_version_string.])
 ])
 
 # b4_copyright(TITLE, [YEARS])
@@ -633,11 +633,11 @@ m4_define([_b4_type_action],
 
 ])])
 
-# b4_type_foreach(MACRO)
-# ----------------------
+# b4_type_foreach(MACRO, [SEP])
+# -----------------------------
 # Invoke MACRO(SYMBOL-NUMS) for each set of SYMBOL-NUMS for each type set.
 m4_define([b4_type_foreach],
-          [m4_map([$1], m4_defn([b4_type_names]))])
+          [m4_map_sep([$1], [$2], m4_defn([b4_type_names]))])
 
 
 

@@ -22,7 +22,7 @@ m4_pushdef([b4_copyright_years],
 # b4_position_file
 # ----------------
 # Name of the file containing the position class, if we want this file.
-b4_defines_if([b4_required_version_if([302], [],
+b4_defines_if([b4_required_version_if([30200], [],
                                       [m4_define([b4_position_file], [position.hh])])])])
 
 

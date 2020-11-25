@@ -103,12 +103,12 @@ m4_define([b4_location_type_if],
 # b4_identification
 # -----------------
 m4_define([b4_identification],
-[/** Version number for the Bison executable that generated this parser.  */
-  public static immutable string yy_bison_version = "b4_version";
+[[/** Version number for the Bison executable that generated this parser.  */
+  public static immutable string yy_bison_version = "]b4_version_string[";
 
   /** Name of the skeleton that generated this parser.  */
-  public static immutable string yy_bison_skeleton = b4_skeleton;
-])
+  public static immutable string yy_bison_skeleton = ]b4_skeleton[;
+]])
 
 
 ## ------------ ##

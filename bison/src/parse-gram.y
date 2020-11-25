@@ -42,8 +42,6 @@
   #include "system.h"
 
   #include <c-ctype.h>
-  #include <errno.h>
-  #include <intprops.h>
   #include <quotearg.h>
   #include <vasnprintf.h>
   #include <xmemdup0.h>
@@ -57,6 +55,7 @@
   #include "reader.h"
   #include "scan-code.h"
   #include "scan-gram.h"
+  #include "strversion.h"
 
   /* Pretend to be at least that version, to check features published
      in that version while developping it.  */
@@ -1043,41 +1042,11 @@ handle_pure_parser (location const *loc, char const *directive)
 }
 
 
-/* Convert VERSION into an int (MAJOR * 100 + MINOR).  Return -1 on
-   errors.
-
-   Changes of behavior are only on minor version changes, so "3.0.5"
-   is the same as "3.0": 300. */
-static int
-str_to_version (char const *version)
-{
-  IGNORE_TYPE_LIMITS_BEGIN
-  int res = 0;
-  errno = 0;
-  char *cp = NULL;
-  long major = strtol (version, &cp, 10);
-  if (errno || cp == version || *cp != '.' || major < 0
-      || INT_MULTIPLY_WRAPV (major, 100, &res))
-    return -1;
-
-  ++cp;
-  char *cp1 = NULL;
-  long minor = strtol (cp, &cp1, 10);
-  if (errno || cp1 == cp || (*cp1 != '\0' && *cp1 != '.')
-      || ! (0 <= minor && minor < 100)
-      || INT_ADD_WRAPV (minor, res, &res))
-    return -1;
-
-  IGNORE_TYPE_LIMITS_END
-  return res;
-}
-
-
 static void
 handle_require (location const *loc, char const *version_quoted)
 {
   char *version = unquote (version_quoted);
-  required_version = str_to_version (version);
+  required_version = strversion_to_int (version);
   if (required_version == -1)
     {
       complain (loc, complaint, _("invalid version requirement: %s"),
@@ -1158,8 +1127,7 @@ char_name (char c)
     }
 }
 
-static
-void
+static void
 current_lhs (symbol *sym, location loc, named_ref *ref)
 {
   current_lhs_symbol = sym;

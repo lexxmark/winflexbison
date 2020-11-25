@@ -142,6 +142,7 @@ xcopy "$(ProjectDir)..\..\bison\data\*" "$(TargetDir)\data" /s /i /y</Command>
     <ClCompile Include="..\..\bison\src\scan-skel-c.c" />
     <ClCompile Include="..\..\bison\src\state-item.c" />
     <ClCompile Include="..\..\bison\src\state.c" />
+    <ClCompile Include="..\..\bison\src\strversion.c" />
     <ClCompile Include="..\..\bison\src\symlist.c" />
     <ClCompile Include="..\..\bison\src\symtab.c" />
     <ClCompile Include="..\..\bison\src\tables.c" />
@@ -188,6 +189,7 @@ xcopy "$(ProjectDir)..\..\bison\data\*" "$(TargetDir)\data" /s /i /y</Command>
     <ClInclude Include="..\..\bison\src\scan-skel.h" />
     <ClInclude Include="..\..\bison\src\state-item.h" />
     <ClInclude Include="..\..\bison\src\state.h" />
+    <ClInclude Include="..\..\bison\src\strversion.h" />
     <ClInclude Include="..\..\bison\src\symlist.h" />
     <ClInclude Include="..\..\bison\src\symtab.h" />
     <ClInclude Include="..\..\bison\src\system.h" />

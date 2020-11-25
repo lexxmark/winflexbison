@@ -137,11 +137,6 @@ symbol_new (uniqstr tag, location loc)
   res->alias = NULL;
   res->content = sym_content_new (res);
   res->is_alias = false;
-
-  if (nsyms == SYMBOL_NUMBER_MAXIMUM)
-    complain (NULL, fatal, _("too many symbols in input grammar (limit is %d)"),
-              SYMBOL_NUMBER_MAXIMUM);
-  nsyms++;
   return res;
 }
 
@@ -182,11 +177,11 @@ symbol_free (void *ptr)
 */
 
 static void
-symbols_sort (symbol **first, symbol **second)
+symbols_sort (const symbol **first, const symbol **second)
 {
   if (0 < location_cmp ((*first)->location, (*second)->location))
     {
-      symbol* tmp = *first;
+      const symbol* tmp = *first;
       *first = *second;
       *second = tmp;
     }
@@ -243,7 +238,11 @@ semantic_type_new (uniqstr tag, const location *loc)
 | Print a symbol.  |
 `-----------------*/
 
-#define SYMBOL_ATTR_PRINT(Attr)                         \
+#define SYMBOL_INT_ATTR_PRINT(Attr)                     \
+  if (s->content)                                       \
+    fprintf (f, " %s = %d", #Attr, s->content->Attr)
+
+#define SYMBOL_STR_ATTR_PRINT(Attr)                     \
   if (s->content && s->content->Attr)                   \
     fprintf (f, " %s { %s }", #Attr, s->content->Attr)
 
@@ -264,7 +263,11 @@ symbol_print (symbol const *s, FILE *f)
                : c == nterm_sym    ? "nterm"
                : NULL, /* abort.  */
                s->tag);
-      SYMBOL_ATTR_PRINT (type_name);
+      putc (' ', f);
+      location_print (s->location, f);
+      SYMBOL_INT_ATTR_PRINT (code);
+      SYMBOL_INT_ATTR_PRINT (number);
+      SYMBOL_STR_ATTR_PRINT (type_name);
       SYMBOL_CODE_PRINT (destructor);
       SYMBOL_CODE_PRINT (printer);
     }
@@ -371,7 +374,7 @@ symbol_from_uniqstr_fuzzy (const uniqstr key)
 }
 
 static void
-complain_symbol_undeclared (symbol *sym)
+complain_symbol_undeclared (const symbol *sym)
 {
   assert (sym->content->status != declared);
   const symbol *best = symbol_from_uniqstr_fuzzy (sym->tag);
@@ -398,7 +401,10 @@ void
 symbol_location_as_lhs_set (symbol *sym, location loc)
 {
   if (!sym->location_of_lhs)
-    sym->location = loc;
+    {
+      sym->location = loc;
+      sym->location_of_lhs = true;
+    }
 }
 
 
@@ -548,10 +554,6 @@ symbol_class_set (symbol *sym, symbol_class class, location loc, bool declaring)
       if (class == token_sym && s->class == pct_type_sym)
         complain_pct_type_on_token (&sym->location);
 
-      if (class == nterm_sym && s->class != nterm_sym)
-        s->number = nnterms++;
-      else if (class == token_sym && s->number == NUMBER_UNDEFINED)
-        s->number = ntokens++;
       s->class = class;
 
       if (declaring)
@@ -573,9 +575,9 @@ symbol_class_set (symbol *sym, symbol_class class, location loc, bool declaring)
 }
 
 
-/*------------------------------------------------.
-| Set the USER_TOKEN_NUMBER associated with SYM.  |
-`------------------------------------------------*/
+/*----------------------------.
+| Set the token code of SYM.  |
+`----------------------------*/
 
 void
 symbol_code_set (symbol *sym, int code, location loc)
@@ -598,10 +600,6 @@ symbol_code_set (symbol *sym, int code, location loc)
       if (code == 0 && !eoftoken)
         {
           eoftoken = sym->content->symbol;
-          /* It is always mapped to 0, so it was already counted in
-             NTOKENS.  */
-          if (eoftoken->content->number != NUMBER_UNDEFINED)
-            --ntokens;
           eoftoken->content->number = 0;
         }
     }
@@ -621,8 +619,10 @@ symbol_check_defined (symbol *sym)
     {
       complain_symbol_undeclared (sym);
       s->class = nterm_sym;
-      s->number = nnterms++;
     }
+
+  if (s->number == NUMBER_UNDEFINED)
+    s->number = s->class == token_sym ? ntokens++ : nnterms++;
 
   if (s->class == token_sym
       && sym->tag[0] == '"'
@@ -742,7 +742,7 @@ symbol_pack (symbol *sym)
 }
 
 static void
-complain_code_redeclared (int num, symbol *first, symbol *second)
+complain_code_redeclared (int num, const symbol *first, const symbol *second)
 {
   symbols_sort (&first, &second);
   complain (&second->location, complaint,
@@ -758,13 +758,11 @@ complain_code_redeclared (int num, symbol *first, symbol *second)
 `-------------------------------------------------*/
 
 static void
-symbol_translation (symbol *sym)
+symbol_translation (const symbol *sym)
 {
-  /* Nonterminal? */
-  if (sym->content->class == token_sym
-      && !sym->is_alias)
+  if (sym->content->class == token_sym && !sym->is_alias)
     {
-      /* A token which translation has already been set?*/
+      /* A token whose translation has already been set? */
       if (token_translations[sym->content->code]
           != undeftoken->content->number)
         complain_code_redeclared
@@ -970,7 +968,6 @@ dummy_symbol_get (location loc)
   assert (len < sizeof buf);
   symbol *sym = symbol_get (buf, loc);
   sym->content->class = nterm_sym;
-  sym->content->number = nnterms++;
   return sym;
 }
 
@@ -1003,7 +1000,7 @@ symbol_cmp (void const *a, void const *b)
 }
 
 /* Store in *SORTED an array of pointers to the symbols contained in
-   TABLE, sorted (alphabetically) by tag. */
+   TABLE, sorted by order of appearance (i.e., by location). */
 
 static void
 table_sort (struct hash_table *table, symbol ***sorted)

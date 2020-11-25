@@ -227,7 +227,7 @@ void symbol_precedence_set (symbol *sym, int prec, assoc a, location loc);
 void symbol_class_set (symbol *sym, symbol_class class, location loc,
                        bool declaring);
 
-/** Set the \c code associated with \c sym.  */
+/** Set the token \c code of \c sym, specified by the user at \c loc.  */
 void symbol_code_set (symbol *sym, int code, location loc);
 
 

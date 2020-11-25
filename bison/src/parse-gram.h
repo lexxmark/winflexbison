@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.1.  */
+/* A Bison parser, made by GNU Bison 3.7.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -57,7 +57,7 @@ extern int gram_debug;
 
   #include "symlist.h"
   #include "symtab.h"
-#line 270 "src/parse-gram.y"
+#line 269 "src/parse-gram.y"
 
   typedef enum
   {
@@ -66,7 +66,7 @@ extern int gram_debug;
     param_parse  = 1 << 1,
     param_both   = param_lex | param_parse
   } param_type;
-#line 731 "src/parse-gram.y"
+#line 730 "src/parse-gram.y"
 
   #include "muscle-tab.h"
   typedef struct

@@ -71,12 +71,12 @@ m4_define([b4_lexer_if],
 # b4_identification
 # -----------------
 m4_define([b4_identification],
-[  /** Version number for the Bison executable that generated this parser.  */
-  public static final String bisonVersion = "b4_version";
+[[  /** Version number for the Bison executable that generated this parser.  */
+  public static final String bisonVersion = "]b4_version_string[";
 
   /** Name of the skeleton that generated this parser.  */
-  public static final String bisonSkeleton = b4_skeleton;
-])
+  public static final String bisonSkeleton = ]b4_skeleton[;
+]])
 
 
 ## ------------ ##

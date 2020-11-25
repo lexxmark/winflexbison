@@ -528,13 +528,13 @@ char* get_local_pkgdatadir()
 }
 
 char const *
-pkgdatadir(void)
+pkgdatadir (void)
 {
-    if (relocate_buffer)
-        return relocate_buffer;
-    else
+  if (relocate_buffer)
+    return relocate_buffer;
+  else
     {
-        char const* cp = getenv("BISON_PKGDATADIR");
+      char const *cp = getenv ("BISON_PKGDATADIR");
         //	  return cp ? cp : relocate2(PKGDATADIR, &relocate_buffer);
         return cp ? cp : (relocate_buffer = get_local_pkgdatadir());
     }
