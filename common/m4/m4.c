@@ -1,6 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2004-2011 Free Software Foundation, Inc.
+   Copyright (C) 1989-1994, 2004-2014, 2016 Free Software Foundation,
+   Inc.
 
    This file is part of GNU M4.
 
@@ -99,6 +100,7 @@ m4_error (int status, int errnum, const char *format, ...)
                   current_line, format, args);
   if (fatal_warnings && ! retcode)
     retcode = EXIT_FAILURE;
+  va_end (args);
 }
 
 /*-------------------------------.
@@ -114,6 +116,7 @@ m4_error_at_line (int status, int errnum, const char *file, int line,
   verror_at_line (status, errnum, line ? file : NULL, line, format, args);
   if (fatal_warnings && ! retcode)
     retcode = EXIT_FAILURE;
+  va_end (args);
 }
 
 #ifndef SIGBUS
@@ -140,7 +143,7 @@ static const char * volatile program_error_message;
    must be aysnc-signal safe, since it is executed as a signal
    handler.  If SIGNO is zero, this represents a stack overflow; in
    that case, we return to allow c_stack_action to handle things.  */
-static void
+static void M4_GNUC_PURE
 fault_handler (int signo)
 {
   if (signo)
@@ -307,7 +310,9 @@ static const struct option long_options[] =
   {"trace", required_argument, NULL, 't'},
   {"traditional", no_argument, NULL, 'G'},
   {"undefine", required_argument, NULL, 'U'},
+#ifdef ENABLE_CHANGEWORD
   {"word-regexp", required_argument, NULL, 'W'},
+#endif
 
   {"debugfile", optional_argument, NULL, DEBUGFILE_OPTION},
   {"diversions", required_argument, NULL, DIVERSIONS_OPTION},

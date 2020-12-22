@@ -1,5 +1,5 @@
 /* getdelim.c --- Implementation of replacement getdelim function.
-   Copyright (C) 1994, 1996-1998, 2001, 2003, 2005-2012 Free Software
+   Copyright (C) 1994, 1996-1998, 2001, 2003, 2005-2020 Free Software
    Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
@@ -13,15 +13,15 @@
    General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 /* Ported from glibc by Simon Josefsson. */
-
-#include <config.h>
 
 /* Don't use __attribute__ __nonnull__ in this compilation unit.  Otherwise gcc
    optimizes away the lineptr == NULL || n == NULL || fp == NULL tests below.  */
 #define _GL_ARG_NONNULL(params)
+
+#include <config.h>
 
 #include <stdio.h>
 
@@ -46,6 +46,16 @@
 #else
 # define getc_maybe_unlocked(fp)        getc_unlocked(fp)
 #endif
+
+static void
+alloc_failed (void)
+{
+#if defined _WIN32 && ! defined __CYGWIN__
+  /* Avoid errno problem without using the realloc module; see:
+     https://lists.gnu.org/r/bug-gnulib/2016-08/msg00025.html  */
+  errno = ENOMEM;
+#endif
+}
 
 /* Read up to (and including) a DELIMITER from FP into *LINEPTR (and
    NUL-terminate it).  *LINEPTR is a pointer returned from malloc (or
@@ -74,6 +84,7 @@ getdelim (char **lineptr, size_t *n, int delimiter, FILE *fp)
       new_lineptr = (char *) realloc (*lineptr, *n);
       if (new_lineptr == NULL)
         {
+          alloc_failed ();
           result = -1;
           goto unlock_return;
         }
@@ -111,6 +122,7 @@ getdelim (char **lineptr, size_t *n, int delimiter, FILE *fp)
           new_lineptr = (char *) realloc (*lineptr, needed);
           if (new_lineptr == NULL)
             {
+              alloc_failed ();
               result = -1;
               goto unlock_return;
             }

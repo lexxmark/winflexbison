@@ -1,7 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2003, 2006-2011 Free Software Foundation,
-   Inc.
+   Copyright (C) 1989-1994, 2003, 2006-2014, 2016 Free Software
+   Foundation, Inc.
 
    This file is part of GNU M4.
 
@@ -120,7 +120,7 @@ symtab_init (void)
 | Return a hashvalue for a string, from GNU-emacs.  |
 `--------------------------------------------------*/
 
-static size_t
+static size_t M4_GNUC_PURE
 hash (const char *s)
 {
   register size_t val = 0;
@@ -311,7 +311,6 @@ lookup_symbol (const char *name, symbol_lookup mode)
       M4ERROR ((warning_status, 0,
                 "INTERNAL ERROR: invalid mode to symbol_lookup ()"));
       abort ();
-	  return NULL;
     }
 }
 

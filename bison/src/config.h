@@ -19,3 +19,5 @@ extern FILE* fopen_unixlike(const char* file, const char* mode);
 #define fopen fopen_unixlike
 
 extern int strverscmp(const char* s1, const char* s2);
+
+extern int obstack_printf(struct obstack* obs, const char* format, ...);

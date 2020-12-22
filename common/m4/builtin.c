@@ -1,6 +1,6 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2000, 2004, 2006-2011 Free Software
+   Copyright (C) 1989-1994, 2000, 2004, 2006-2014, 2016 Free Software
    Foundation, Inc.
 
    This file is part of GNU M4.
@@ -177,7 +177,7 @@ static predefined const predefined_tab[] =
 | Find the builtin, which lives on ADDR.  |
 `----------------------------------------*/
 
-const builtin *
+const builtin * M4_GNUC_PURE
 find_builtin_by_addr (builtin_func *func)
 {
   const builtin *bp;
@@ -195,7 +195,7 @@ find_builtin_by_addr (builtin_func *func)
 | placeholder builtin.                                      |
 `----------------------------------------------------------*/
 
-const builtin *
+const builtin * M4_GNUC_PURE
 find_builtin_by_name (const char *name)
 {
   const builtin *bp;
@@ -898,7 +898,7 @@ m4_defn (struct obstack *obs, int argc, token_data **argv)
   if (bad_argc (argv[0], argc, 2, -1))
     return;
 
-  assert (0 < argc && argc <= INT_MAX);
+  assert (0 < argc);
   for (i = 1; i < (unsigned) argc; i++)
     {
       const char *arg = ARG((int) i);
@@ -1086,7 +1086,13 @@ m4_esyscmd (struct obstack *obs, int argc, token_data **argv)
       sysval = 127;
       return;
     }
+#if OS2
+  /* On OS/2 kLIBC, fdopen() creates a stream in a mode of a file descriptor.
+     So include "t" to open a stream in a text mode explicitly on OS/2. */
+  pin = fdopen (fd, "rt");
+#else
   pin = fdopen (fd, "r");
+#endif
   if (pin == NULL)
     {
       M4ERROR ((warning_status, errno, "cannot run command `%s'", cmd));
@@ -1488,7 +1494,7 @@ mkstemp_helper (struct obstack *obs, const char *me, const char *pattern,
     {
       _close (fd);
       /* Remove NUL, then finish quote.  */
-      obstack_blank (obs, -1);
+      obstack_blank_fast (obs, -1);
       obstack_grow (obs, rquote.string, rquote.length);
     }
 }

@@ -1,7 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1993, 2004, 2006-2011 Free Software Foundation,
-   Inc.
+   Copyright (C) 1989-1993, 2004, 2006-2014, 2016 Free Software
+   Foundation, Inc.
 
    This file is part of GNU M4.
 
@@ -115,7 +115,7 @@ m4_fopen (const char *file)
     {
       struct stat st;
       int fd = fileno (fp);
-      if (fstat (fd, &st) == 0 && (st.st_mode & _S_IFDIR))
+      if (fstat (fd, &st) == 0 && S_ISDIR (st.st_mode))
         {
           fclose (fp);
           errno = EISDIR;

@@ -1,12 +1,9 @@
-/* Functions to support bitset statistics.
-
-   Copyright (C) 2002-2004, 2009-2015, 2018-2020 Free Software Foundation, Inc.
-
-   Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
+/* Program name management.
+   Copyright (C) 2016-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
+   the Free Software Foundation; either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -17,17 +14,27 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-#ifndef _BITSET_STATS_H
-#define _BITSET_STATS_H
+#ifndef _GL_GETPROGNAME_H
+#define _GL_GETPROGNAME_H
 
-#include "bitset/base.h"
+#include <stdlib.h>
 
-extern bool bitset_stats_enabled;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-enum bitset_type bitset_stats_type_get (bitset);
+/* Return the base name of the executing program.
+   On native Windows this will usually end in ".exe" or ".EXE". */
+#ifndef HAVE_GETPROGNAME
+extern char const *getprogname (void)
+# ifdef HAVE_DECL_PROGRAM_INVOCATION_NAME
+  _GL_ATTRIBUTE_PURE
+# endif
+  ;
+#endif
 
-size_t bitset_stats_bytes (void);
-
-bitset bitset_stats_init (bitset, bitset_bindex, enum bitset_type);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

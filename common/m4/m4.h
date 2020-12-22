@@ -1,6 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2004-2011 Free Software Foundation, Inc.
+   Copyright (C) 1989-1994, 2004-2014, 2016 Free Software Foundation,
+   Inc.
 
    This file is part of GNU M4.
 
@@ -120,6 +121,7 @@ typedef unsigned int bool_bitfield;
 #define M4_GNUC_PRINTF(fmt, arg)                        \
   M4_GNUC_ATTRIBUTE ((__format__ (__printf__, fmt, arg)))
 #define M4_GNUC_NORETURN        M4_GNUC_ATTRIBUTE ((__noreturn__))
+#define M4_GNUC_PURE            M4_GNUC_ATTRIBUTE ((__pure__))
 
 /* File: m4.c  --- global definitions.  */
 
@@ -141,9 +143,9 @@ extern const char *user_word_regexp;    /* -W */
 extern int retcode;
 extern const char *program_name;
 
-void m4_error (int, int, const char *, ...) M4_GNUC_PRINTF(3, 4);
-void m4_error_at_line (int, int, const char *, int,
-                       const char *, ...) M4_GNUC_PRINTF(5, 6);
+extern void m4_error (int, int, const char *, ...) M4_GNUC_PRINTF(3, 4);
+extern void m4_error_at_line (int, int, const char *, int,
+                              const char *, ...) M4_GNUC_PRINTF(5, 6);
 
 #define M4ERROR(Arglist) (m4_error Arglist)
 #define M4ERROR_AT_LINE(Arglist) (m4_error_at_line Arglist)
@@ -151,7 +153,7 @@ void m4_error_at_line (int, int, const char *, int,
 
 /* File: debug.c  --- debugging and tracing function.  */
 
-extern FILE *_debug;
+extern FILE *debug;
 
 /* The value of debug_level is a bitmask of the following.  */
 
@@ -184,27 +186,27 @@ extern FILE *_debug;
 #define DEBUG_PRINT1(Fmt, Arg1) \
   do                                                            \
     {                                                           \
-      if (_debug != NULL)                                        \
-        xfprintf (_debug, Fmt, Arg1);                            \
+      if (debug != NULL)                                        \
+        xfprintf (debug, Fmt, Arg1);                            \
     }                                                           \
   while (0)
 
 #define DEBUG_PRINT3(Fmt, Arg1, Arg2, Arg3) \
   do                                                            \
     {                                                           \
-      if (_debug != NULL)                                        \
-        xfprintf (_debug, Fmt, Arg1, Arg2, Arg3);                \
+      if (debug != NULL)                                        \
+        xfprintf (debug, Fmt, Arg1, Arg2, Arg3);                \
     }                                                           \
   while (0)
 
 #define DEBUG_MESSAGE(Fmt) \
   do                                                            \
     {                                                           \
-      if (_debug != NULL)                                        \
+      if (debug != NULL)                                        \
         {                                                       \
           debug_message_prefix ();                              \
-          xfprintf (_debug, Fmt);                                \
-          putc ('\n', _debug);                                   \
+          xfprintf (debug, Fmt);                                \
+          putc ('\n', debug);                                   \
         }                                                       \
     }                                                           \
   while (0)
@@ -212,11 +214,11 @@ extern FILE *_debug;
 #define DEBUG_MESSAGE1(Fmt, Arg1) \
   do                                                            \
     {                                                           \
-      if (_debug != NULL)                                        \
+      if (debug != NULL)                                        \
         {                                                       \
           debug_message_prefix ();                              \
-          xfprintf (_debug, Fmt, Arg1);                          \
-          putc ('\n', _debug);                                   \
+          xfprintf (debug, Fmt, Arg1);                          \
+          putc ('\n', debug);                                   \
         }                                                       \
     }                                                           \
   while (0)
@@ -224,24 +226,24 @@ extern FILE *_debug;
 #define DEBUG_MESSAGE2(Fmt, Arg1, Arg2) \
   do                                                            \
     {                                                           \
-      if (_debug != NULL)                                        \
+      if (debug != NULL)                                        \
         {                                                       \
           debug_message_prefix ();                              \
-          xfprintf (_debug, Fmt, Arg1, Arg2);                    \
-          putc ('\n', _debug);                                   \
+          xfprintf (debug, Fmt, Arg1, Arg2);                    \
+          putc ('\n', debug);                                   \
         }                                                       \
     }                                                           \
   while (0)
 
-void debug_init (void);
-int debug_decode (const char *);
-void debug_flush_files (void);
-bool debug_set_output (const char *);
-void debug_message_prefix (void);
+extern void debug_init (void);
+extern int debug_decode (const char *);
+extern void debug_flush_files (void);
+extern bool debug_set_output (const char *);
+extern void debug_message_prefix (void);
 
-void trace_prepre (const char *, int);
-void trace_pre (const char *, int, int, token_data **);
-void trace_post (const char *, int, int, const char *);
+extern void trace_prepre (const char *, int);
+extern void trace_pre (const char *, int, int, token_data **);
+extern void trace_post (const char *, int, int, const char *);
 
 /* File: input.c  --- lexical definitions.  */
 
@@ -294,50 +296,52 @@ struct token_data
 typedef enum token_type token_type;
 typedef enum token_data_type token_data_type;
 
-void input_init (void);
-token_type peek_token (void);
-token_type next_token (token_data *, int *);
-void skip_line (void);
+extern void input_init (void);
+extern token_type peek_token (void);
+extern token_type next_token (token_data *, int *);
+extern void skip_line (void);
 
 /* push back input */
-void push_file (FILE *, const char *, bool);
-void push_macro (builtin_func *);
-struct obstack *push_string_init (void);
-const char *push_string_finish (void);
-void push_wrapup (const char *);
-bool pop_wrapup (void);
+extern void push_file (FILE *, const char *, bool);
+extern void push_macro (builtin_func *);
+extern struct obstack *push_string_init (void);
+extern const char *push_string_finish (void);
+extern void push_wrapup (const char *);
+extern bool pop_wrapup (void);
 
 /* current input file, and line */
 extern const char *current_file;
 extern int current_line;
 
 /* left and right quote, begin and end comment */
-extern STRING bcomm, ecomm;
-extern STRING lquote, rquote;
+extern STRING bcomm;
+extern STRING ecomm;
+extern STRING lquote;
+extern STRING rquote;
 
 #define DEF_LQUOTE "`"
 #define DEF_RQUOTE "\'"
 #define DEF_BCOMM "#"
 #define DEF_ECOMM "\n"
 
-void set_quotes (const char *, const char *);
-void set_comment (const char *, const char *);
+extern void set_quotes (const char *, const char *);
+extern void set_comment (const char *, const char *);
 #ifdef ENABLE_CHANGEWORD
-void set_word_regexp (const char *);
+extern void set_word_regexp (const char *);
 #endif
 
 /* File: output.c --- output functions.  */
 extern int current_diversion;
 extern int output_current_line;
 
-void output_init (FILE* out);
-void output_exit (void);
-void output_text (const char *, int);
-void shipout_text (struct obstack *, const char *, int, int);
-void make_diversion (int);
-void insert_diversion (int);
-void insert_file (FILE *);
-void freeze_diversions (FILE *);
+extern void output_init (FILE* out);
+extern void output_exit (void);
+extern void output_text (const char *, int);
+extern void shipout_text (struct obstack *, const char *, int, int);
+extern void make_diversion (int);
+extern void insert_diversion (int);
+extern void insert_file (FILE *);
+extern void freeze_diversions (FILE *);
 
 /* File symtab.c  --- symbol table definitions.  */
 
@@ -386,15 +390,17 @@ typedef void hack_symbol (symbol *, void *);
 
 extern symbol **symtab;
 
-void free_symbol (symbol *sym);
-void symtab_init (void);
-symbol *lookup_symbol (const char *, symbol_lookup);
-void hack_all_symbols (hack_symbol *, void *);
+extern void free_symbol (symbol *sym);
+extern void symtab_init (void);
+extern symbol *lookup_symbol (const char *, symbol_lookup);
+extern void hack_all_symbols (hack_symbol *, void *);
 
 /* File: macro.c  --- macro expansion.  */
 
-void expand_input (void);
-void call_macro (symbol *, int, token_data **, struct obstack *);
+extern int expansion_level;
+
+extern void expand_input (void);
+extern void call_macro (symbol *, int, token_data **, struct obstack *);
 
 /* File: builtin.c  --- builtins.  */
 
@@ -424,39 +430,40 @@ struct re_registers;
    syntax (new in 2.0).  */
 #define DEFAULT_MACRO_SEQUENCE "\\$\\({[^}]*}\\|[0-9][0-9]+\\)"
 
-void builtin_init (void);
-void define_builtin (const char *, const builtin *, symbol_lookup);
-void set_macro_sequence (const char *);
-void free_macro_sequence (void);
-void define_user_macro (const char *, const char *, symbol_lookup);
-void undivert_all (void);
-void expand_user_macro (struct obstack *, symbol *, int, token_data **);
-void m4_placeholder (struct obstack *, int, token_data **);
-void init_pattern_buffer (struct re_pattern_buffer *, struct re_registers *);
-const char *ntoa (int32_t, int);
+extern void builtin_init (void);
+extern void define_builtin (const char *, const builtin *, symbol_lookup);
+extern void set_macro_sequence (const char *);
+extern void free_macro_sequence (void);
+extern void define_user_macro (const char *, const char *, symbol_lookup);
+extern void undivert_all (void);
+extern void expand_user_macro (struct obstack *, symbol *, int, token_data **);
+extern void m4_placeholder (struct obstack *, int, token_data **);
+extern void init_pattern_buffer (struct re_pattern_buffer *,
+                                 struct re_registers *);
+extern const char *ntoa (int32_t, int);
 
-const builtin *find_builtin_by_addr (builtin_func *);
-const builtin *find_builtin_by_name (const char *);
+extern const builtin *find_builtin_by_addr (builtin_func *);
+extern const builtin *find_builtin_by_name (const char *);
 
 /* File: path.c  --- path search for include files.  */
 
-void include_init (void);
-void include_env_init (void);
-void add_include_directory (const char *);
-FILE *m4_path_search (const char *, char **);
+extern void include_init (void);
+extern void include_env_init (void);
+extern void add_include_directory (const char *);
+extern FILE *m4_path_search (const char *, char **);
 
 /* File: eval.c  --- expression evaluation.  */
 
-bool evaluate (const char *, int32_t *);
+extern bool evaluate (const char *, int32_t *);
 
 /* File: format.c  --- printf like formatting.  */
 
-void expand_format (struct obstack *, int, token_data **);
+extern void expand_format (struct obstack *, int, token_data **);
 
 /* File: freeze.c --- frozen state files.  */
 
-void produce_frozen_state (const char *);
-void reload_frozen_state (const char *);
+extern void produce_frozen_state (const char *);
+extern void reload_frozen_state (const char *);
 
 /* Debugging the memory allocator.  */
 

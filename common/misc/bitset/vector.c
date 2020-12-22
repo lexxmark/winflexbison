@@ -1,6 +1,6 @@
 /* Variable array bitsets.
 
-   Copyright (C) 2002-2006, 2009-2015, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2002-2006, 2009-2015, 2018-2020 Free Software Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -23,6 +23,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#include "xalloc.h"
 
 /* This file implements variable size bitsets stored as a variable
    length array of words.  Any unused bits in the last word must be
@@ -74,13 +76,12 @@ vbitset_resize (bitset src, bitset_bindex n_bits)
 
           bitset_windex size = oldsize == 0 ? newsize : newsize + newsize / 4;
           VBITSET_WORDS (src)
-            = realloc (VBITSET_WORDS (src), size * sizeof (bitset_word));
+            = xrealloc (VBITSET_WORDS (src), size * sizeof (bitset_word));
           VBITSET_ASIZE (src) = size;
         }
 
       memset (VBITSET_WORDS (src) + oldsize, 0,
               (newsize - oldsize) * sizeof (bitset_word));
-      VBITSET_SIZE (src) = newsize;
     }
   else
     {
@@ -88,16 +89,19 @@ vbitset_resize (bitset src, bitset_bindex n_bits)
          the memory unless it is shrinking by a reasonable amount.  */
       if ((oldsize - newsize) >= oldsize / 2)
         {
-          VBITSET_WORDS (src)
+          void *p
             = realloc (VBITSET_WORDS (src), newsize * sizeof (bitset_word));
-          VBITSET_ASIZE (src) = newsize;
+          if (p)
+            {
+              VBITSET_WORDS (src) = p;
+              VBITSET_ASIZE (src) = newsize;
+            }
         }
 
       /* Need to prune any excess bits.  FIXME.  */
-
-      VBITSET_SIZE (src) = newsize;
     }
 
+  VBITSET_SIZE (src) = newsize;
   BITSET_NBITS_ (src) = n_bits;
   return n_bits;
 }
@@ -122,7 +126,7 @@ vbitset_set (bitset dst, bitset_bindex bitno)
 
 /* Reset bit BITNO in bitset DST.  */
 static void
-vbitset_reset (bitset dst ATTRIBUTE_UNUSED, bitset_bindex bitno ATTRIBUTE_UNUSED)
+vbitset_reset (bitset dst MAYBE_UNUSED, bitset_bindex bitno MAYBE_UNUSED)
 {
   /* We must be accessing outside the cache so the bit is
      zero anyway.  */
@@ -131,8 +135,8 @@ vbitset_reset (bitset dst ATTRIBUTE_UNUSED, bitset_bindex bitno ATTRIBUTE_UNUSED
 
 /* Test bit BITNO in bitset SRC.  */
 static bool
-vbitset_test (bitset src ATTRIBUTE_UNUSED,
-              bitset_bindex bitno ATTRIBUTE_UNUSED)
+vbitset_test (bitset src MAYBE_UNUSED,
+              bitset_bindex bitno MAYBE_UNUSED)
 {
   /* We must be accessing outside the cache so the bit is
      zero anyway.  */
@@ -974,7 +978,7 @@ struct bitset_vtable vbitset_vtable = {
 
 
 size_t
-vbitset_bytes (bitset_bindex n_bits ATTRIBUTE_UNUSED)
+vbitset_bytes (bitset_bindex n_bits MAYBE_UNUSED)
 {
   return sizeof (struct vbitset_struct);
 }

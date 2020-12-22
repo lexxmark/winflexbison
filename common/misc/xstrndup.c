@@ -1,6 +1,6 @@
 /* Duplicate a bounded initial segment of a string, with out-of-memory
    checking.
-   Copyright (C) 2003, 2006-2007, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2006-2007, 2009-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -29,9 +29,11 @@
 char *
 xstrndup (const char *string, size_t n)
 {
-  size_t len = strnlen(string, n)+1;
-  char *s = xmalloc(sizeof(char)*len);
-  strncpy(s, string, n);
-  s[n] = 0;
+    size_t len = strnlen(string, n) + 1;
+    char* s = xmalloc(sizeof(char) * len);
+    if (!s)
+        xalloc_die();
+    strncpy(s, string, n);
+    s[n] = 0;
   return s;
 }

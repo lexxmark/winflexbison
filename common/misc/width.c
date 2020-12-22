@@ -20,7 +20,7 @@
 #include <config.h>
 
 /* Specification.  */
-#include "uniwidth.in.h"
+#include "uniwidth.h"
 
 #include "cjk.h"
 

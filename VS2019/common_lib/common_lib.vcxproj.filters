@@ -354,6 +354,15 @@
     <ClInclude Include="..\..\common\m4\lib\unicodeio.h">
       <Filter>m4\lib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\misc\basename-lgpl.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\getprogname.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\alignof.h">
+      <Filter>misc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\misc\glthread\lock.c">
@@ -646,6 +655,9 @@
     </ClCompile>
     <ClCompile Include="..\..\common\misc\fopen_unixlike.c">
       <Filter>m4\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\getprogname.c">
+      <Filter>misc</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

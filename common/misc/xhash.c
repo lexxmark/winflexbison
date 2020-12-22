@@ -22,9 +22,6 @@
 
 #include "xalloc.h"
 
-/* Same as hash_initialize, but invokes xalloc_die on memory
-   exhaustion.  */
-
 Hash_table *
 hash_xinitialize (size_t candidate, const Hash_tuning *tuning,
                   Hash_hasher hasher, Hash_comparator comparator,
@@ -36,9 +33,6 @@ hash_xinitialize (size_t candidate, const Hash_tuning *tuning,
     xalloc_die ();
   return res;
 }
-
-/* Same as hash_insert, but invokes xalloc_die on memory
-   exhaustion.  */
 
 void *
 hash_xinsert (Hash_table *table, void const *entry)

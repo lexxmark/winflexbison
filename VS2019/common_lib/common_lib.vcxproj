@@ -133,9 +133,11 @@
     <ClInclude Include="..\..\common\m4\lib\xsize.h" />
     <ClInclude Include="..\..\common\m4\lib\xvasprintf.h" />
     <ClInclude Include="..\..\common\m4\m4.h" />
+    <ClInclude Include="..\..\common\misc\alignof.h" />
     <ClInclude Include="..\..\common\misc\arg-nonnull.h" />
     <ClInclude Include="..\..\common\misc\argmatch.h" />
     <ClInclude Include="..\..\common\misc\attribute.h" />
+    <ClInclude Include="..\..\common\misc\basename-lgpl.h" />
     <ClInclude Include="..\..\common\misc\bbitset.h" />
     <ClInclude Include="..\..\common\misc\bitrotate.h" />
     <ClInclude Include="..\..\common\misc\bitset.h" />
@@ -163,6 +165,7 @@
     <ClInclude Include="..\..\common\misc\gethrxtime.h" />
     <ClInclude Include="..\..\common\misc\getopt.h" />
     <ClInclude Include="..\..\common\misc\getopt_int.h" />
+    <ClInclude Include="..\..\common\misc\getprogname.h" />
     <ClInclude Include="..\..\common\misc\gettext.h" />
     <ClInclude Include="..\..\common\misc\glthread\lock.h" />
     <ClInclude Include="..\..\common\misc\glthread\tls.h" />
@@ -265,6 +268,7 @@
     <ClCompile Include="..\..\common\misc\getline.c" />
     <ClCompile Include="..\..\common\misc\getopt.c" />
     <ClCompile Include="..\..\common\misc\getopt1.c" />
+    <ClCompile Include="..\..\common\misc\getprogname.c" />
     <ClCompile Include="..\..\common\misc\glthread\lock.c" />
     <ClCompile Include="..\..\common\misc\glthread\threadlib.c" />
     <ClCompile Include="..\..\common\misc\glthread\tls.c" />

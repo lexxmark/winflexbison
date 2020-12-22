@@ -1,6 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 1989-1994, 2006-2014, 2016 Free Software Foundation,
+   Inc.
 
    This file is part of GNU M4.
 
@@ -348,6 +349,12 @@ expand_format (struct obstack *obs, int argc, token_data **argv)
       *p++ = c;
       *p = '\0';
 
+      /* Our constructed format string in fstart is safe.  */
+#if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
+
       switch (datatype)
         {
         case CHAR:
@@ -373,6 +380,9 @@ expand_format (struct obstack *obs, int argc, token_data **argv)
         default:
           abort();
         }
+#if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+# pragma GCC diagnostic pop
+#endif
 
       /* NULL was returned on failure, such as invalid format string.  For
          now, just silently ignore that bad specifier.  */

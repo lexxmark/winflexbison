@@ -1,6 +1,6 @@
 /* Functions to support expandable bitsets.
 
-   Copyright (C) 2002-2006, 2009-2015, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2002-2006, 2009-2015, 2018-2020 Free Software Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "obstack.h"
+#include "xalloc.h"
 
 /* This file implements expandable bitsets.  These bitsets can be of
    arbitrary length and are more efficient than arrays of bits for
@@ -142,7 +143,7 @@ tbitset_resize (bitset src, bitset_bindex n_bits)
 
           bitset_windex size = oldsize == 0 ? newsize : newsize + newsize / 4;
           EBITSET_ELTS (src)
-            = realloc (EBITSET_ELTS (src), size * sizeof (tbitset_elt *));
+            = xrealloc (EBITSET_ELTS (src), size * sizeof (tbitset_elt *));
           EBITSET_ASIZE (src) = size;
         }
 
@@ -155,9 +156,13 @@ tbitset_resize (bitset src, bitset_bindex n_bits)
          the memory unless it is shrinking by a reasonable amount.  */
       if ((oldsize - newsize) >= oldsize / 2)
         {
-          EBITSET_ELTS (src)
+          void *p
             = realloc (EBITSET_ELTS (src), newsize * sizeof (tbitset_elt *));
-          EBITSET_ASIZE (src) = newsize;
+          if (p)
+            {
+              EBITSET_ELTS (src) = p;
+              EBITSET_ASIZE (src) = newsize;
+            }
         }
 
       /* Need to prune any excess bits.  FIXME.  */
@@ -201,7 +206,7 @@ tbitset_elt_alloc (void)
 # define OBSTACK_CHUNK_FREE free
 #endif
 
-#if ! defined __GNUC__ || __GNUC__ < 2
+#if !(defined __GNUC__ || defined __clang__)
 # define __alignof__(type) 0
 #endif
 
@@ -1179,7 +1184,7 @@ struct bitset_vtable tbitset_vtable = {
 
 /* Return size of initial structure.  */
 size_t
-tbitset_bytes (bitset_bindex n_bits ATTRIBUTE_UNUSED)
+tbitset_bytes (bitset_bindex n_bits MAYBE_UNUSED)
 {
   return sizeof (struct tbitset_struct);
 }
