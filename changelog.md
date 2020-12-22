@@ -4,6 +4,11 @@
   * 2.4.x versions include bison version 2.7
   * 2.5.x versions include bison version 3.x
   
+### version 2.5.24
+  * upgrade win_bison to version 3.7.4
+  * upgrade m4 to version 1.4.18
+  * upgrade gnulib
+
 ### version 2.5.23
   * upgrade win_bison to version 3.7.1
 
