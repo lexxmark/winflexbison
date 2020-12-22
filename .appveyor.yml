@@ -18,7 +18,7 @@ environment:
     - VSVERSION: "14 2015"
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       PLATFORMTOOLSET: "v140_xp"
-      CMAKE_VS_PLATFORM_TOOLSET: -DCMAKE_VS_PLATFORM_TOOLSET=\"v140_xp\"
+      CMAKE_VS_PLATFORM_TOOLSET: -DCMAKE_GENERATOR_TOOLSET=\"v140_xp\"
       
 init:
   - cmake --version
