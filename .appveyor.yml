@@ -15,10 +15,6 @@ environment:
     - VSVERSION: "16 2019"
     - VSVERSION: "15 2017"
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    - VSVERSION: "14 2015"
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      PLATFORMTOOLSET: "v140_xp"
-      CMAKE_VS_PLATFORM_TOOLSET: -DCMAKE_GENERATOR_TOOLSET=\"v140_xp\"
       
 init:
   - cmake --version
@@ -29,7 +25,7 @@ before_build:
   - if "%APPVEYOR_REPO_TAG_NAME%"=="" ( set "APPVEYOR_REPO_TAG_NAME=dev-%VSVERSIONSHORT%-%platform%-%configuration%" )
   - mkdir build
   - cd build
-  - cmake -G "Visual Studio %VSVERSION%" -DCPACK_PACKAGE_VERSION="%APPVEYOR_REPO_TAG_NAME%" %CMAKE_OPTIONS% %CMAKE_VS_PLATFORM_TOOLSET% ..
+  - cmake -G "Visual Studio %VSVERSION%" -DCPACK_PACKAGE_VERSION="%APPVEYOR_REPO_TAG_NAME%" %CMAKE_OPTIONS% ..
 
 build:
   project: "build\\winflexbison.sln"

@@ -17,7 +17,7 @@ https://github.com/lexxmark/winflexbison/releases provides stable versions. To t
 The release page includes the full Changelog but you may also see the [changelog.md](changelog.md) file.
 
 ## Build requirements
-* Visual Studio 2015 or newer
+* Visual Studio 2017 or newer
 * optional: CMake (when building with CMake)
 
 ## HowTo
