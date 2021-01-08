@@ -1770,7 +1770,7 @@ void readin (void)
 		outn ("\n#include <FlexLexer.h>");
 
  		if (!do_yywrap) {
-			outn("\nint yyFlexLexer::yywrap() { return 1; }");
+			outn("\ninline int yyFlexLexer::yywrap() { return 1; }");
 		}
 
 		if (yyclass) {
