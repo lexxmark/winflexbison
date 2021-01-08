@@ -8,6 +8,8 @@
   * upgrade win_bison to version 3.7.4
   * upgrade m4 to version 1.4.18
   * upgrade gnulib
+  * removed VS2015 support
+  * fixed win_bison --update option (renaming opened file)
 
 ### version 2.5.23
   * upgrade win_bison to version 3.7.1
