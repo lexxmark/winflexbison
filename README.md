@@ -7,11 +7,18 @@ Both win_flex and win_bison are based on upstream sources but depend on system l
 * 2.4.x versions include GNU Bison version 2.7
 * 2.5.x versions include GNU Bison version 3.x.x
 
+## License
+All build scripts are distributed under the GNU General Public License (GPLv3+).
+See COPYING for details.
+
+All documentation, especially those under custom_build_rules/doc, is distributed under the GNU Free Documentation License (FDL 1.3+).
+
 ## Build status
 Bison 3.x (master) [![Build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/master?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/master) and, for compatibility reasons, Bison 2.7 (bison2.7) [![Build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/bison2.7?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/bison2.7)
 
 ## Downloads
-https://github.com/lexxmark/winflexbison/releases provides stable versions. To test non-released development versions see the artifacts provided by CI under "Build status".
+https://github.com/lexxmark/winflexbison/releases provides stable versions.
+To test non-released development versions see the artifacts provided by CI under "Build status".
 
 ## Changelog
 The release page includes the full Changelog but you may also see the [changelog.md](changelog.md) file.
