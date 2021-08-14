@@ -32,6 +32,8 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     #   applies to WIN32/MSVC.
     #------------------------------------------------------------------------
     if (MSVC)
+        add_compile_definitions("__extension__")
+        add_compile_options("/source-charset:utf-8")
         option( USE_STATIC_RUNTIME "Set ON to change /MD(DLL) to /MT(static)" OFF )
         if (USE_STATIC_RUNTIME)
             set(CompilerFlags
