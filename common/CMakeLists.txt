@@ -28,6 +28,8 @@ add_library(${PROJECT_NAME} STATIC
    ${SOURCE_FILES}
 )
 
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 90)
+
 target_include_directories(${PROJECT_NAME} PUBLIC "misc")
 target_include_directories(${PROJECT_NAME} PUBLIC "m4")
 target_include_directories(${PROJECT_NAME} PUBLIC "m4/lib")
