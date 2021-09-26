@@ -1,4 +1,4 @@
-/* Output a graph of the generated parser, for Bison.
+﻿/* Output a graph of the generated parser, for Bison.
 
    Copyright (C) 2001-2007, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
