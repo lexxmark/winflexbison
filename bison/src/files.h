@@ -1,6 +1,6 @@
 /* File names and variables for bison,
 
-   Copyright (C) 1984, 1989, 2000-2002, 2006-2007, 2009-2015, 2018-2020
+   Copyright (C) 1984, 1989, 2000-2002, 2006-2007, 2009-2015, 2018-2021
    Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef FILES_H_
 # define FILES_H_
@@ -44,20 +44,17 @@ extern char *spec_verbose_file;
 /* File name specified for the output graph.  */
 extern char *spec_graph_file;
 
-/* File name specified for the xml output.  */
+/* File name specified for the HTML output.  */
+extern char *spec_html_file;
+
+/* File name specified for the XML output.  */
 extern char *spec_xml_file;
 
-/* File name specified with --defines.  */
+/* File name specified with --header.  */
 extern char *spec_header_file;
-
-/* File name specified with --defines, adjusted for mapped prefixes. */
-extern char *spec_mapped_header_file;
 
 /* Directory prefix of output file names.  */
 extern char *dir_prefix;
-
-/* Directory prefix of output file name, adjusted for mapped prefixes. */
-extern char *mapped_dir_prefix;
 
 /* The file name as given on the command line.
    Not named "input_file" because Flex uses this name for an argument,
@@ -91,7 +88,13 @@ FILE *xfopen (const char *name, char const *mode);
 void xfclose (FILE *ptr);
 FILE *xfdopen (int fd, char const *mode);
 
-char *map_file_name (char const *filename);
+/* Given an input file path, return a string that contains the path
+   with the file prefix mapping rules applied, or NULL if the input
+   was NULL.  Do not free the return value.  */
+const char *map_file_name (char const *filename);
+
+/* Add a new file prefix mapping. If a file path starts with
+   oldprefix, it will be replaced with newprefix.  */
 void add_prefix_map (char const *oldprefix, char const *newprefix);
 
 #endif /* !FILES_H_ */

@@ -2,7 +2,7 @@
 
 # Java language support for Bison
 
-# Copyright (C) 2007-2015, 2018-2020 Free Software Foundation, Inc.
+# Copyright (C) 2007-2015, 2018-2021 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 m4_include(b4_skeletonsdir/[c-like.m4])
 

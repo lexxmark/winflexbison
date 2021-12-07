@@ -1,6 +1,6 @@
 /* Conflict counterexample generation
 
-   Copyright (C) 2020 Free Software Foundation, Inc.
+   Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 
 #include "system.h"
 
+#include <errno.h>
 #include <gl_linked_list.h>
 #include <gl_rbtreehash_list.h>
 #include <hash.h>
@@ -56,12 +57,12 @@
 
 /** The time limit before printing an assurance message to the user to
  *  indicate that the search is still running. */
-#define ASSURANCE_LIMIT 2.0f
+#define ASSURANCE_LIMIT 2.0
 
 /* The time limit before giving up looking for unifying counterexample. */
-#define TIME_LIMIT 5.0f
+static double time_limit = 5.0;
 
-#define CUMULATIVE_TIME_LIMIT 120.0f
+#define CUMULATIVE_TIME_LIMIT 120.0
 
 // This is the fastest way to get the tail node from the gl_list API.
 static gl_list_node_t
@@ -288,7 +289,8 @@ expand_to_conflict (state_item_number start, symbol_number conflict_sym)
             derivation_list_append (result, derivation_new_leaf (*i));
           symbol_number lhs =
             rules[item_number_as_rule_number (*i)].lhs->number;
-          derivation *deriv = derivation_new (lhs, result);
+          derivation *deriv = derivation_new (lhs, result,
+                                              state_item_rule (si));
           result = derivation_list_new ();
           derivation_list_append (result, deriv);
         }
@@ -422,7 +424,7 @@ complete_diverging_example (symbol_number conflict_sym,
             derivation_list_prepend (result, derivation_new_leaf (*i));
         }
       // completing the derivation
-      derivation *new_deriv = derivation_new (r->lhs->number, result);
+      derivation *new_deriv = derivation_new (r->lhs->number, result, r);
       result = derivation_list_new ();
       derivation_list_append (result, new_deriv);
     }
@@ -1162,7 +1164,7 @@ unifying_example (state_item_number itm1,
             }
           if (TIME_LIMIT_ENFORCED)
             {
-              float time_passed = difftime (time (NULL), start);
+              double time_passed = difftime (time (NULL), start);
               if (!assurance_printed && time_passed > ASSURANCE_LIMIT
                   && stage3result)
                 {
@@ -1171,7 +1173,7 @@ unifying_example (state_item_number itm1,
                          stderr);
                   assurance_printed = true;
                 }
-              if (time_passed > TIME_LIMIT)
+              if (time_passed > time_limit)
                 {
                   fprintf (stderr, "time limit exceeded: %f\n", time_passed);
                   goto cex_search_end;
@@ -1208,6 +1210,19 @@ static time_t cumulative_time;
 void
 counterexample_init (void)
 {
+  /* Recognize $TIME_LIMIT.  Not a public feature, just to help
+     debugging.  If we need something public, a %define/-D/-F variable
+     would be more appropriate. */
+  {
+    const char *cp = getenv ("TIME_LIMIT");
+    if (cp)
+      {
+        char *end = NULL;
+        double v = strtod (cp, &end);
+        if (*end == '\0' && errno == 0)
+          time_limit = v;
+      }
+    }
   time (&cumulative_time);
   scp_set = bitset_create (nstates, BITSET_FIXED);
   rpp_set = bitset_create (nstates, BITSET_FIXED);

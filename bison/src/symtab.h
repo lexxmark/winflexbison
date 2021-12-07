@@ -1,6 +1,6 @@
 /* Definitions for symtab.c and callers, part of Bison.
 
-   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2015, 2018-2020 Free
+   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /**
  * \file symtab.h
@@ -246,11 +246,6 @@ extern symbol *eoftoken;
 
    $accept: start-symbol $end */
 extern symbol *acceptsymbol;
-
-/** The user start symbol. */
-extern symbol *startsymbol;
-/** The location of the \c \%start declaration.  */
-extern location startsymbol_loc;
 
 /** Whether a symbol declared with a type tag.  */
 extern bool tag_seen;

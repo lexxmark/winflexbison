@@ -1,6 +1,6 @@
 /* Output the generated parsing program for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2020 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
@@ -463,6 +463,27 @@ type_names_output (FILE *out)
 }
 
 
+/* Define the list of start symbols *if* there are several.  Define
+   them by pairs: [START-SYMBOL-NUM, SWITCHING-TOKEN-SYMBOL-NUM]. */
+static void
+start_symbols_output (FILE *out)
+{
+  if (start_symbols && start_symbols->next)
+    {
+      fputs ("m4_define([b4_start_symbols],\n[", out);
+      for (symbol_list *list = start_symbols; list; list = list->next)
+        {
+          const symbol *start = list->content.sym;
+          const symbol *swtok = switching_token (start);
+          fprintf (out, "%s[%d, %d]",
+                   list == start_symbols ? "" : ", ",
+                   start->content->number, swtok->content->number);
+        }
+      fputs ("])\n\n", out);
+    }
+}
+
+
 /*-------------------------------------.
 | The list of all the symbol numbers.  |
 `-------------------------------------*/
@@ -511,7 +532,7 @@ user_actions_output (FILE *out)
           {
             fprintf (out, "b4_syncline(%d, ",
                      rules[r].action_loc.start.line);
-            string_output (out, rules[r].action_loc.start.file);
+            string_output (out, map_file_name (rules[r].action_loc.start.file));
             fprintf (out, ")dnl\n");
           }
         fprintf (out, "[%*s%s]],\n[[",
@@ -534,14 +555,8 @@ merger_output (FILE *out)
   int n;
   merger_list* p;
   for (n = 1, p = merge_functions; p != NULL; n += 1, p = p->next)
-    {
-      if (p->type[0] == '\0')
-        fprintf (out, "  case %d: *yy0 = %s (*yy0, *yy1); break;\n",
-                 n, p->name);
-      else
-        fprintf (out, "  case %d: yy0->%s = %s (*yy0, *yy1); break;\n",
-                 n, p->type, p->name);
-    }
+    fprintf (out, "]b4_call_merger""([%d], [%s], [%d])[\n",
+             n, p->name, p->sym->content->number);
   fputs ("]])\n\n", out);
 }
 
@@ -616,7 +631,7 @@ prepare_symbol_definitions (void)
           if (p->code)
             {
               SET_KEY2 (pname, "file");
-              MUSCLE_INSERT_C_STRING (key, p->location.start.file);
+              MUSCLE_INSERT_C_STRING (key, map_file_name (p->location.start.file));
 
               SET_KEY2 (pname, "line");
               MUSCLE_INSERT_INT (key, p->location.start.line);
@@ -693,6 +708,7 @@ muscles_output (FILE *out)
   merger_output (out);
   symbol_numbers_output (out);
   type_names_output (out);
+  start_symbols_output (out);
   user_actions_output (out);
   /* Must be last.  */
   muscles_m4_output (out);
@@ -830,7 +846,7 @@ output_skeleton (void)
        extensions even when POSIXLY_CORRECT is set.
 
        See the thread starting at
-       <http://lists.gnu.org/archive/html/bug-bison/2008-07/msg00000.html>
+       <https://lists.gnu.org/r/bug-bison/2008-07/msg00000.html>
        for details.  */
  //   if (*M4_GNU_OPTION)
  //     argv[i++] = M4_GNU_OPTION;
@@ -839,7 +855,7 @@ output_skeleton (void)
     argv[i++] = datadir;
     /* Some future version of GNU M4 (most likely 1.6) may treat the
        -dV in a position-dependent manner.  See the thread starting at
-       <http://lists.gnu.org/archive/html/bug-bison/2008-07/msg00000.html>
+       <https://lists.gnu.org/r/bug-bison/2008-07/msg00000.html>
        for details.  */
     if (trace_flag & trace_m4_early)
       argv[i++] = "-dV";
@@ -861,8 +877,14 @@ output_skeleton (void)
       }
 
     /* The ugly cast is because gnulib gets the const-ness wrong.  */
-   // pid = create_pipe_bidi ("m4", m4, (char **)(void*)argv, false, true,
-   //                         true, filter_fd);
+#if 0
+    pid = create_pipe_bidi ("m4", m4, argv,
+                            /* directory */ NULL,
+                            /* null_stderr */ false,
+                            /* slave_process */ true,
+                            /* exit_on_error */ true,
+                            filter_fd);
+#endif
   }
 /*
   free (skeldir);
@@ -938,7 +960,7 @@ prepare (void)
   MUSCLE_INSERT_INT ("required_version", required_version);
 
   /* Flags. */
-  MUSCLE_INSERT_BOOL ("defines_flag", defines_flag);
+  MUSCLE_INSERT_BOOL ("header_flag", header_flag);
   MUSCLE_INSERT_BOOL ("glr_flag", glr_parser);
   MUSCLE_INSERT_BOOL ("nondeterministic_flag", nondeterministic_parser);
   MUSCLE_INSERT_BOOL ("synclines_flag", !no_lines_flag);
@@ -952,6 +974,9 @@ prepare (void)
     MUSCLE_INSERT_STRING ("prefix", spec_name_prefix);
 
   MUSCLE_INSERT_STRING ("file_name_all_but_ext", all_but_ext);
+
+  const char *spec_mapped_header_file = map_file_name (spec_header_file);
+  const char *mapped_dir_prefix = map_file_name (dir_prefix);
 
 #define DEFINE(Name) MUSCLE_INSERT_STRING (#Name, Name ? Name : "")
   DEFINE (dir_prefix);

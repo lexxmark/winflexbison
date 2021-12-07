@@ -1,6 +1,6 @@
 /* Bison code properties structure and scanner.
 
-   Copyright (C) 2006-2007, 2009-2015, 2018-2020 Free Software
+   Copyright (C) 2006-2007, 2009-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef SCAN_CODE_H_
 # define SCAN_CODE_H_
@@ -33,6 +33,11 @@ struct symbol_list;
  * actions of this grammar.
  */
 extern int max_left_semantic_context;
+
+/**
+ * The obstack used to store the translated actions.
+ */
+extern struct obstack *obstack_for_actions;
 
 /**
  * A code passage captured from the grammar file and possibly translated,
@@ -190,6 +195,8 @@ void code_props_translate_code (code_props *self);
  *     invalid.
  */
 void code_scanner_last_string_free (void);
+
+void code_scanner_init (void);
 
 /**
  * \pre

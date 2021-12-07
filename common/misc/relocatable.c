@@ -1,18 +1,18 @@
 /* Provide relocatable packages.
-   Copyright (C) 2003-2006, 2008-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2006, 2008-2021 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2003.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
@@ -323,7 +323,10 @@ static char *shared_library_fullname;
    supports longer file names
    (see <https://cygwin.com/ml/cygwin/2011-01/msg00410.html>).  */
 
-/* Determine the full pathname of the shared library when it is loaded.  */
+/* Determine the full pathname of the shared library when it is loaded.
+
+   Documentation:
+   <https://docs.microsoft.com/en-us/windows/win32/dlls/dllmain>  */
 
 BOOL WINAPI
 DllMain (HINSTANCE module_handle, DWORD event, LPVOID reserved)
@@ -343,7 +346,13 @@ DllMain (HINSTANCE module_handle, DWORD event, LPVOID reserved)
         /* Shouldn't happen.  */
         return FALSE;
 
-      shared_library_fullname = strdup (location);
+      /* Avoid a memory leak when the same DLL get attached, detached,
+         attached, detached, and so on.  This happens e.g. when a spell
+         checker DLL is used repeatedly by a mail program.  */
+      if (!(shared_library_fullname != NULL
+            && strcmp (shared_library_fullname, location) == 0))
+        /* Remember the full pathname of the shared library.  */
+        shared_library_fullname = strdup (location);
     }
 
   return TRUE;

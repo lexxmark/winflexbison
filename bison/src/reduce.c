@@ -1,6 +1,6 @@
 /* Grammar reduction for Bison.
 
-   Copyright (C) 1988-1989, 2000-2003, 2005-2015, 2018-2020 Free
+   Copyright (C) 1988-1989, 2000-2003, 2005-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* Reduce the grammar: Find and eliminate unreachable terminals,
@@ -275,7 +275,8 @@ nonterminals_reduce (void)
       if (!bitset_test (V, i))
         {
           nterm_map[i - ntokens] = n++;
-          if (symbols[i]->content->status != used)
+          if (symbols[i]->content->status != used
+              && symbols[i] != acceptsymbol)
             complain (&symbols[i]->location, Wother,
                       _("nonterminal useless in grammar: %s"),
                       symbols[i]->tag);
@@ -381,10 +382,18 @@ reduce_grammar (void)
     {
       reduce_print ();
 
-      if (!bitset_test (N, acceptsymbol->content->number - ntokens))
-        complain (&startsymbol_loc, fatal,
-                  _("start symbol %s does not derive any sentence"),
-                  startsymbol->tag);
+      // Check that start symbols have non-empty languages.
+      bool failure = false;
+      for (symbol_list *list = start_symbols; list; list = list->next)
+        if (!bitset_test (N, list->content.sym->content->number - ntokens))
+          {
+            failure = true;
+            complain (&list->sym_loc, complaint,
+                      _("start symbol %s does not derive any sentence"),
+                      list->content.sym->tag);
+          }
+      if (failure)
+        exit (EXIT_FAILURE);
 
       /* First reduce the nonterminals, as they renumber themselves in the
          whole grammar.  If you change the order, nonterms would be

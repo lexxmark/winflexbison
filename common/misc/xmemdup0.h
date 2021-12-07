@@ -1,6 +1,6 @@
 /* xmemdup0.h -- copy a block of arbitrary bytes, plus a trailing NUL
 
-   Copyright (C) 2008-2020 Free Software Foundation, Inc.
+   Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,14 +18,16 @@
 #ifndef XMEMDUP_H_
 # define XMEMDUP_H_
 
-# include <stddef.h>
+# include <stdlib.h>
 
 
 # ifdef __cplusplus
 extern "C" {
 # endif
 
-char *xmemdup0 (void const *p, size_t s);
+char *xmemdup0 (void const *p, size_t s)
+  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE
+  _GL_ATTRIBUTE_RETURNS_NONNULL;
 
 # ifdef __cplusplus
 }

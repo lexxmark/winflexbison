@@ -1,6 +1,6 @@
 /* Locations for Bison
 
-   Copyright (C) 2002, 2005-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 2002, 2005-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
@@ -512,22 +512,28 @@ location_empty (location loc)
     && !loc.end.file && !loc.end.line && !loc.end.column;
 }
 
+static inline int
+str_to_int (const char *s)
+{
+  long l = strtol (s, NULL, 10);
+  return l < 0 ? -1 : l <= INT_MAX ? l : INT_MAX;
+}
+
 void
 boundary_set_from_string (boundary *bound, char *str)
 {
-  /* Must search in reverse since the file name field may contain '.'
-     or ':'.  */
+  /* Search backwards: the file name may contain '.'  or ':'.  */
   char *at = strrchr (str, '@');
   if (at)
     {
       *at = '\0';
-      bound->byte = atoi (at+1);
+      bound->byte = str_to_int (at + 1);
     }
   {
     char *dot = strrchr (str, '.');
     aver (dot);
     *dot = '\0';
-    bound->column = atoi (dot+1);
+    bound->column = str_to_int (dot + 1);
     if (!at)
       bound->byte = bound->column;
   }
@@ -535,7 +541,7 @@ boundary_set_from_string (boundary *bound, char *str)
     char *colon = strrchr (str, ':');
     aver (colon);
     *colon = '\0';
-    bound->line = atoi (colon+1);
+    bound->line = str_to_int (colon + 1);
   }
   bound->file = uniqstr_new (str);
 }

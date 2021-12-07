@@ -1,6 +1,6 @@
 /* IELR main implementation.
 
-   Copyright (C) 2009-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -83,19 +83,22 @@ ielr_compute_ritem_sees_lookahead_set (void)
   while (0 < i)
     {
       --i;
+      // Walk the RHS right to left, as long as it's symbol,
+      // nonterminal, nullable.
       while (!item_number_is_rule_number (ritem[i])
              && ISVAR (ritem[i])
              && nullable [item_number_as_symbol_number (ritem[i]) - ntokens])
         bitset_set (result, i--);
       if (!item_number_is_rule_number (ritem[i]) && ISVAR (ritem[i]))
         bitset_set (result, i--);
+      // Flush the remainder of the RHS.
       while (!item_number_is_rule_number (ritem[i]) && 0 < i)
         --i;
     }
   if (trace_flag & trace_ielr)
     {
-      fprintf (stderr, "ritem_sees_lookahead_set:\n");
-      debug_bitset (result);
+      fprintf (stderr, "ritem_sees_lookahead_set (indexes of ritems): ");
+      bitset_dump (stderr, result);
       fprintf (stderr, "\n");
     }
   return result;
@@ -413,12 +416,16 @@ ielr_item_has_lookahead (state *s, symbol_number lhs, size_t item,
          didn't change this test to an aver just in case the usage of this
          function evolves to need those two cases.  In both cases, the current
          implementation returns the right result.  */
-      if (s->items[item] > 1)
+      const rule *r = item_rule (&ritem[s->items[item]]);
+      const bool is_successor_of_initial_item
+        = rule_is_initial (r) && &ritem[s->items[item]] == r->rhs + 1;
+      aver (!is_successor_of_initial_item);
+      if (!is_successor_of_initial_item)
         {
           /* If the LHS symbol of this item isn't known (because this is a
              top-level invocation), go get it.  */
           if (!lhs)
-            lhs = item_rule (&ritem[s->items[item]])->lhs->number;
+            lhs = r->lhs->number;
           /* If this kernel item is next to the beginning of the RHS, then
              check all predecessors' goto follows for the LHS.  */
           if (item_number_is_rule_number (ritem[s->items[item] - 2]))
@@ -565,6 +572,24 @@ typedef struct state_list
   struct state_list *nextIsocore;
 } state_list;
 
+MAYBE_UNUSED static void
+state_list_print_ (const state_list *s, FILE *out, const char *sep)
+{
+  if (s)
+    {
+      fprintf (out, "%s%d", sep, s->state->number);
+      state_list_print_ (s->next, out, " ");
+    }
+}
+
+MAYBE_UNUSED static void
+state_list_print (const state_list *s, FILE *out)
+{
+  fprintf (out, "{");
+  state_list_print_ (s, out, "");
+  fprintf (out, "}");
+}
+
 /**
  * \pre
  *   - \c follow_kernel_items and \c always_follows were computed by
@@ -622,13 +647,17 @@ ielr_compute_lookaheads (bitsetv follow_kernel_items, bitsetv always_follows,
          a special case to avoid the - 2 below, but the next successor can be
          handled fine without special casing it.  */
       aver (t->items[t_item] != 0);
-      if (t->items[t_item] > 1
+      const rule *r = item_rule (&ritem[t->items[t_item]]);
+      const bool is_successor_of_initial_item
+        = rule_is_initial (r) && &ritem[t->items[t_item]] == r->rhs + 1;
+      if (!is_successor_of_initial_item
           && !bitset_empty_p (lookahead_filter[t_item]))
         {
+          /* Is this kernel item next to the beginning of the RHS?  */
           if (item_number_is_rule_number (ritem[t->items[t_item] - 2]))
             ielr_compute_goto_follow_set (
               follow_kernel_items, always_follows, s,
-              item_rule (&ritem[t->items[t_item]])->lhs,
+              r->lhs,
               lookaheads[t_item]);
           else if (s->lookaheads)
             {
@@ -701,8 +730,8 @@ ielr_compute_state (bitsetv follow_kernel_items, bitsetv always_follows,
         AnnotationIndex ai;
         AnnotationList *a;
         for (ai = 0, a = annotation_lists[lr0_isocore->state->number];
-           a;
-           ++ai, a = a->next)
+             a;
+             ++ai, a = a->next)
         work1[ai] =
           AnnotationList__computeDominantContribution (
             a, lr0_isocore->state->nitems, lookaheads, false);
@@ -982,7 +1011,7 @@ ielr_split_states (bitsetv follow_kernel_items, bitsetv always_follows,
          this_state;
          this_state = this_state->next)
       {
-        state *s = this_state->state;
+        const state *s = this_state->state;
         for (int i = 0; i < s->transitions->num; ++i)
           {
             state *t = s->transitions->states[i];

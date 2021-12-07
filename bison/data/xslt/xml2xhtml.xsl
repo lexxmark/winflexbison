@@ -3,7 +3,7 @@
 <!--
     xml2html.xsl - transform Bison XML Report into XHTML.
 
-    Copyright (C) 2007-2015, 2018-2020 Free Software Foundation, Inc.
+    Copyright (C) 2007-2015, 2018-2021 Free Software Foundation, Inc.
 
     This file is part of Bison, the GNU Compiler Compiler.
 
@@ -18,7 +18,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     Written by Wojciech Polak <polak@gnu.org>.
   -->
@@ -26,7 +26,7 @@
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:bison="http://www.gnu.org/software/bison/">
+  xmlns:bison="https://www.gnu.org/software/bison/">
 
 <xsl:import href="bison.xsl"/>
 
@@ -88,7 +88,7 @@
       <xsl:apply-templates select="bison-xml-report"/>
       <xsl:text>&#10;&#10;</xsl:text>
       <div id="footer"><hr />This document was generated using
-      <a href="http://www.gnu.org/software/bison/" title="GNU Bison">
+      <a href="https://www.gnu.org/software/bison/" title="GNU Bison">
       GNU Bison <xsl:value-of select="/bison-xml-report/@version"/></a>
       XML Automaton Report.<br />
       <!-- default copying notice -->

@@ -73,15 +73,29 @@ skeletons.  If you are to write a new skeleton, please, implement them for
 your language.  Overall, be sure to follow the same patterns as the existing
 skeletons.
 
+## Vocabulary
+
+We use "formal arguments", or "formals" for short, to denote the declared
+parameters of a function (e.g., `int argc, const char **argv`).  Yes, this
+is somewhat contradictory with `param` in the `%param` directives.
+
+We use "effective arguments", or "args" for short, to denote the values
+passed in function calls (e.g., `argc, argv`).
+
 ## Symbols
 
 ### `b4_symbol(NUM, FIELD)`
 In order to unify the handling of the various aspects of symbols (tag, type
 name, whether terminal, etc.), bison.exe defines one macro per (token,
 field), where field can `has_id`, `id`, etc.: see
-`prepare_symbols_definitions()` in `src/output.c`.
+`prepare_symbol_definitions()` in `src/output.c`.
 
-The macro `b4_symbol(NUM, FIELD)` gives access to the following FIELDS:
+NUM can be:
+- `empty` to denote the "empty" pseudo-symbol when it exists,
+- `eof`, `error`, or `undef`
+- a symbol number.
+
+FIELD can be:
 
 - `has_id`: 0 or 1
   Whether the symbol has an `id`.
@@ -142,10 +156,16 @@ The macro `b4_symbol(NUM, FIELD)` gives access to the following FIELDS:
   When api.value.type=union, the generated name for the union member.
   yytype_INT etc. for symbols that has_id, otherwise yytype_1 etc.
 
-- `type`
+- `type`: string
   If it has a semantic value, its type tag, or, if variant are used,
   its type.
   In the case of api.value.type=union, type is the real type (e.g. int).
+
+- `slot`: string
+  If it has a semantic value, the name of the union member (i.e., bounces to
+  either `type_tag` or `type`).  It would be better to fix our mess and
+  always use `type` for the true type of the member, and `type_tag` for the
+  name of the union member.
 
 - `has_printer`: 0, 1
 - `printer`: string
@@ -187,7 +207,7 @@ fill-column: 76
 ispell-dictionary: "american"
 End:
 
-Copyright (C) 2002, 2008-2015, 2018-2020 Free Software Foundation, Inc.
+Copyright (C) 2002, 2008-2015, 2018-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Bison.
 
@@ -202,6 +222,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 -->

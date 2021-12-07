@@ -1,6 +1,6 @@
 /* Bison Action Scanner                             -*- C -*-
 
-   Copyright (C) 2006-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2015, 2018-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 %option debug nodefault noinput nounput noyywrap never-interactive
 %option prefix="code_" outfile="lex.yy.c"
@@ -36,9 +36,11 @@
 #include "src/flex-scanner.h"
 
 /* Work around a bug in flex 2.5.31.  See Debian bug 333231
-   <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=333231>.  */
+   <https://bugs.debian.org/333231>.  */
 #undef code_wrap
 #define code_wrap() 1
+
+struct obstack *obstack_for_actions = &obstack_for_string;
 
 /* The current calling start condition: SC_RULE_ACTION or
    SC_SYMBOL_ACTION. */
@@ -90,8 +92,8 @@ splice   (\\[ \f\t\v]*\n)*
 /* C style identifier. Must start with letter. Will be used for
    named symbol references. Shall be kept synchronized with
    scan-gram.l "letter" and "id". */
-letter    [.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_]
-id        {letter}({letter}|[-0-9])*
+letter   [.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_]
+id       {letter}({letter}|[-0-9])*
 ref      -?[0-9]+|{id}|"["{id}"]"|"$"
 
 %%
@@ -201,7 +203,7 @@ ref      -?[0-9]+|{id}|"["{id}"]"|"$"
   /* By default, grow the string obstack with the input.  */
   .|\n        STRING_GROW ();
 
- /* End of processing. */
+  /* End of processing. */
   <<EOF>>     STRING_FINISH (); return last_string;
 }
 
@@ -401,6 +403,23 @@ show_sub_messages (warnings warning,
    points to LHS ($$) of the current rule or midrule. */
 #define LHS_REF (INT_MIN + 1)
 
+/* Parse a positional reference in RULE.  */
+static long
+parse_positional_ref (char *cp, int rule_length,
+                      char *text, const location *text_loc)
+{
+  long num = strtol (cp, &cp, 10);
+  if (1 - INT_MAX + rule_length <= num && num <= rule_length)
+    return num;
+  else
+    {
+      complain (text_loc, complaint, _("integer out of range: %s"),
+                quote (text));
+      return INVALID_REF;
+    }
+}
+
+
 /* Parse named or positional reference. In case of positional
    references, can return negative values for $-n "deep" stack
    accesses. */
@@ -412,18 +431,8 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
   if ('$' == *cp)
     return LHS_REF;
 
-  if (c_isdigit (*cp) || (*cp == '-' && c_isdigit (* (cp + 1))))
-    {
-      long num = strtol (cp, &cp, 10);
-      if (1 - INT_MAX + rule_length <= num && num <= rule_length)
-        return num;
-      else
-        {
-          complain (text_loc, complaint, _("integer out of range: %s"),
-                    quote (text));
-          return INVALID_REF;
-        }
-    }
+  if (c_isdigit (*cp) || (*cp == '-' && c_isdigit (cp[1])))
+    return parse_positional_ref (cp, rule_length, text, text_loc);
 
   bool const explicit_bracketing = *cp == '[';
 
@@ -493,7 +502,7 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
           cp_end - cp : ref_tail_fields - cp;
 
         complain (text_loc, complaint,
-                     _("invalid reference: %s"), quote (text));
+                  _("invalid reference: %s"), quote (text));
         if (len == 0)
           {
             location sym_loc = *text_loc;
@@ -525,7 +534,7 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
         if (variant_count > 1)
           {
             complain (text_loc, Wother,
-                         _("misleading reference: %s"), quote (text));
+                      _("misleading reference: %s"), quote (text));
             show_sub_messages (Wother,
                                cp, explicit_bracketing, midrule_rhs_index,
                                dollar_or_at);
@@ -585,7 +594,7 @@ fetch_type_name (char *cp, char const **type_name,
 /*------------------------------------------------------------------.
 | TEXT is pointing to a wannabee semantic value (i.e., a '$').      |
 |                                                                   |
-| Possible inputs: $[<TYPENAME>]($|integer)                         |
+| Possible inputs: $[<TYPENAME>]($|INTEGER)                         |
 |                                                                   |
 | Output to OBSTACK_FOR_STRING a reference to this semantic value.  |
 `------------------------------------------------------------------*/
@@ -749,19 +758,10 @@ handle_action_at (symbol_list *rule, char *text, const location *at_loc)
 static char const *
 translate_action (code_props *self, int sc_context)
 {
-  static bool initialized = false;
-  if (!initialized)
-    {
-      obstack_init (&obstack_for_string);
-      yy_flex_debug = 0;
-      initialized = true;
-    }
-
   loc->start = loc->end = self->location.start;
   yy_switch_to_buffer (yy_scan_string (self->code));
   char *res = code_lex (self, sc_context);
   yy_delete_buffer (YY_CURRENT_BUFFER);
-
   return res;
 }
 
@@ -836,6 +836,13 @@ void
 code_scanner_last_string_free (void)
 {
   STRING_FREE ();
+}
+
+void
+code_scanner_init (void)
+{
+  obstack_init (&obstack_for_string);
+  yy_flex_debug = 0;
 }
 
 void

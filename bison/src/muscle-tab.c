@@ -1,6 +1,6 @@
 /* Muscle table manager for Bison.
 
-   Copyright (C) 2001-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2015, 2018-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
@@ -205,7 +205,7 @@ muscle_syncline_grow (char const *key, location loc)
 {
   obstack_printf (&muscle_obstack, "]b4_syncline(%d, ", loc.start.line);
   obstack_quote (&muscle_obstack,
-                 quotearg_style (c_quoting_style, loc.start.file));
+                 quotearg_style (c_quoting_style, map_file_name (loc.start.file)));
   obstack_sgrow (&muscle_obstack, ")dnl\n[");
   char const *extension = obstack_finish0 (&muscle_obstack);
   muscle_grow (key, extension, "", "");
@@ -517,8 +517,9 @@ muscle_percent_define_insert (char const *var, location variable_loc,
       char const *current_value = muscle_find_const (name);
       if (current_value)
         {
+          long l = strtol (muscle_find_const (how_name), NULL, 10);
           muscle_percent_define_how how_old
-            = atoi (muscle_find_const (how_name));
+            = 0 <= l && l <= INT_MAX ? l : INT_MAX;
           if (how_old == MUSCLE_PERCENT_DEFINE_F)
             goto end;
           /* If assigning the same value, make it a warning.  */

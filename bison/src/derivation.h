@@ -1,6 +1,6 @@
 /* Counterexample derivation trees
 
-   Copyright (C) 2020 Free Software Foundation, Inc.
+   Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef DERIVATION_H
 # define DERIVATION_H
@@ -54,11 +54,14 @@ void derivation_list_append (derivation_list dl, derivation *d);
 void derivation_list_prepend (derivation_list dl, derivation *d);
 void derivation_list_free (derivation_list dl);
 
-derivation *derivation_new (symbol_number sym, derivation_list children);
+// rule_num is the number of the rule SYM -> CHILDREN.
+derivation *
+derivation_new (symbol_number sym, derivation_list children,
+                const rule *r);
 
 static inline derivation *derivation_new_leaf (symbol_number sym)
 {
-  return derivation_new (sym, NULL);
+  return derivation_new (sym, NULL, NULL);
 }
 
 // Number of symbols.

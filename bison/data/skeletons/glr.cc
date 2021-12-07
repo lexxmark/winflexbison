@@ -1,6 +1,6 @@
 # C++ GLR skeleton for Bison
 
-# Copyright (C) 2002-2015, 2018-2020 Free Software Foundation, Inc.
+# Copyright (C) 2002-2015, 2018-2021 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 # This skeleton produces a C++ class that encapsulates a C glr parser.
@@ -78,7 +78,7 @@ m4_define([b4_yy_symbol_print_define],
 
 static void
 yy_symbol_print (FILE *, ]b4_namespace_ref::b4_parser_class[::symbol_kind_type yytoken,
-                 const ]b4_namespace_ref::b4_parser_class[::semantic_type *yyvaluep]b4_locations_if([[,
+                 const ]b4_namespace_ref::b4_parser_class[::value_type *yyvaluep]b4_locations_if([[,
                  const ]b4_namespace_ref::b4_parser_class[::location_type *yylocationp]])[]b4_user_formals[)
 {
 ]b4_parse_param_use[]dnl
@@ -144,7 +144,7 @@ m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
   int
   ]b4_parser_class[::parse ()
   {
-    return ::yyparse (*this]b4_user_args[);
+    return ::yy_parse_impl (*this]b4_user_args[);
   }
 
 #if ]b4_api_PREFIX[DEBUG
@@ -154,21 +154,21 @@ m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
 
   void
   ]b4_parser_class[::yy_symbol_value_print_ (symbol_kind_type yykind,
-                           const semantic_type* yyvaluep]b4_locations_if([[,
+                           const value_type* yyvaluep]b4_locations_if([[,
                            const location_type* yylocationp]])[) const
   {]b4_locations_if([[
-    YYUSE (yylocationp);]])[
-    YYUSE (yyvaluep);
+    YY_USE (yylocationp);]])[
+    YY_USE (yyvaluep);
     std::ostream& yyo = debug_stream ();
     std::ostream& yyoutput = yyo;
-    YYUSE (yyoutput);
+    YY_USE (yyoutput);
     ]b4_symbol_actions([printer])[
   }
 
 
   void
   ]b4_parser_class[::yy_symbol_print_ (symbol_kind_type yykind,
-                           const semantic_type* yyvaluep]b4_locations_if([[,
+                           const value_type* yyvaluep]b4_locations_if([[,
                            const location_type* yylocationp]])[) const
   {
     *yycdebug_ << (yykind < YYNTOKENS ? "token" : "nterm")
@@ -221,15 +221,33 @@ m4_define([b4_define_symbol_kind],
 # Setup redirections for glr.c: Map the names used in c.m4 to the ones used
 # in c++.m4.
 m4_define([b4_glr_cc_setup],
-[[#undef ]b4_symbol(-2, [id])[
-#define ]b4_symbol(-2, [id])[ ]b4_namespace_ref[::]b4_parser_class[::token::]b4_symbol(-2, [id])[
-#undef ]b4_symbol(0, [id])[
-#define ]b4_symbol(0, [id])[ ]b4_namespace_ref[::]b4_parser_class[::token::]b4_symbol(0, [id])[
-#undef ]b4_symbol(1, [id])[
-#define ]b4_symbol(1, [id])[ ]b4_namespace_ref[::]b4_parser_class[::token::]b4_symbol(1, [id])[
+[[]b4_attribute_define[
+]b4_null_define[
+
+// This skeleton is based on C, yet compiles it as C++.
+// So expect warnings about C style casts.
+#if defined __clang__ && 306 <= __clang_major__ * 100 + __clang_minor__
+# pragma clang diagnostic ignored "-Wold-style-cast"
+#elif defined __GNUC__ && 406 <= __GNUC__ * 100 + __GNUC_MINOR__
+# pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+
+// On MacOS, PTRDIFF_MAX is defined as long long, which Clang's
+// -pedantic reports as being a C++11 extension.
+#if defined __APPLE__ && YY_CPLUSPLUS < 201103L \
+    && defined __clang__ && 4 <= __clang_major__
+# pragma clang diagnostic ignored "-Wc++11-long-long"
+#endif
+
+#undef ]b4_symbol(empty, [id])[
+#define ]b4_symbol(empty, [id])[ ]b4_namespace_ref[::]b4_parser_class[::token::]b4_symbol(empty, [id])[
+#undef ]b4_symbol(eof, [id])[
+#define ]b4_symbol(eof, [id])[ ]b4_namespace_ref[::]b4_parser_class[::token::]b4_symbol(eof, [id])[
+#undef ]b4_symbol(error, [id])[
+#define ]b4_symbol(error, [id])[ ]b4_namespace_ref[::]b4_parser_class[::token::]b4_symbol(error, [id])[
 
 #ifndef ]b4_api_PREFIX[STYPE
-# define ]b4_api_PREFIX[STYPE ]b4_namespace_ref[::]b4_parser_class[::semantic_type
+# define ]b4_api_PREFIX[STYPE ]b4_namespace_ref[::]b4_parser_class[::value_type
 #endif
 #ifndef ]b4_api_PREFIX[LTYPE
 # define ]b4_api_PREFIX[LTYPE ]b4_namespace_ref[::]b4_parser_class[::location_type
@@ -252,9 +270,9 @@ m4_define([b4_undef_symbol_kind],
 # -----------------
 # Remove redirections for glr.c.
 m4_define([b4_glr_cc_cleanup],
-[[#undef ]b4_symbol(-2, [id])[
-#undef ]b4_symbol(0, [id])[
-#undef ]b4_symbol(1, [id])[
+[[#undef ]b4_symbol(empty, [id])[
+#undef ]b4_symbol(eof, [id])[
+#undef ]b4_symbol(error, [id])[
 
 ]b4_undef_symbol_kind(-2)dnl
 b4_symbol_foreach([b4_undef_symbol_kind])dnl
@@ -263,7 +281,7 @@ b4_symbol_foreach([b4_undef_symbol_kind])dnl
 
 # b4_shared_declarations(hh|cc)
 # -----------------------------
-# Declaration that might either go into the header (if --defines, $1 = hh)
+# Declaration that might either go into the header (if --header, $1 = hh)
 # or in the implementation file.
 m4_define([b4_shared_declarations],
 [m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
@@ -276,24 +294,6 @@ b4_percent_code_get([[requires]])[
 ]m4_ifdef([b4_location_include],
           [[# include ]b4_location_include])[
 ]b4_variant_if([b4_variant_includes])[
-
-]b4_attribute_define[
-]b4_null_define[
-
-// This skeleton is based on C, yet compiles it as C++.
-// So expect warnings about C style casts.
-#if defined __clang__ && 306 <= __clang_major__ * 100 + __clang_minor__
-# pragma clang diagnostic ignored "-Wold-style-cast"
-#elif defined __GNUC__ && 406 <= __GNUC__ * 100 + __GNUC_MINOR__
-# pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
-
-// On MacOS, PTRDIFF_MAX is defined as long long, which Clang's
-// -pedantic reports as being a C++11 extension.
-#if defined __APPLE__ && YY_CPLUSPLUS < 201103L \
-    && defined __clang__ && 4 <= __clang_major__
-# pragma clang diagnostic ignored "-Wc++11-long-long"
-#endif
 
 // Whether we are compiled with exception support.
 #ifndef YY_EXCEPTIONS
@@ -355,14 +355,14 @@ b4_percent_code_get([[requires]])[
     /// \param yyvaluep     Its semantic value.]b4_locations_if([[
     /// \param yylocationp  Its location.]])[
     virtual void yy_symbol_value_print_ (symbol_kind_type yykind,
-                                         const semantic_type* yyvaluep]b4_locations_if([[,
+                                         const value_type* yyvaluep]b4_locations_if([[,
                                          const location_type* yylocationp]])[) const;
     /// \brief Report a symbol on the debug stream.
     /// \param yykind       The symbol kind.
     /// \param yyvaluep     Its semantic value.]b4_locations_if([[
     /// \param yylocationp  Its location.]])[
     virtual void yy_symbol_print_ (symbol_kind_type yykind,
-                                   const semantic_type* yyvaluep]b4_locations_if([[,
+                                   const value_type* yyvaluep]b4_locations_if([[,
                                    const location_type* yylocationp]])[) const;
   private:
     /// Debug stream.
@@ -378,10 +378,10 @@ b4_percent_code_get([[requires]])[
 ]m4_popdef([b4_parse_param])dnl
 ])[
 
-]b4_defines_if(
+]b4_header_if(
 [b4_output_begin([b4_spec_header_file])
 b4_copyright([Skeleton interface for Bison GLR parsers in C++],
-             [2002-2015, 2018-2020])[
+             [2002-2015, 2018-2021])[
 // C++ GLR parser skeleton written by Akim Demaille.
 
 ]b4_disclaimer[

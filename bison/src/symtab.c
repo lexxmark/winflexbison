@@ -1,6 +1,6 @@
 /* Symbol table manager for Bison.
 
-   Copyright (C) 1984, 1989, 2000-2002, 2004-2015, 2018-2020 Free
+   Copyright (C) 1984, 1989, 2000-2002, 2004-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "symtab.h"
@@ -60,8 +60,6 @@ symbol *errtoken = NULL;
 symbol *undeftoken = NULL;
 symbol *eoftoken = NULL;
 symbol *acceptsymbol = NULL;
-symbol *startsymbol = NULL;
-location startsymbol_loc;
 
 /* Precedence relation graph. */
 static symgraph **prec_nodes;
@@ -307,9 +305,14 @@ is_identifier (uniqstr s)
 uniqstr
 symbol_id_get (symbol const *sym)
 {
-  if (sym->alias)
-    sym = sym->alias;
-  return is_identifier (sym->tag) ? sym->tag : 0;
+  // There's one weird case: YYerror is the alias, and error is the
+  // base symbol.  Return YYerror in that case.
+  if (sym->alias && is_identifier (sym->alias->tag))
+    return sym->alias->tag;
+  else if (is_identifier (sym->tag))
+    return sym->tag;
+  else
+    return NULL;
 }
 
 
@@ -1146,15 +1149,6 @@ symbols_pack (void)
   symbols = xnrealloc (symbols, nsyms, sizeof *symbols);
 
   symbols_token_translations_init ();
-
-  if (startsymbol->content->class == unknown_sym)
-    complain (&startsymbol_loc, fatal,
-              _("the start symbol %s is undefined"),
-              startsymbol->tag);
-  else if (startsymbol->content->class == token_sym)
-    complain (&startsymbol_loc, fatal,
-              _("the start symbol %s is a token"),
-              startsymbol->tag);
 
   // If some user tokens are internationalized, the internal ones
   // should be too.

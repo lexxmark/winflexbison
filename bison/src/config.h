@@ -1,11 +1,11 @@
 #define PACKAGE_BUGREPORT "https://github.com/lexxmark/winflexbison/issues"
-#define VERSION "3.7.4"
+#define VERSION "3.8.2"
 #define PACKAGE_COPYRIGHT_YEAR 2020
 #define LOCALEDIR ""
 #define PACKAGE_STRING "bison"
 #define PACKAGE_URL "https://github.com/lexxmark/winflexbison"
 #define PACKAGE ""
-#define PACKAGE_VERSION "3.7.4"
+#define PACKAGE_VERSION "3.8.2"
 #define PACKAGE_NAME "bison"
 #define PKGDATADIR "data"
 #define RENAME_OPEN_FILE_WORKS 1

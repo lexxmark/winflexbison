@@ -1,6 +1,6 @@
 /* Array bitsets.
 
-   Copyright (C) 2002-2003, 2006, 2009-2015, 2018-2020 Free Software
+   Copyright (C) 2002-2003, 2006, 2009-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
@@ -42,7 +42,7 @@ abitset_resize (bitset src, bitset_bindex size)
   return size;
 }
 
-/* Find list of up to NUM bits set in BSET starting from and including
+/* Find list of up to NUM bits set in SRC starting from and including
    *NEXT and store in array LIST.  Return with actual number of bits
    found and with *NEXT indicating where search stopped.  */
 static bitset_bindex
@@ -62,44 +62,29 @@ abitset_small_list (bitset src, bitset_bindex *list,
 
   word >>= bitno;
 
-  /* If num is 1, we could speed things up with a binary search
-     of the word of interest.  */
-
-  bitset_bindex count;
+  bitset_bindex count = 0;
+  /* Is there enough room to avoid checking in each iteration? */
   if (num >= BITSET_WORD_BITS)
-    {
-      for (count = 0; word; bitno++)
-        {
-          if (word & 1)
-            list[count++] = bitno;
-          word >>= 1;
-        }
-    }
+    BITSET_FOR_EACH_BIT (pos, word)
+      list[count++] = bitno + pos;
   else
-    {
-      for (count = 0; word; bitno++)
-        {
-          if (word & 1)
-            {
-              list[count++] = bitno;
-              if (count >= num)
-                {
-                  bitno++;
-                  break;
-                }
-            }
-          word >>= 1;
-        }
-    }
-
-  *next = bitno;
+    BITSET_FOR_EACH_BIT (pos, word)
+      {
+        list[count++] = bitno + pos;
+        if (count >= num)
+          {
+            *next = bitno + pos + 1;
+            return count;
+          }
+      }
+  *next = bitno + BITSET_WORD_BITS;
   return count;
 }
 
 
 /* Set bit BITNO in bitset DST.  */
 static void
-abitset_set (bitset dst MAYBE_UNUSED, bitset_bindex bitno MAYBE_UNUSED)
+abitset_set (MAYBE_UNUSED bitset dst, MAYBE_UNUSED bitset_bindex bitno)
 {
   /* This should never occur for abitsets since we should always hit
      the cache.  It is likely someone is trying to access outside the
@@ -110,8 +95,8 @@ abitset_set (bitset dst MAYBE_UNUSED, bitset_bindex bitno MAYBE_UNUSED)
 
 /* Reset bit BITNO in bitset DST.  */
 static void
-abitset_reset (bitset dst MAYBE_UNUSED,
-               bitset_bindex bitno MAYBE_UNUSED)
+abitset_reset (MAYBE_UNUSED bitset dst,
+               MAYBE_UNUSED bitset_bindex bitno)
 {
   /* This should never occur for abitsets since we should always hit
      the cache.  It is likely someone is trying to access outside the
@@ -121,8 +106,8 @@ abitset_reset (bitset dst MAYBE_UNUSED,
 
 /* Test bit BITNO in bitset SRC.  */
 static bool
-abitset_test (bitset src MAYBE_UNUSED,
-              bitset_bindex bitno MAYBE_UNUSED)
+abitset_test (MAYBE_UNUSED bitset src,
+              MAYBE_UNUSED bitset_bindex bitno)
 {
   /* This should never occur for abitsets since we should always
      hit the cache.  */
@@ -130,7 +115,7 @@ abitset_test (bitset src MAYBE_UNUSED,
 }
 
 
-/* Find list of up to NUM bits set in BSET in reverse order, starting
+/* Find list of up to NUM bits set in SRC in reverse order, starting
    from and including NEXT and store in array LIST.  Return with
    actual number of bits found and with *NEXT indicating where search
    stopped.  */
@@ -158,19 +143,18 @@ abitset_list_reverse (bitset src, bitset_bindex *list,
 
   do
     {
-      bitset_word word = srcp[windex] << (BITSET_WORD_BITS - 1 - bitcnt);
-      for (; word; bitcnt--)
+      bitset_word word = srcp[windex];
+      if (bitcnt + 1 < BITSET_WORD_BITS)
+        /* We're starting in the middle of a word: smash bits to ignore.  */
+        word &= ((bitset_word) 1 << (bitcnt + 1)) - 1;
+      BITSET_FOR_EACH_BIT_REVERSE(pos, word)
         {
-          if (word & BITSET_MSB)
+          list[count++] = bitoff + pos;
+          if (count >= num)
             {
-              list[count++] = bitoff + bitcnt;
-              if (count >= num)
-                {
-                  *next = n_bits - (bitoff + bitcnt);
-                  return count;
-                }
+              *next = n_bits - (bitoff + pos);
+              return count;
             }
-          word <<= 1;
         }
       bitoff -= BITSET_WORD_BITS;
       bitcnt = BITSET_WORD_BITS - 1;
@@ -182,7 +166,7 @@ abitset_list_reverse (bitset src, bitset_bindex *list,
 }
 
 
-/* Find list of up to NUM bits set in BSET starting from and including
+/* Find list of up to NUM bits set in SRC starting from and including
    *NEXT and store in array LIST.  Return with actual number of bits
    found and with *NEXT indicating where search stopped.  */
 static bitset_bindex
@@ -205,9 +189,6 @@ abitset_list (bitset src, bitset_bindex *list,
       if (windex >= size)
         return 0;
 
-      /* If num is 1, we could speed things up with a binary search
-         of the current word.  */
-
       bitoff = windex * BITSET_WORD_BITS;
     }
   else
@@ -227,18 +208,15 @@ abitset_list (bitset src, bitset_bindex *list,
 
           bitoff = windex * BITSET_WORD_BITS;
           bitset_word word = srcp[windex] >> bitno;
-          for (bitno = bitoff + bitno; word; bitno++)
+          bitno = bitoff + bitno;
+          BITSET_FOR_EACH_BIT (pos, word)
             {
-              if (word & 1)
+              list[count++] = bitno + pos;
+              if (count >= num)
                 {
-                  list[count++] = bitno;
-                  if (count >= num)
-                    {
-                      *next = bitno + 1;
-                      return count;
-                    }
+                  *next = bitno + pos + 1;
+                  return count;
                 }
-              word >>= 1;
             }
           windex++;
         }
@@ -251,31 +229,20 @@ abitset_list (bitset src, bitset_bindex *list,
       if (!word)
         continue;
 
+      /* Is there enough room to avoid checking in each iteration? */
       if ((count + BITSET_WORD_BITS) < num)
-        {
-          for (bitno = bitoff; word; bitno++)
-            {
-              if (word & 1)
-                list[count++] = bitno;
-              word >>= 1;
-            }
-        }
+        BITSET_FOR_EACH_BIT (pos, word)
+          list[count++] = bitoff + pos;
       else
-        {
-          for (bitno = bitoff; word; bitno++)
-            {
-              if (word & 1)
-                {
-                  list[count++] = bitno;
-                  if (count >= num)
-                    {
-                      *next = bitno + 1;
-                      return count;
-                    }
-                }
-              word >>= 1;
-            }
-        }
+        BITSET_FOR_EACH_BIT (pos, word)
+          {
+            list[count++] = bitoff + pos;
+            if (count >= num)
+              {
+                *next = bitoff + pos + 1;
+                return count;
+              }
+          }
     }
 
   *next = bitoff;

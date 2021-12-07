@@ -1,6 +1,6 @@
 /* Counterexample Generation Search Nodes
 
-   Copyright (C) 2020 Free Software Foundation, Inc.
+   Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef STATE_ITEM_H
 # define STATE_ITEM_H
@@ -93,6 +93,7 @@ void state_items_init (void);
 void state_items_free (void);
 
 void state_item_print (const state_item *si, FILE *out, const char *prefix);
+const rule *state_item_rule (const state_item *si);
 
 bool production_allowed (const state_item *si, const state_item *next);
 

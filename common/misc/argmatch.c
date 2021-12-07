@@ -1,6 +1,6 @@
 /* argmatch.c -- find a match for a string in an array
 
-   Copyright (C) 1990, 1998-1999, 2001-2007, 2009-2020 Free Software
+   Copyright (C) 1990, 1998-1999, 2001-2007, 2009-2021 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -266,7 +266,7 @@ main (int argc, const char *const *argv)
                              backup_args, backup_vals);
 
   printf ("The version control is '%s'\n",
-          ARGMATCH_TO_ARGUMENT (backup_type, backup_args, backup_vals));
+          ARGMATCH_TO_ARGUMENT (&backup_type, backup_args, backup_vals));
 
   return 0;
 }
