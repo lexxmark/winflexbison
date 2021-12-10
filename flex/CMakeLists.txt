@@ -22,7 +22,7 @@ target_compile_definitions(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} PRIVATE "src")
 
-target_link_libraries(${PROJECT_NAME} winflexbison_common kernel32.lib user32.lib Ws2_32.lib)
+target_link_libraries(${PROJECT_NAME} winflexbison_common kernel32.lib user32.lib)
 
 # libfl
 add_library(fl STATIC 

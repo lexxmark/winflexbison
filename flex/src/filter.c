@@ -31,9 +31,6 @@ static const char * check_4_gnu_m4 =
 /** global chain. */
 struct filter *output_chain = NULL;
 
-static const char letters[] =
-"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>

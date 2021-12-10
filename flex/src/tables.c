@@ -36,7 +36,10 @@
 #include "flexdef.h"
 #include "tables.h"
 
-#include <Winsock2.h>
+#ifdef _MSC_VER
+#define htonl(n) _byteswap_ulong(n)
+#define htons(n) _byteswap_ushort(n)
+#endif
 
 /** Convert size_t to t_flag.
  *  @param n in {1,2,4}
