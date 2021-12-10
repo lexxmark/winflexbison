@@ -6,6 +6,7 @@
   
 ### version 2.5.25
   * upgrade win_bison to version 3.8.2
+  * upgrade m4 to version 1.4.19
 
 ### version 2.5.24
   * upgrade win_bison to version 3.7.4

@@ -17,7 +17,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-#include <config.h>
+//#include <config.h>
+#include "../../misc/config.h"
 
 #include "derivation.h"
 #include "glyphs.h"
@@ -42,12 +43,6 @@ struct derivation
   // in which the derivations are traversed.
   int color;
 };
-
-static inline const void *
-gl_list_get_first (gl_list_t list)
-{
-  return gl_list_get_at (list, 0);
-}
 
 static derivation d_dot = { -1, NULL, -1, NULL, -1 };
 

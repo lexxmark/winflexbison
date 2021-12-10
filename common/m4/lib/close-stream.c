@@ -1,6 +1,6 @@
 /* Close a stream, with nicer error checking than fclose's.
 
-   Copyright (C) 1998-2002, 2004, 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 1998-2002, 2004, 2006-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -63,7 +63,7 @@ close_stream (FILE *stream)
      fclose failed, with one exception: ignore an fclose failure if
      there was no previous error, no data remains to be flushed, and
      fclose failed with EBADF.  That can happen when a program like cp
-     is invoked like this `cp a b >&-' (i.e., with standard output
+     is invoked like this 'cp a b >&-' (i.e., with standard output
      closed) and doesn't generate any output (hence no previous error
      and nothing to be flushed).  */
 

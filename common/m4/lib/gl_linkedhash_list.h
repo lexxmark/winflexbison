@@ -1,5 +1,5 @@
 /* Sequential list data type implemented by a hash table with a linked list.
-   Copyright (C) 2006, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2021 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2006.
 
    This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _GL_LINKEDHASH_LIST_H
 #define _GL_LINKEDHASH_LIST_H

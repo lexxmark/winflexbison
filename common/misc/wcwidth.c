@@ -59,7 +59,16 @@ wcwidth (wchar_t wc)
     {
       /* We assume that in a UTF-8 locale, a wide character is the same as a
          Unicode character.  */
+#ifndef _WIN32
       return uc_width (wc, "UTF-8");
+#else
+     uint16_t v = wc;
+     if (v >= 0xd800 && v <= 0xdbff)
+         return 4;
+     if (v >= 0xdc00 && v <= 0xdfff)
+       v -= 0xdc00;
+     return v <= 0x7f ? 1 : (v <= 0x7ff ? 2 : 3);
+#endif
     }
   else
     {

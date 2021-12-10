@@ -1,7 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2004-2014, 2016 Free Software Foundation,
-   Inc.
+   Copyright (C) 1989-1994, 2004-2014, 2016-2017, 2020-2021 Free
+   Software Foundation, Inc.
 
    This file is part of GNU M4.
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /* Handling of different input sources, and lexical analysis.  */
@@ -165,6 +165,9 @@ static struct re_registers regs;
 #ifdef DEBUG_INPUT
 static const char *token_type_string (token_type);
 #endif
+
+static void pop_input (void);
+
 
 
 /*-------------------------------------------------------------------.
@@ -250,6 +253,9 @@ push_string_init (void)
       abort ();
     }
 
+  /* Prefer reusing an older block, for tail-call optimization.  */
+  while (isp && isp->type == INPUT_STRING && !isp->u.u_s.string[0])
+    pop_input ();
   next = (input_block *) obstack_alloc (current_input,
                                         sizeof (struct input_block));
   next->type = INPUT_STRING;
@@ -350,14 +356,14 @@ pop_input (void)
 
       if (ferror (isp->u.u_f.fp))
         {
-          M4ERROR ((warning_status, 0, "read error"));
+          M4ERROR ((warning_status, 0, _("read error")));
           if (isp->u.u_f.close)
             fclose (isp->u.u_f.fp);
           retcode = EXIT_FAILURE;
         }
       else if (isp->u.u_f.close && fclose (isp->u.u_f.fp) == EOF)
         {
-          M4ERROR ((warning_status, errno, "error reading file"));
+          M4ERROR ((warning_status, errno, _("error reading file")));
           retcode = EXIT_FAILURE;
         }
       start_of_input_line = isp->u.u_f.advance;
@@ -580,7 +586,7 @@ skip_line (void)
     /* current_file changed to "" if we see CHAR_EOF, use the
        previous value we stored earlier.  */
     M4ERROR_AT_LINE ((warning_status, 0, file, line,
-                      "Warning: end of file treated as newline"));
+                      _("Warning: end of file treated as newline")));
   /* On the rare occasion that dnl crosses include file boundaries
      (either the input file did not end in a newline, or changeword
      was used), calling next_char can update current_file and
@@ -783,7 +789,7 @@ set_word_regexp (const char *regexp)
   if (msg != NULL)
     {
       M4ERROR ((warning_status, 0,
-                "bad regular expression `%s': %s", regexp, msg));
+                _("bad regular expression `%s': %s"), regexp, msg));
       return;
     }
 
@@ -872,15 +878,14 @@ next_token (token_data *td, int *line)
       else
         /* current_file changed to "" if we see CHAR_EOF, use the
            previous value we stored earlier.  */
-        M4ERROR_AT_LINE ((EXIT_FAILURE, 0, file, *line,
-                          "ERROR: end of file in comment"));
+        m4_failure_at_line (0, file, *line, _("ERROR: end of file in comment"));
 
       type = TOKEN_STRING;
     }
-  else if (default_word_regexp && (isalpha (ch) || ch == '_'))
+  else if (default_word_regexp && (c_isalpha (ch) || ch == '_'))
     {
       obstack_1grow (&token_stack, ch);
-      while ((ch = peek_input ()) != CHAR_EOF && (isalnum (ch) || ch == '_'))
+      while ((ch = peek_input ()) != CHAR_EOF && (c_isalnum (ch) || ch == '_'))
         {
           obstack_1grow (&token_stack, ch);
           next_char ();
@@ -992,8 +997,8 @@ next_token (token_data *td, int *line)
           if (ch == CHAR_EOF)
             /* current_file changed to "" if we see CHAR_EOF, use
                the previous value we stored earlier.  */
-            M4ERROR_AT_LINE ((EXIT_FAILURE, 0, file, *line,
-                              "ERROR: end of file in string"));
+            m4_failure_at_line (0, file, *line,
+                                _("ERROR: end of file in string"));
 
           if (MATCH (ch, rquote.string, true))
             {
@@ -1050,7 +1055,7 @@ peek_token (void)
     {
       result = TOKEN_STRING;
     }
-  else if ((default_word_regexp && (isalpha (ch) || ch == '_'))
+  else if ((default_word_regexp && (c_isalpha (ch) || ch == '_'))
 #ifdef ENABLE_CHANGEWORD
            || (! default_word_regexp && word_regexp.fastmap[ch])
 #endif /* ENABLE_CHANGEWORD */
@@ -1145,7 +1150,7 @@ print_token (const char *s, token_type t, token_data *td)
   xfprintf (stderr, "\t\"%s\"\n", TOKEN_DATA_TEXT (td));
 }
 
-static void M4_GNUC_UNUSED
+static void MAYBE_UNUSED
 lex_debug (void)
 {
   token_type t;

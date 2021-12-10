@@ -1,5 +1,5 @@
 /* Sequential list data type implemented by a linked list.
-   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2021 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2006.
 
    This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Common code of gl_linked_list.c and gl_linkedhash_list.c.  */
 
@@ -29,7 +29,7 @@
    and we use 'volatile' assignments to prevent the compiler from reordering
    such assignments.  */
 #ifdef SIGNAL_SAFE_LIST
-# define ASYNCSAFE(type) *(volatile type *)&
+# define ASYNCSAFE(type) *(type volatile *)&
 #else
 # define ASYNCSAFE(type)
 #endif
@@ -76,11 +76,11 @@ gl_linked_nx_create_empty (gl_list_implementation_t implementation,
 
 static gl_list_t
 gl_linked_nx_create (gl_list_implementation_t implementation,
-                  gl_listelement_equals_fn equals_fn,
-                  gl_listelement_hashcode_fn hashcode_fn,
-                  gl_listelement_dispose_fn dispose_fn,
-                  bool allow_duplicates,
-                  size_t count, const void **contents)
+                     gl_listelement_equals_fn equals_fn,
+                     gl_listelement_hashcode_fn hashcode_fn,
+                     gl_listelement_dispose_fn dispose_fn,
+                     bool allow_duplicates,
+                     size_t count, const void **contents)
 {
   struct gl_list_impl *list =
     (struct gl_list_impl *) malloc (sizeof (struct gl_list_impl));
@@ -163,20 +163,22 @@ gl_linked_nx_create (gl_list_implementation_t implementation,
   return NULL;
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_linked_size (gl_list_t list)
 {
   return list->count;
 }
 
-static const void *
-gl_linked_node_value (gl_list_t list, gl_list_node_t node)
+static const void * _GL_ATTRIBUTE_PURE
+gl_linked_node_value (gl_list_t list _GL_ATTRIBUTE_MAYBE_UNUSED,
+                      gl_list_node_t node)
 {
   return node->value;
 }
 
 static int
-gl_linked_node_nx_set_value (gl_list_t list, gl_list_node_t node,
+gl_linked_node_nx_set_value (gl_list_t list _GL_ATTRIBUTE_MAYBE_UNUSED,
+                             gl_list_node_t node,
                              const void *elt)
 {
 #if WITH_HASHTABLE
@@ -215,19 +217,37 @@ gl_linked_node_nx_set_value (gl_list_t list, gl_list_node_t node,
   return 0;
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_linked_next_node (gl_list_t list, gl_list_node_t node)
 {
   return (node->next != &list->root ? node->next : NULL);
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_linked_previous_node (gl_list_t list, gl_list_node_t node)
 {
   return (node->prev != &list->root ? node->prev : NULL);
 }
 
-static const void *
+static gl_list_node_t _GL_ATTRIBUTE_PURE
+gl_linked_first_node (gl_list_t list)
+{
+  if (list->count > 0)
+    return list->root.next;
+  else
+    return NULL;
+}
+
+static gl_list_node_t _GL_ATTRIBUTE_PURE
+gl_linked_last_node (gl_list_t list)
+{
+  if (list->count > 0)
+    return list->root.prev;
+  else
+    return NULL;
+}
+
+static const void * _GL_ATTRIBUTE_PURE
 gl_linked_get_at (gl_list_t list, size_t position)
 {
   size_t count = list->count;
@@ -312,7 +332,7 @@ gl_linked_nx_set_at (gl_list_t list, size_t position, const void *elt)
   return node;
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_linked_search_from_to (gl_list_t list, size_t start_index, size_t end_index,
                           const void *elt)
 {
@@ -465,7 +485,7 @@ gl_linked_search_from_to (gl_list_t list, size_t start_index, size_t end_index,
   }
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_linked_indexof_from_to (gl_list_t list, size_t start_index, size_t end_index,
                            const void *elt)
 {
@@ -914,7 +934,7 @@ gl_linked_list_free (gl_list_t list)
 
 /* --------------------- gl_list_iterator_t Data Type --------------------- */
 
-static gl_list_iterator_t
+static gl_list_iterator_t _GL_ATTRIBUTE_PURE
 gl_linked_iterator (gl_list_t list)
 {
   gl_list_iterator_t result;
@@ -923,7 +943,7 @@ gl_linked_iterator (gl_list_t list)
   result.list = list;
   result.p = list->root.next;
   result.q = &list->root;
-#ifdef lint
+#if defined GCC_LINT || defined lint
   result.i = 0;
   result.j = 0;
   result.count = 0;
@@ -932,7 +952,7 @@ gl_linked_iterator (gl_list_t list)
   return result;
 }
 
-static gl_list_iterator_t
+static gl_list_iterator_t _GL_ATTRIBUTE_PURE
 gl_linked_iterator_from_to (gl_list_t list,
                             size_t start_index, size_t end_index)
 {
@@ -994,7 +1014,7 @@ gl_linked_iterator_from_to (gl_list_t list,
       result.q = node;
     }
 
-#ifdef lint
+#if defined GCC_LINT || defined lint
   result.i = 0;
   result.j = 0;
   result.count = 0;
@@ -1021,13 +1041,13 @@ gl_linked_iterator_next (gl_list_iterator_t *iterator,
 }
 
 static void
-gl_linked_iterator_free (gl_list_iterator_t *iterator)
+gl_linked_iterator_free (gl_list_iterator_t *iterator _GL_ATTRIBUTE_MAYBE_UNUSED)
 {
 }
 
 /* ---------------------- Sorted gl_list_t Data Type ---------------------- */
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_linked_sortedlist_search (gl_list_t list, gl_listelement_compar_fn compar,
                              const void *elt)
 {
@@ -1045,7 +1065,7 @@ gl_linked_sortedlist_search (gl_list_t list, gl_listelement_compar_fn compar,
   return NULL;
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_linked_sortedlist_search_from_to (gl_list_t list,
                                      gl_listelement_compar_fn compar,
                                      size_t low, size_t high,
@@ -1093,7 +1113,7 @@ gl_linked_sortedlist_search_from_to (gl_list_t list,
   return NULL;
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_linked_sortedlist_indexof (gl_list_t list, gl_listelement_compar_fn compar,
                               const void *elt)
 {
@@ -1114,7 +1134,7 @@ gl_linked_sortedlist_indexof (gl_list_t list, gl_listelement_compar_fn compar,
   return (size_t)(-1);
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_linked_sortedlist_indexof_from_to (gl_list_t list,
                                       gl_listelement_compar_fn compar,
                                       size_t low, size_t high,

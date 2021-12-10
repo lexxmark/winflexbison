@@ -1,5 +1,5 @@
 /* Formatted output to strings.
-   Copyright (C) 1999-2000, 2002-2003, 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 1999-2000, 2002-2003, 2006-2021 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,8 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along
-   with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+   with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 /* This file can be parametrized with the following macros:
      CHAR_T             The element type of the format string.
@@ -402,7 +401,7 @@ PRINTF_PARSE (const CHAR_T *format, DIRECTIVES *d, arguments *a)
                       cp++;
                     }
 #if defined __APPLE__ && defined __MACH__
-                  /* On MacOS X 10.3, PRIdMAX is defined as "qd".
+                  /* On Mac OS X 10.3, PRIdMAX is defined as "qd".
                      We cannot change it to "lld" because PRIdMAX must also
                      be understood by the system's printf routines.  */
                   else if (*cp == 'q')
@@ -420,8 +419,8 @@ PRINTF_PARSE (const CHAR_T *format, DIRECTIVES *d, arguments *a)
                       cp++;
                     }
 #endif
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
-                  /* On native Win32, PRIdMAX is defined as "I64d".
+#if defined _WIN32 && ! defined __CYGWIN__
+                  /* On native Windows, PRIdMAX is defined as "I64d".
                      We cannot change it to "lld" because PRIdMAX must also
                      be understood by the system's printf routines.  */
                   else if (*cp == 'I' && cp[1] == '6' && cp[2] == '4')
@@ -448,14 +447,12 @@ PRINTF_PARSE (const CHAR_T *format, DIRECTIVES *d, arguments *a)
               switch (c)
                 {
                 case 'd': case 'i':
-#if HAVE_LONG_LONG_INT
-                  /* If 'long long' exists and is larger than 'long':  */
+                  /* If 'long long' is larger than 'long':  */
                   if (flags >= 16 || (flags & 4))
                     type = TYPE_LONGLONGINT;
                   else
-#endif
-                  /* If 'long long' exists and is the same as 'long', we parse
-                     "lld" into TYPE_LONGINT.  */
+                  /* If 'long long' is the same as 'long', we parse "lld" into
+                     TYPE_LONGINT.  */
                   if (flags >= 8)
                     type = TYPE_LONGINT;
                   else if (flags & 2)
@@ -466,14 +463,12 @@ PRINTF_PARSE (const CHAR_T *format, DIRECTIVES *d, arguments *a)
                     type = TYPE_INT;
                   break;
                 case 'o': case 'u': case 'x': case 'X':
-#if HAVE_LONG_LONG_INT
-                  /* If 'long long' exists and is larger than 'long':  */
+                  /* If 'unsigned long long' is larger than 'unsigned long':  */
                   if (flags >= 16 || (flags & 4))
                     type = TYPE_ULONGLONGINT;
                   else
-#endif
-                  /* If 'unsigned long long' exists and is the same as
-                     'unsigned long', we parse "llu" into TYPE_ULONGINT.  */
+                  /* If 'unsigned long long' is the same as 'unsigned long', we
+                     parse "llu" into TYPE_ULONGINT.  */
                   if (flags >= 8)
                     type = TYPE_ULONGINT;
                   else if (flags & 2)
@@ -526,14 +521,12 @@ PRINTF_PARSE (const CHAR_T *format, DIRECTIVES *d, arguments *a)
                   type = TYPE_POINTER;
                   break;
                 case 'n':
-#if HAVE_LONG_LONG_INT
-                  /* If 'long long' exists and is larger than 'long':  */
+                  /* If 'long long' is larger than 'long':  */
                   if (flags >= 16 || (flags & 4))
                     type = TYPE_COUNT_LONGLONGINT_POINTER;
                   else
-#endif
-                  /* If 'long long' exists and is the same as 'long', we parse
-                     "lln" into TYPE_COUNT_LONGINT_POINTER.  */
+                  /* If 'long long' is the same as 'long', we parse "lln" into
+                     TYPE_COUNT_LONGINT_POINTER.  */
                   if (flags >= 8)
                     type = TYPE_COUNT_LONGINT_POINTER;
                   else if (flags & 2)

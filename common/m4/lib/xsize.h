@@ -1,6 +1,6 @@
 /* xsize.h -- Checked size_t computations.
 
-   Copyright (C) 2003, 2008-2011 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2008-2021 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,8 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _XSIZE_H
 #define _XSIZE_H
@@ -26,6 +25,17 @@
 #include <limits.h>
 #if HAVE_STDINT_H
 # include <stdint.h>
+#endif
+
+/* Get ATTRIBUTE_PURE.  */
+#include "attribute.h"
+
+#ifndef _GL_INLINE_HEADER_BEGIN
+ #error "Please include config.h first."
+#endif
+_GL_INLINE_HEADER_BEGIN
+#ifndef XSIZE_INLINE
+# define XSIZE_INLINE _GL_INLINE
 #endif
 
 /* The size of memory objects is often computed through expressions of
@@ -49,10 +59,7 @@
   ((N) <= SIZE_MAX ? (size_t) (N) : SIZE_MAX)
 
 /* Sum of two sizes, with overflow check.  */
-static size_t
-#if __GNUC__ >= 3
-__attribute__ ((__pure__))
-#endif
+XSIZE_INLINE size_t ATTRIBUTE_PURE
 xsum (size_t size1, size_t size2)
 {
   size_t sum = size1 + size2;
@@ -60,30 +67,21 @@ xsum (size_t size1, size_t size2)
 }
 
 /* Sum of three sizes, with overflow check.  */
-static size_t
-#if __GNUC__ >= 3
-__attribute__ ((__pure__))
-#endif
+XSIZE_INLINE size_t ATTRIBUTE_PURE
 xsum3 (size_t size1, size_t size2, size_t size3)
 {
   return xsum (xsum (size1, size2), size3);
 }
 
 /* Sum of four sizes, with overflow check.  */
-static size_t
-#if __GNUC__ >= 3
-__attribute__ ((__pure__))
-#endif
+XSIZE_INLINE size_t ATTRIBUTE_PURE
 xsum4 (size_t size1, size_t size2, size_t size3, size_t size4)
 {
   return xsum (xsum (xsum (size1, size2), size3), size4);
 }
 
 /* Maximum of two sizes, with overflow check.  */
-static size_t
-#if __GNUC__ >= 3
-__attribute__ ((__pure__))
-#endif
+XSIZE_INLINE size_t ATTRIBUTE_PURE
 xmax (size_t size1, size_t size2)
 {
   /* No explicit check is needed here, because for any n:
@@ -93,7 +91,7 @@ xmax (size_t size1, size_t size2)
 
 /* Multiplication of a count with an element size, with overflow check.
    The count must be >= 0 and the element size must be > 0.
-   This is a macro, not an inline function, so that it works correctly even
+   This is a macro, not a function, so that it works correctly even
    when N is of a wider type and N > SIZE_MAX.  */
 #define xtimes(N, ELSIZE) \
   ((N) <= SIZE_MAX / (ELSIZE) ? (size_t) (N) * (ELSIZE) : SIZE_MAX)
@@ -104,5 +102,7 @@ xmax (size_t size1, size_t size2)
 /* Check against overflow.  */
 #define size_in_bounds_p(SIZE) \
   ((SIZE) != SIZE_MAX)
+
+_GL_INLINE_HEADER_END
 
 #endif /* _XSIZE_H */

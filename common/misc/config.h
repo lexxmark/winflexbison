@@ -29,6 +29,7 @@
 #define _GL_ATTRIBUTE_DEALLOC(f, i)
 #define _GL_ATTRIBUTE_RETURNS_NONNULL
 #define _GL_ATTRIBUTE_COLD
+#define _GL_ASYNC_SAFE
 #define GNULIB_XALLOC_DIE 1
 #define _GL_HAVE__STATIC_ASSERT
 #define _Static_assert(a, b)

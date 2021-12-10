@@ -18,10 +18,14 @@ file(GLOB SOURCE_FILES
 	"m4/*.h"
 	"m4/lib/*.c"
 	"m4/lib/*.h"
+	"m4/lib/malloc/*.c"
+	"m4/lib/malloc/*.h"
 )
 # exclude some source files
 list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/m4/lib/regexec.c")
 list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/m4/lib/regcomp.c")
+list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/m4/lib/regex_internal.c")
+list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/m4/lib/malloc/dynarray-skeleton.c")
 
 # Add library to build.
 add_library(${PROJECT_NAME} STATIC

@@ -1,7 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2003, 2006-2014, 2016 Free Software
-   Foundation, Inc.
+   Copyright (C) 1989-1994, 2003, 2006-2014, 2016-2017, 2020-2021 Free
+   Software Foundation, Inc.
 
    This file is part of GNU M4.
 
@@ -16,14 +16,14 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /* This file handles all the low level work around the symbol table.  The
    symbol table is a simple chained hash table.  Each symbol is described
    by a struct symbol, which is placed in the hash table based upon the
    symbol name.  Symbols that hash to the same entry in the table are
-   kept on a list, sorted by name.  As a special case, to facilitate the
+   kept on a list, sorted by hash.  As a special case, to facilitate the
    "pushdef" and "popdef" builtins, a symbol can be several times in the
    symbol table, one for each definition.  Since the name is the same,
    all the entries for the symbol will be on the same list, and will
@@ -93,7 +93,7 @@ profile_strcmp (const char *s1, const char *s2)
 `------------------------------------------------------------------*/
 
 /* Pointer to symbol table.  */
-symbol **symtab;
+static symbol **symtab;
 
 void
 symtab_init (void)
@@ -120,7 +120,7 @@ symtab_init (void)
 | Return a hashvalue for a string, from GNU-emacs.  |
 `--------------------------------------------------*/
 
-static size_t M4_GNUC_PURE
+static size_t ATTRIBUTE_PURE
 hash (const char *s)
 {
   register size_t val = 0;
@@ -144,7 +144,8 @@ free_symbol (symbol *sym)
     SYMBOL_DELETED (sym) = true;
   else
     {
-      free (SYMBOL_NAME (sym));
+      if (SYMBOL_STACK (sym) == NULL)
+        free (SYMBOL_NAME (sym));
       if (SYMBOL_TYPE (sym) == TOKEN_TEXT)
         free (SYMBOL_TEXT (sym));
       free (sym);
@@ -182,7 +183,9 @@ lookup_symbol (const char *name, symbol_lookup mode)
 
   for (prev = NULL; sym != NULL; prev = sym, sym = sym->next)
     {
-      cmp = strcmp (SYMBOL_NAME (sym), name);
+      cmp = (h > sym->hash) - (h < sym->hash);
+      if (cmp == 0)
+        cmp = strcmp (SYMBOL_NAME (sym), name);
       if (cmp >= 0)
         break;
     }
@@ -216,45 +219,52 @@ lookup_symbol (const char *name, symbol_lookup mode)
               sym = (symbol *) xmalloc (sizeof (symbol));
               SYMBOL_TYPE (sym) = TOKEN_VOID;
               SYMBOL_TRACED (sym) = SYMBOL_TRACED (old);
-              SYMBOL_NAME (sym) = xstrdup (name);
-              SYMBOL_SHADOWED (sym) = false;
+              sym->hash = h;
+              SYMBOL_NAME (sym) = old->name;
+              old->name = xstrdup (name);
               SYMBOL_MACRO_ARGS (sym) = false;
               SYMBOL_BLIND_NO_ARGS (sym) = false;
               SYMBOL_DELETED (sym) = false;
               SYMBOL_PENDING_EXPANSIONS (sym) = 0;
 
-              SYMBOL_NEXT (sym) = SYMBOL_NEXT (old);
-              SYMBOL_NEXT (old) = NULL;
-              (*spp) = sym;
+              SYMBOL_STACK (sym) = SYMBOL_STACK (old);
+              SYMBOL_STACK (old) = NULL;
+              sym->next = old->next;
+              old->next = NULL;
+              *spp = sym;
             }
           return sym;
         }
-      /* Fall through.  */
+      FALLTHROUGH;
 
     case SYMBOL_PUSHDEF:
 
       /* Insert a name in the symbol table.  If there is already a symbol
-         with the name, insert this in front of it, and mark the old
-         symbol as "shadowed".  */
+         with the name, insert this in front of it.  */
 
       sym = (symbol *) xmalloc (sizeof (symbol));
       SYMBOL_TYPE (sym) = TOKEN_VOID;
       SYMBOL_TRACED (sym) = false;
-      SYMBOL_NAME (sym) = xstrdup (name);
-      SYMBOL_SHADOWED (sym) = false;
+      sym->hash = h;
       SYMBOL_MACRO_ARGS (sym) = false;
       SYMBOL_BLIND_NO_ARGS (sym) = false;
       SYMBOL_DELETED (sym) = false;
       SYMBOL_PENDING_EXPANSIONS (sym) = 0;
 
-      SYMBOL_NEXT (sym) = *spp;
-      (*spp) = sym;
+      SYMBOL_STACK (sym) = NULL;
+      sym->next = *spp;
+      *spp = sym;
 
       if (mode == SYMBOL_PUSHDEF && cmp == 0)
         {
-          SYMBOL_SHADOWED (SYMBOL_NEXT (sym)) = true;
-          SYMBOL_TRACED (sym) = SYMBOL_TRACED (SYMBOL_NEXT (sym));
+          SYMBOL_STACK (sym) = sym->next;
+          sym->next = SYMBOL_STACK (sym)->next;
+          SYMBOL_STACK (sym)->next = NULL;
+          SYMBOL_TRACED (sym) = SYMBOL_TRACED (SYMBOL_STACK (sym));
+          SYMBOL_NAME (sym) = SYMBOL_NAME (SYMBOL_STACK (sym));
         }
+      else
+        SYMBOL_NAME (sym) = xstrdup (name);
       return sym;
 
     case SYMBOL_DELETE:
@@ -271,37 +281,41 @@ lookup_symbol (const char *name, symbol_lookup mode)
         return NULL;
       {
         bool traced = false;
-        if (SYMBOL_NEXT (sym) != NULL
-            && SYMBOL_SHADOWED (SYMBOL_NEXT (sym))
+        symbol *next;
+        if (SYMBOL_STACK (sym) != NULL
             && mode == SYMBOL_POPDEF)
           {
-            SYMBOL_SHADOWED (SYMBOL_NEXT (sym)) = false;
-            SYMBOL_TRACED (SYMBOL_NEXT (sym)) = SYMBOL_TRACED (sym);
+            SYMBOL_TRACED (SYMBOL_STACK (sym)) = SYMBOL_TRACED (sym);
+            SYMBOL_STACK (sym)->next = sym->next;
+            *spp = SYMBOL_STACK (sym);
           }
         else
-          traced = SYMBOL_TRACED (sym);
+          {
+            traced = SYMBOL_TRACED (sym);
+            *spp = sym->next;
+          }
         do
           {
-            *spp = SYMBOL_NEXT (sym);
+            next = SYMBOL_STACK (sym);
             free_symbol (sym);
-            sym = *spp;
+            sym = next;
           }
-        while (*spp != NULL && SYMBOL_SHADOWED (*spp)
-               && mode == SYMBOL_DELETE);
+        while (next != NULL && mode == SYMBOL_DELETE);
         if (traced)
           {
             sym = (symbol *) xmalloc (sizeof (symbol));
             SYMBOL_TYPE (sym) = TOKEN_VOID;
             SYMBOL_TRACED (sym) = true;
+            sym->hash = h;
             SYMBOL_NAME (sym) = xstrdup (name);
-            SYMBOL_SHADOWED (sym) = false;
             SYMBOL_MACRO_ARGS (sym) = false;
             SYMBOL_BLIND_NO_ARGS (sym) = false;
             SYMBOL_DELETED (sym) = false;
             SYMBOL_PENDING_EXPANSIONS (sym) = 0;
 
-            SYMBOL_NEXT (sym) = *spp;
-            (*spp) = sym;
+            SYMBOL_STACK (sym) = NULL;
+            sym->next = *spp;
+            *spp = sym;
           }
       }
       return NULL;
@@ -339,7 +353,7 @@ hack_all_symbols (hack_symbol *func, void *data)
          calling func.  */
       for (sym = symtab[h]; sym != NULL; sym = next)
         {
-          next = SYMBOL_NEXT (sym);
+          next = sym->next;
           func (sym, data);
         }
     }
@@ -349,7 +363,7 @@ hack_all_symbols (hack_symbol *func, void *data)
 
 static void symtab_print_list (int i);
 
-static void M4_GNUC_UNUSED
+static void MAYBE_UNUSED
 symtab_debug (void)
 {
   token_data td;
@@ -383,19 +397,21 @@ static void
 symtab_print_list (int i)
 {
   symbol *sym;
+  symbol *bucket;
   size_t h;
 
   xprintf ("Symbol dump #%d:\n", i);
   for (h = 0; h < hash_table_size; h++)
-    for (sym = symtab[h]; sym != NULL; sym = sym->next)
-      xprintf ("\tname %s, bucket %lu, addr %p, next %p, "
-               "flags%s%s%s, pending %d\n",
-               SYMBOL_NAME (sym),
-               (unsigned long int) h, sym, SYMBOL_NEXT (sym),
-               SYMBOL_TRACED (sym) ? " traced" : "",
-               SYMBOL_SHADOWED (sym) ? " shadowed" : "",
-               SYMBOL_DELETED (sym) ? " deleted" : "",
-               SYMBOL_PENDING_EXPANSIONS (sym));
+    for (bucket = symtab[h]; bucket != NULL; bucket = bucket->next)
+      for (sym = bucket; sym; sym = sym->stack)
+        xprintf ("\tname %s, hash %lu, bucket %lu, addr %p, stack %p, "
+                 "next %p, flags%s%s, pending %d\n",
+                 SYMBOL_NAME (sym), (unsigned long int) sym->hash,
+                 (unsigned long int) h, sym, SYMBOL_STACK (sym),
+                 sym->next,
+                 SYMBOL_TRACED (sym) ? " traced" : "",
+                 SYMBOL_DELETED (sym) ? " deleted" : "",
+                 SYMBOL_PENDING_EXPANSIONS (sym));
 }
 
 #endif /* DEBUG_SYM */

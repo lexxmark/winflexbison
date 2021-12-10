@@ -1,5 +1,5 @@
 /* Sequential list data type implemented by a hash table with a linked list.
-   Copyright (C) 2006, 2008-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2008-2021 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2006.
 
    This program is free software: you can redistribute it and/or modify
@@ -13,44 +13,32 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
 /* Specification.  */
 #include "gl_linkedhash_list.h"
 
-#include <stdint.h> /* for SIZE_MAX */
+#include <stdint.h> /* for uintptr_t, SIZE_MAX */
 #include <stdlib.h>
 
 #include "xsize.h"
-
-#ifndef uintptr_t
-# define uintptr_t unsigned long
-#endif
 
 #define WITH_HASHTABLE 1
 
 /* -------------------------- gl_list_t Data Type -------------------------- */
 
 /* Generic hash-table code.  */
-#include "gl_anyhash_list1.h"
+#include "gl_anyhash1.h"
 
 /* Generic linked list code.  */
 #include "gl_anylinked_list1.h"
 
 /* Generic hash-table code.  */
-#include "gl_anyhash_list2.h"
-
-/* Resize the hash table if needed, after list->count was incremented.  */
-static void
-hash_resize_after_add (gl_list_t list)
-{
-  size_t count = list->count;
-  size_t estimate = xsum (count, count / 2); /* 1.5 * count */
-  if (estimate > list->table_size)
-    hash_resize (list, estimate);
-}
+#define CONTAINER_T gl_list_t
+#define CONTAINER_COUNT(list) (list)->count
+#include "gl_anyhash2.h"
 
 /* Add a node to the hash table structure.  */
 static void
@@ -98,6 +86,8 @@ const struct gl_list_implementation gl_linkedhash_list_implementation =
     gl_linked_node_nx_set_value,
     gl_linked_next_node,
     gl_linked_previous_node,
+    gl_linked_first_node,
+    gl_linked_last_node,
     gl_linked_get_at,
     gl_linked_nx_set_at,
     gl_linked_search_from_to,

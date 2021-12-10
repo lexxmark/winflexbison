@@ -1,5 +1,5 @@
 /* Retrieve information about a FILE stream.
-   Copyright (C) 2007-2011 Free Software Foundation, Inc.
+   Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,14 +12,10 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stddef.h>
 #include <stdio.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Assuming the stream STREAM is open for reading:
    Return the number of bytes waiting in the input buffer of STREAM.
@@ -31,8 +27,21 @@ extern "C" {
 
    STREAM must not be wide-character oriented.  */
 
-extern size_t freadahead (FILE *stream);
+#if HAVE___FREADAHEAD /* musl libc */
 
-#ifdef __cplusplus
+# include <stdio_ext.h>
+# define freadahead(stream) __freadahead (stream)
+
+#else
+
+# ifdef __cplusplus
+extern "C" {
+# endif
+
+extern size_t freadahead (FILE *stream) _GL_ATTRIBUTE_PURE;
+
+# ifdef __cplusplus
 }
+# endif
+
 #endif

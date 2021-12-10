@@ -37,6 +37,7 @@
 #include <sys/types.h>
 //#include <unistd.h>
 #include <xstrndup.h>
+#include <mbstring.h>
 
 #include "complain.h"
 #include "files.h"
@@ -138,8 +139,7 @@ concat2 (char const *str1, char const *str2)
 FILE *
 xfopen (const char *name, const char *mode)
 {
-  //FILE *res = fopen_safer (name, mode);
-  FILE *res = fopen (name, mode);
+  FILE *res = fopen/*_safer*/ (name, mode);
   if (!res)
     error (EXIT_FAILURE, get_errno (),
            _("%s: cannot open"), quotearg_colon (name));
@@ -352,7 +352,6 @@ compute_exts_from_src (const char *ext)
    'foo_tab' -> *BASE = 'foo_tab', *TAB = NULL, *EXT = NULL
 
    'foo' -> *BASE = 'foo', *TAB = NULL, *EXT = NULL.  */
-#include <mbstring.h>
 
 static void
 file_name_split (const char *file_name,
@@ -524,7 +523,7 @@ output_file_name_check (char **file_name, bool source)
   if (conflict)
     {
       free (*file_name);
-      *file_name = _strdup ("/dev/null");
+      *file_name = _strdup (/*"/dev/null"*/"NUL");
     }
   else
     {

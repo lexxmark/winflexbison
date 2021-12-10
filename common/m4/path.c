@@ -1,7 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1993, 2004, 2006-2014, 2016 Free Software
-   Foundation, Inc.
+   Copyright (C) 1989-1993, 2004, 2006-2014, 2016-2017, 2020-2021 Free
+   Software Foundation, Inc.
 
    This file is part of GNU M4.
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /* Handling of path search of included files via the builtins "include"
@@ -110,7 +110,7 @@ add_include_directory (const char *dir)
 static FILE *
 m4_fopen (const char *file)
 {
-  FILE *fp = fopen (file, "r");
+  FILE *fp = fopen (file, "rN");
   if (fp)
     {
       struct stat st;
@@ -121,9 +121,6 @@ m4_fopen (const char *file)
           errno = EISDIR;
           return NULL;
         }
- //     if (set_cloexec_flag (fd, true) != 0)
- //       M4ERROR ((warning_status, errno,
- //                 "Warning: cannot protect input file across forks"));
     }
   return fp;
 }
@@ -192,7 +189,7 @@ m4_path_search (const char *file, char **result)
 
 #ifdef DEBUG_INCL
 
-static void M4_GNUC_UNUSED
+static void MAYBE_UNUSED
 include_dump (void)
 {
   includes *incl;

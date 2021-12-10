@@ -158,7 +158,7 @@
     <ClInclude Include="..\..\common\misc\getopt.h" />
     <ClInclude Include="..\..\common\misc\getopt_int.h" />
     <ClInclude Include="..\..\common\misc\gettext.h" />
-    <ClInclude Include="..\..\common\misc\gl_hash_map.h">
+    <ClInclude Include="..\..\common\misc\gl_hash_map.h" />
     <ClInclude Include="..\..\common\misc\gl_map.h" />
     <ClInclude Include="..\..\common\misc\gl_xmap.h" />
     <ClInclude Include="..\..\common\misc\glthread\lock.h" />

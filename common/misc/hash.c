@@ -28,7 +28,6 @@
 
 #include "bitrotate.h"
 #include "xalloc-oversized.h"
-#include "xalloc.h"
 
 #include <stdint.h>
 #include <stdio.h>

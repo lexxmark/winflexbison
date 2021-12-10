@@ -1,7 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2004-2014, 2016 Free Software Foundation,
-   Inc.
+   Copyright (C) 1989-1994, 2004-2014, 2016-2017, 2020-2021 Free Software
+   Foundation, Inc.
 
    This file is part of GNU M4.
 
@@ -16,27 +16,29 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /* We use <config.h> instead of "config.h" so that a compilation
    using -I. -I$srcdir will use ./config.h rather than $srcdir/config.h
    (which it would do because it found this file in $srcdir).  */
 
-//#include <config.h>
+#include <config.h>
 #define PACKAGE_STRING "M4"
 #define RENAME_OPEN_FILE_WORKS 1
 
 #include <assert.h>
-#include <ctype.h>
+#include <c-ctype.h>
 #include <errno.h>
 #include <limits.h>
+#include <locale.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "attribute.h"
 #include "binary-io.h"
 #include "clean-temp.h"
 #include "cloexec.h"
@@ -50,6 +52,7 @@
 #include "stdio--.h"
 #include "stdlib--.h"
 #include "unistd--.h"
+#include "verify.h"
 #include "verror.h"
 #include "xalloc.h"
 #include "xprintf.h"
@@ -80,8 +83,17 @@
 /* Used for version mismatch, when -R detects a frozen file it can't parse.  */
 #define EXIT_MISMATCH 63
 
-/* No-op, for future gettext compatibility.  */
-#define _(ARG) ARG
+/* NLS.  */
+
+#include "gettext.h"
+#if ! ENABLE_NLS
+# undef textdomain
+# define textdomain(Domainname) /* empty */
+# undef bindtextdomain
+# define bindtextdomain(Domainname, Dirname) /* empty */
+#endif
+
+#define _(msgid) gettext (msgid)
 
 /* Various declarations.  */
 
@@ -108,20 +120,6 @@ typedef bool bool_bitfield;
 #else
 typedef unsigned int bool_bitfield;
 #endif /* ! __GNUC__ */
-
-/* Take advantage of GNU C compiler source level optimization hints,
-   using portable macros.  */
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 6)
-# define M4_GNUC_ATTRIBUTE(args)        __attribute__ (args)
-#else
-# define M4_GNUC_ATTRIBUTE(args)
-#endif  /* __GNUC__ */
-
-#define M4_GNUC_UNUSED          M4_GNUC_ATTRIBUTE ((__unused__))
-#define M4_GNUC_PRINTF(fmt, arg)                        \
-  M4_GNUC_ATTRIBUTE ((__format__ (__printf__, fmt, arg)))
-#define M4_GNUC_NORETURN        M4_GNUC_ATTRIBUTE ((__noreturn__))
-#define M4_GNUC_PURE            M4_GNUC_ATTRIBUTE ((__pure__))
 
 /* File: m4.c  --- global definitions.  */
 
@@ -143,9 +141,15 @@ extern const char *user_word_regexp;    /* -W */
 extern int retcode;
 extern const char *program_name;
 
-extern void m4_error (int, int, const char *, ...) M4_GNUC_PRINTF(3, 4);
-extern void m4_error_at_line (int, int, const char *, int,
-                              const char *, ...) M4_GNUC_PRINTF(5, 6);
+extern void m4_error (int, int, const char *, ...)
+  ATTRIBUTE_FORMAT ((__printf__, 3, 4));
+extern void m4_error_at_line (int, int, const char *, int, const char *, ...)
+  ATTRIBUTE_FORMAT ((__printf__, 5, 6));
+extern _Noreturn void m4_failure (int, const char *, ...)
+  ATTRIBUTE_FORMAT ((__printf__, 2, 3));
+extern _Noreturn void m4_failure_at_line (int, const char *, int,
+                                          const char *, ...)
+  ATTRIBUTE_FORMAT ((__printf__, 4, 5));
 
 #define M4ERROR(Arglist) (m4_error Arglist)
 #define M4ERROR_AT_LINE(Arglist) (m4_error_at_line Arglist)
@@ -358,21 +362,21 @@ enum symbol_lookup
 /* Symbol table entry.  */
 struct symbol
 {
-  struct symbol *next;
+  struct symbol *stack; /* pushdef stack */
+  struct symbol *next; /* hash bucket chain */
   bool_bitfield traced : 1;
-  bool_bitfield shadowed : 1;
   bool_bitfield macro_args : 1;
   bool_bitfield blind_no_args : 1;
   bool_bitfield deleted : 1;
   int pending_expansions;
 
+  size_t hash;
   char *name;
   token_data data;
 };
 
-#define SYMBOL_NEXT(S)          ((S)->next)
+#define SYMBOL_STACK(S)         ((S)->stack)
 #define SYMBOL_TRACED(S)        ((S)->traced)
-#define SYMBOL_SHADOWED(S)      ((S)->shadowed)
 #define SYMBOL_MACRO_ARGS(S)    ((S)->macro_args)
 #define SYMBOL_BLIND_NO_ARGS(S) ((S)->blind_no_args)
 #define SYMBOL_DELETED(S)       ((S)->deleted)
@@ -386,9 +390,7 @@ typedef enum symbol_lookup symbol_lookup;
 typedef struct symbol symbol;
 typedef void hack_symbol (symbol *, void *);
 
-#define HASHMAX 509             /* default, overridden by -Hsize */
-
-extern symbol **symtab;
+#define HASHMAX 65537             /* default, overridden by -Hsize */
 
 extern void free_symbol (symbol *sym);
 extern void symtab_init (void);

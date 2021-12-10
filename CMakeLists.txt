@@ -12,6 +12,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_definitions(-D_DEBUG)
 endif()
 
+# next line needed for compile in C (nor CPP) mode (ucrt headers bug)
+add_definitions(-Dinline=__inline)
+# next line needed for VS2017 only
+add_definitions(-Drestrict=__restrict)
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W3 /MD /Od /Zi /EHsc")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W3 /GL /Od /Oi /Gy /Zi /EHsc")
 

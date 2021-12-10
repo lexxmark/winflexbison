@@ -1,5 +1,5 @@
 /* Formatted output to strings.
-   Copyright (C) 1999, 2002, 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2002, 2006-2021 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,8 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along
-   with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+   with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -48,17 +47,4 @@ vasprintf (char **resultp, const char *format, va_list args)
   *resultp = result;
   /* Return the number of resulting bytes, excluding the trailing NUL.  */
   return length;
-}
-
-char * asnprintf (char *resultbuf, size_t *lengthp, const char *format, ...)
-{
-	char *result = NULL;
-	va_list args;
-	va_start(args, format);
-	
-	result = vasnprintf (resultbuf, lengthp, format, args);
-
-	va_end(args);
-
-	return result;
 }

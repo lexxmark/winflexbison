@@ -15,8 +15,7 @@
 extern char* _stpcpy(char *yydest, const char *yysrc);
 
 #include <stdio.h>
-extern FILE* fopen_unixlike(const char* file, const char* mode);
-#define fopen fopen_unixlike
+#define fopen(n,m) _fsopen(n,m,_SH_DENYNO)
 
 extern int strverscmp(const char* s1, const char* s2);
 
