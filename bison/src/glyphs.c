@@ -1,6 +1,6 @@
 /* Graphical symbols.
 
-   Copyright (C) 2020 Free Software Foundation, Inc.
+   Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -26,7 +26,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <mbswidth.h>
-#include <unicodeio.h>
+//#include <unicodeio.h>
 
 
 glyph_buffer_t arrow;
@@ -51,14 +51,16 @@ typedef struct
 } callback_arg_t;
 
 
+#if 0
 static long
 on_success (const char *buf, size_t buflen, void *callback_arg)
 {
   callback_arg_t *arg = (callback_arg_t *) callback_arg;
   assert (buflen + 1 < sizeof *arg->pbuf);
-  *strncpy(*arg->pbuf, buf, buflen) = '\0';
+  *stpncpy (*arg->pbuf, buf, buflen) = '\0';
   return 1;
 }
+#endif
 
 static long
 on_failure (unsigned code, const char *msg,
@@ -75,7 +77,11 @@ glyph_set (glyph_buffer_t *glyph, int *width,
            unsigned code, const char *fallback)
 {
   callback_arg_t arg = { glyph, fallback };
+#if 0
   int res = unicode_to_mb (code, on_success, on_failure, &arg);
+#else
+  int res = on_failure(code, "iconv function not available", &arg);
+#endif
   *width = mbswidth (*glyph, 0);
   return res;
 }

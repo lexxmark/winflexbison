@@ -1,7 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2006-2007, 2009-2014, 2016 Free Software
-   Foundation, Inc.
+   Copyright (C) 1989-1994, 2006-2007, 2009-2014, 2016-2017, 2020-2021
+   Free Software Foundation, Inc.
 
    This file is part of GNU M4.
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /* This file contains the functions to evaluate integer expressions for
@@ -105,7 +105,7 @@ eval_undo (void)
 static eval_token
 eval_lex (int32_t *val)
 {
-  while (isspace (to_uchar (*eval_text)))
+  while (c_isspace (*eval_text))
     eval_text++;
 
   last_text = eval_text;
@@ -113,9 +113,13 @@ eval_lex (int32_t *val)
   if (*eval_text == '\0')
     return EOTEXT;
 
-  if (isdigit (to_uchar (*eval_text)))
+  if (c_isdigit (*eval_text))
     {
-      int base, digit;
+      unsigned int base, digit;
+      /* The documentation says that "overflow silently results in wraparound".
+         Therefore use an unsigned integer type to avoid undefined behaviour
+         when parsing '-2147483648'.  */
+      uint32_t value;
 
       if (*eval_text == '0')
         {
@@ -138,7 +142,7 @@ eval_lex (int32_t *val)
             case 'R':
               base = 0;
               eval_text++;
-              while (isdigit (to_uchar (*eval_text)) && base <= 36)
+              while (c_isdigit (*eval_text) && base <= 36)
                 base = 10 * base + *eval_text++ - '0';
               if (base == 0 || base > 36 || *eval_text != ':')
                 return ERROR;
@@ -152,15 +156,14 @@ eval_lex (int32_t *val)
       else
         base = 10;
 
-      /* FIXME - this calculation can overflow.  Consider xstrtol.  */
-      *val = 0;
+      value = 0;
       for (; *eval_text; eval_text++)
         {
-          if (isdigit (to_uchar (*eval_text)))
+          if (c_isdigit (*eval_text))
             digit = *eval_text - '0';
-          else if (islower (to_uchar (*eval_text)))
+          else if (c_islower (*eval_text))
             digit = *eval_text - 'a' + 10;
-          else if (isupper (to_uchar (*eval_text)))
+          else if (c_isupper (*eval_text))
             digit = *eval_text - 'A' + 10;
           else
             break;
@@ -168,8 +171,8 @@ eval_lex (int32_t *val)
           if (base == 1)
             {
               if (digit == 1)
-                (*val)++;
-              else if (digit == 0 && !*val)
+                value++;
+              else if (digit == 0 && value == 0)
                 continue;
               else
                 break;
@@ -177,8 +180,9 @@ eval_lex (int32_t *val)
           else if (digit >= base)
             break;
           else
-            *val = *val * base + digit;
+            value = value * base + digit;
         }
+      *val = value;
       return NUMBER;
     }
 
@@ -311,44 +315,44 @@ evaluate (const char *expr, int32_t *val)
 
     case MISSING_RIGHT:
       M4ERROR ((warning_status, 0,
-                "bad expression in eval (missing right parenthesis): %s",
+                _("bad expression in eval (missing right parenthesis): %s"),
                 expr));
       break;
 
     case SYNTAX_ERROR:
       M4ERROR ((warning_status, 0,
-                "bad expression in eval: %s", expr));
+                _("bad expression in eval: %s"), expr));
       break;
 
     case UNKNOWN_INPUT:
       M4ERROR ((warning_status, 0,
-                "bad expression in eval (bad input): %s", expr));
+                _("bad expression in eval (bad input): %s"), expr));
       break;
 
     case EXCESS_INPUT:
       M4ERROR ((warning_status, 0,
-                "bad expression in eval (excess input): %s", expr));
+                _("bad expression in eval (excess input): %s"), expr));
       break;
 
     case INVALID_OPERATOR:
       M4ERROR ((warning_status, 0,
-                "invalid operator in eval: %s", expr));
+                _("invalid operator in eval: %s"), expr));
       retcode = EXIT_FAILURE;
       break;
 
     case DIVIDE_ZERO:
       M4ERROR ((warning_status, 0,
-                "divide by zero in eval: %s", expr));
+                _("divide by zero in eval: %s"), expr));
       break;
 
     case MODULO_ZERO:
       M4ERROR ((warning_status, 0,
-                "modulo by zero in eval: %s", expr));
+                _("modulo by zero in eval: %s"), expr));
       break;
 
     case NEGATIVE_EXPONENT:
       M4ERROR ((warning_status, 0,
-                "negative exponent in eval: %s", expr));
+                _("negative exponent in eval: %s"), expr));
       break;
 
     default:
@@ -531,8 +535,8 @@ equality_term (eval_token et, int32_t *v1)
 
       if (op == ASSIGN)
       {
-        M4ERROR ((warning_status, 0, "\
-Warning: recommend ==, not =, for equality operator"));
+        M4ERROR ((warning_status, 0, _("\
+Warning: recommend ==, not =, for equality operator")));
         op = EQ;
       }
       *v1 = (op == EQ) == (*v1 == v2);

@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2020 Free Software
+   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef SYMLIST_H_
 # define SYMLIST_H_
@@ -112,6 +112,9 @@ symbol_list *symbol_list_type_new (uniqstr type_name, location loc);
  ** \returns \c syms */
 symbol_list *symbol_list_type_set (symbol_list *syms, uniqstr type_name);
 
+/** Find a symbol with the same content as \c sym within \c syms.  */
+symbol_list *symbol_list_find_symbol (symbol_list *syms, const symbol *sym);
+
 /** Print this list.
 
   \pre For every node \c n in the list, <tt>n->content_type =
@@ -120,6 +123,9 @@ void symbol_list_syms_print (const symbol_list *l, FILE *f);
 
 /** Prepend \c node to \c list.  */
 symbol_list *symbol_list_prepend (symbol_list *list, symbol_list *node);
+
+/** The last node of this list. */
+symbol_list *symbol_list_last (symbol_list *list);
 
 /** Append \c node to \c list.  */
 symbol_list *symbol_list_append (symbol_list *list, symbol_list *node);
@@ -136,11 +142,11 @@ int symbol_list_length (symbol_list const *l);
  **/
 symbol_list *symbol_list_n_get (symbol_list *l, int n);
 
-/* Get the data type (alternative in the union) of the value for
-   symbol N in rule RULE.  */
+/** Get the data type (alternative in the union) of the value for
+    symbol N in rule RULE.  */
 uniqstr symbol_list_n_type_name_get (symbol_list *l, int n);
 
-/* Check whether the node is a border element of a rule. */
+/** Check whether the node is a border element of a rule. */
 bool symbol_list_null (symbol_list *node);
 
 /** Set the \c \%destructor or \c \%printer for \c node as \c cprops.  */

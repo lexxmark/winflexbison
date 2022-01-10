@@ -1,6 +1,6 @@
 /* Bitset statistics.
 
-   Copyright (C) 2002-2006, 2009-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2006, 2009-2015, 2018-2021 Free Software Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -154,13 +154,19 @@ bitset_log_histogram_print (FILE *file, const char *name, const char *msg,
       fprintf (file, "%*d\t%8u (%5.1f%%)\n",
                max_width, i, bins[i], 100.0 * bins[i] / total);
 
-    for (; i < n_bins; i++)
+    for (; i < n_bins - 1; i++)
       fprintf (file, "%*lu-%lu\t%8u (%5.1f%%)\n",
                max_width - ((unsigned) (0.30103 * (i) + 0.9999) + 1),
                1UL << (i - 1),
                (1UL << i) - 1,
                bins[i],
                (100.0 * bins[i]) / total);
+
+    fprintf (file, "%*lu-...\t%8u (%5.1f%%)\n",
+             max_width - ((unsigned) (0.30103 * (i) + 0.9999) + 1),
+             1UL << (i - 1),
+             bins[i],
+             (100.0 * bins[i]) / total);
   }
 }
 
@@ -202,7 +208,7 @@ bitset_stats_print_1 (FILE *file, const char *name,
 
 /* Print all bitset statistics to FILE.  */
 static void
-bitset_stats_print (FILE *file, bool verbose MAYBE_UNUSED)
+bitset_stats_print (FILE *file, MAYBE_UNUSED bool verbose)
 {
   if (!bitset_stats_info)
     return;
@@ -245,7 +251,7 @@ bitset_stats_read (const char *file_name)
   if (!file_name)
     file_name = BITSET_STATS_FILE;
 
-  FILE *file = fopen (file_name, "r");
+  FILE *file = fopen (file_name, "rN");
   if (file)
     {
       if (fread (&bitset_stats_info_data, sizeof (bitset_stats_info_data),
@@ -273,7 +279,7 @@ bitset_stats_write (const char *file_name)
   if (!file_name)
     file_name = BITSET_STATS_FILE;
 
-  FILE *file = fopen (file_name, "w");
+  FILE *file = fopen (file_name, "wN");
   if (file)
     {
       if (fwrite (&bitset_stats_info_data, sizeof (bitset_stats_info_data),

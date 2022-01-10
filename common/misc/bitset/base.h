@@ -1,6 +1,6 @@
 /* Base bitset stuff.
 
-   Copyright (C) 2002-2004, 2006, 2009-2015, 2018-2020 Free Software
+   Copyright (C) 2002-2004, 2006, 2009-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
@@ -24,8 +24,15 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>     /* because Gnulib's <stdlib.h> may '#define free ...' */
+#ifndef _MSC_VER
+#include <string.h> /* ffsl */
+#else
+#include <intrin.h>
+#endif
 
 #include "attribute.h"
+#include "integer_length.h"
 #include "xalloc.h"
 
 /* Currently we support five flavours of bitsets:
@@ -277,6 +284,21 @@ if (!BITSET_COMPATIBLE_ (DST, SRC1) || !BITSET_COMPATIBLE_ (DST, SRC2) \
 #define BITSET_LIST_REVERSE_(BSET, LIST, NUM, NEXT) \
  (BSET)->b.vtable->list_reverse (BSET, LIST, NUM, NEXT)
 
+/* Iterate left to right over each set bit of WORD.
+   Each iteration sets POS to the 0-based index of the next set bit in WORD.
+   Repeatedly resets bits in WORD in place until it's null.  */
+#define BITSET_FOR_EACH_BIT(Pos, Word)                  \
+  for (int Pos = bitset_ffs_ (Word);                    \
+       0 <= Pos;                                        \
+       Word ^= 1UL << Pos, Pos = bitset_ffs_ (Word))
+
+/* Iterate right to left over each set bit of WORD.
+   Each iteration sets POS to the 0-based index of the next set bit in WORD.
+   Repeatedly resets bits in WORD in place until it's null.  */
+#define BITSET_FOR_EACH_BIT_REVERSE(Pos, Word)          \
+  for (int Pos = bitset_fls_ (Word);                    \
+       0 <= Pos;                                        \
+       Word ^= 1UL << Pos, Pos = bitset_fls_ (Word))
 
 /* Private functions for bitset implementations.  */
 
@@ -299,5 +321,29 @@ bool bitset_andn_or_cmp_ (bitset, bitset, bitset, bitset);
 void bitset_or_and_ (bitset, bitset, bitset, bitset);
 
 bool bitset_or_and_cmp_ (bitset, bitset, bitset, bitset);
+
+/* First set bit in WORD.
+   Indexes start at 0, return -1 if WORD is null. */
+static inline
+int bitset_ffs_ (bitset_word word)
+{
+#ifndef _MSC_VER
+  return ffsl ((long) word) - 1;
+#else
+  unsigned long bit, val = word;
+  if (_BitScanForward (&bit, val))
+    return bit;
+  else
+    return -1;
+#endif
+}
+
+/* Last set bit in WORD.
+   Indexes start at 0, return -1 if WORD is null. */
+static inline
+int bitset_fls_ (bitset_word word)
+{
+  return integer_length_l (word) - 1;
+}
 
 #endif /* _BBITSET_H  */

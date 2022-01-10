@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 1993, 1996-1997, 1999-2000, 2003-2004, 2006, 2008-2011
+/* Copyright (C) 1991, 1993, 1996-1997, 1999-2000, 2003-2004, 2006, 2008-2021
    Free Software Foundation, Inc.
 
    Based on strlen implementation by Torbjorn Granlund (tege@sics.se),
@@ -19,7 +19,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -43,6 +43,7 @@ memchr2 (void const *s, int c1_in, int c2_in, size_t n)
   typedef unsigned long int longword;
 
   const unsigned char *char_ptr;
+  void const *void_ptr;
   const longword *longword_ptr;
   longword repeated_one;
   longword repeated_c1;
@@ -57,14 +58,18 @@ memchr2 (void const *s, int c1_in, int c2_in, size_t n)
     return memchr (s, c1, n);
 
   /* Handle the first few bytes by reading one byte at a time.
-     Do this until CHAR_PTR is aligned on a longword boundary.  */
-  for (char_ptr = (const unsigned char *) s;
-       n > 0 && (size_t) char_ptr % sizeof (longword) != 0;
-       --n, ++char_ptr)
-    if (*char_ptr == c1 || *char_ptr == c2)
-      return (void *) char_ptr;
+     Do this until VOID_PTR is aligned on a longword boundary.  */
+  for (void_ptr = s;
+       n > 0 && (uintptr_t) void_ptr % sizeof (longword) != 0;
+       --n)
+    {
+      char_ptr = void_ptr;
+      if (*char_ptr == c1 || *char_ptr == c2)
+        return (void *) void_ptr;
+      void_ptr = char_ptr + 1;
+    }
 
-  longword_ptr = (const longword *) char_ptr;
+  longword_ptr = void_ptr;
 
   /* All these elucidatory comments refer to 4-byte longwords,
      but the theory applies equally well to any size longwords.  */
@@ -125,7 +130,7 @@ memchr2 (void const *s, int c1_in, int c2_in, size_t n)
      significant bytes (positions j+1..3), but it does not matter since we
      already have a non-zero bit at position 8*j+7.
 
-     Similary, we compute tmp2 =
+     Similarly, we compute tmp2 =
        ((longword2 - repeated_one) & ~longword2) & (repeated_one << 7).
 
      The test whether any byte in longword1 or longword2 is zero is equivalent

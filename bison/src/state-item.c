@@ -1,6 +1,6 @@
 /* Counterexample Generation Search Nodes
 
-   Copyright (C) 2020 Free Software Foundation, Inc.
+   Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -384,11 +384,10 @@ disable_state_item (state_item *si)
     bitset_free (si->prods);
 }
 
-/* disable all transitions and productions that can only be
- * reached through this state_item.
- */
+/* Disable all state_item paths that lead to/from SI and nowhere
+   else.  */
 static void
-prune_forward (const state_item *si)
+prune_state_item (const state_item *si)
 {
   state_item_list queue =
     gl_list_create (GL_LINKED_LIST, NULL, NULL, NULL, true, 1,
@@ -398,8 +397,16 @@ prune_forward (const state_item *si)
     {
       state_item *dsi = (state_item *) gl_list_get_at (queue, 0);
       gl_list_remove_at (queue, 0);
-      if (dsi->trans >= 0)
-        gl_list_add_last (queue, &state_items[dsi->trans]);
+      if (SI_DISABLED (dsi - state_items))
+        continue;
+
+      if (dsi->trans >= 0 && !SI_DISABLED (dsi->trans))
+      {
+        const state_item *trans = &state_items[dsi->trans];
+        bitset_reset (trans->revs, dsi - state_items);
+        if (bitset_empty_p (trans->revs))
+          gl_list_add_last (queue, trans);
+      }
 
       if (dsi->prods)
         {
@@ -407,32 +414,15 @@ prune_forward (const state_item *si)
           state_item_number sin;
           BITSET_FOR_EACH (biter, dsi->prods, sin, 0)
             {
+              if (SI_DISABLED (sin))
+                continue;
               const state_item *prod = &state_items[sin];
               bitset_reset (prod->revs, dsi - state_items);
               if (bitset_empty_p (prod->revs))
                 gl_list_add_last (queue, prod);
             }
         }
-      if (dsi != si)
-        disable_state_item (dsi);
-    }
-  gl_list_free (queue);
-}
 
-/* disable all state_item paths that lead to
- * si and nowhere else.
- */
-static void
-prune_backward (const state_item *si)
-{
-  state_item_list queue =
-    gl_list_create (GL_LINKED_LIST, NULL, NULL, NULL, true, 1,
-                    (const void **) &si);
-
-  while (gl_list_size (queue) > 0)
-    {
-      state_item *dsi = (state_item *) gl_list_get_at (queue, 0);
-      gl_list_remove_at (queue, 0);
       bitset_iterator biter;
       state_item_number sin;
       BITSET_FOR_EACH (biter, dsi->revs, sin, 0)
@@ -440,7 +430,9 @@ prune_backward (const state_item *si)
           if (SI_DISABLED (sin))
             continue;
           state_item *rev = &state_items[sin];
-          if (rev->prods)
+          if (&state_items[rev->trans] == dsi)
+            gl_list_add_last (queue, rev);
+          else if (rev->prods)
             {
               bitset_reset (rev->prods, dsi - state_items);
               if (bitset_empty_p (rev->prods))
@@ -449,16 +441,13 @@ prune_backward (const state_item *si)
           else
             gl_list_add_last (queue, rev);
         }
-      if (dsi != si)
-        disable_state_item (dsi);
+      disable_state_item (dsi);
     }
   gl_list_free (queue);
 }
 
-/*
- To make searches more efficient, we can prune away paths that are
- caused by disabled transitions.
- */
+/* To make searches more efficient, prune away paths that are caused
+   by disabled transitions.  */
 static void
 prune_disabled_paths (void)
 {
@@ -466,11 +455,7 @@ prune_disabled_paths (void)
     {
       state_item *si = &state_items[i];
       if (si->trans == -1 && item_number_is_symbol_number (*si->item))
-        {
-          prune_forward (si);
-          prune_backward (si);
-          disable_state_item (si);
-        }
+        prune_state_item (si);
     }
 }
 
@@ -482,62 +467,67 @@ state_item_print (const state_item *si, FILE *out, const char *prefix)
   putc ('\n', out);
 }
 
+const rule*
+state_item_rule (const state_item *si)
+{
+  return item_rule (si->item);
+}
+
 /**
  * Report the state_item graph
  */
 static void
-state_items_report (void)
+state_items_report (FILE *out)
 {
-  printf ("# state items: %zu\n", nstate_items);
+  fprintf (out, "# state items: %zu\n", nstate_items);
   for (state_number i = 0; i < nstates; ++i)
     {
-      printf ("State %d:\n", i);
+      fprintf (out, "State %d:\n", i);
       for (state_item_number j = state_item_map[i]; j < state_item_map[i + 1]; ++j)
         {
-          state_item *si = &state_items[j];
-          item_print (si->item, NULL, stdout);
+          const state_item *si = &state_items[j];
+          item_print (si->item, NULL, out);
           if (SI_DISABLED (j))
+            fputs ("  DISABLED\n", out);
+          else
             {
-              item_print (si->item, NULL, stdout);
-              puts (" DISABLED");
-              continue;
-            }
-          puts ("");
-          if (si->trans >= 0)
-            {
-              fputs ("    -> ", stdout);
-              state_item_print (&state_items[si->trans], stdout, "");
-            }
-
-          bitset sets[2] = { si->prods, si->revs };
-          const char *txt[2] = { "    => ", "    <- " };
-          for (int seti = 0; seti < 2; ++seti)
-            {
-              bitset b = sets[seti];
-              if (b)
+              putc ('\n', out);
+              if (si->trans >= 0)
                 {
-                  bitset_iterator biter;
-                  state_item_number sin;
-                  BITSET_FOR_EACH (biter, b, sin, 0)
+                  fputs ("    -> ", out);
+                  state_item_print (&state_items[si->trans], out, "");
+                }
+
+              bitset sets[2] = { si->prods, si->revs };
+              const char *txt[2] = { "    => ", "    <- " };
+              for (int seti = 0; seti < 2; ++seti)
+                {
+                  bitset b = sets[seti];
+                  if (b)
                     {
-                      fputs (txt[seti], stdout);
-                      state_item_print (&state_items[sin], stdout, "");
+                      bitset_iterator biter;
+                      state_item_number sin;
+                      BITSET_FOR_EACH (biter, b, sin, 0)
+                        {
+                          fputs (txt[seti], out);
+                          state_item_print (&state_items[sin], out, "");
+                        }
                     }
                 }
             }
-          puts ("");
+          putc ('\n', out);
         }
     }
-  printf ("FIRSTS\n");
+  fprintf (out, "FIRSTS\n");
   for (symbol_number i = ntokens; i < nsyms; ++i)
     {
-      printf ("  %s firsts\n", symbols[i]->tag);
+      fprintf (out, "  %s firsts\n", symbols[i]->tag);
       bitset_iterator iter;
       symbol_number j;
       BITSET_FOR_EACH (iter, FIRSTS (i), j, 0)
-        printf ("    %s\n", symbols[j]->tag);
+        fprintf (out, "    %s\n", symbols[j]->tag);
     }
-  puts ("\n");
+  fputs ("\n\n", out);
 }
 
 void
@@ -552,8 +542,8 @@ state_items_init (void)
   prune_disabled_paths ();
   if (trace_flag & trace_cex)
     {
-      printf ("init: %f\n", difftime (time (NULL), start));
-      state_items_report ();
+      fprintf (stderr, "init: %f\n", difftime (time (NULL), start));
+      state_items_report (stderr);
     }
 }
 

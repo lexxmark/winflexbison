@@ -1,6 +1,6 @@
 /* Print an xml on generated parser, for Bison,
 
-   Copyright (C) 2007, 2009-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 2007, 2009-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "print-xml.h"
@@ -27,12 +27,16 @@
 #include <stdarg.h>
 
 #include "closure.h"
+#include "complain.h"
 #include "conflicts.h"
+#include "execute.h"
 #include "files.h"
 #include "getargs.h"
 #include "gram.h"
 #include "lalr.h"
 #include "lr0.h"
+#include "muscle-tab.h"
+#include "path-join.h"
 #include "print.h"
 #include "reader.h"
 #include "reduce.h"
@@ -212,16 +216,16 @@ static void
 print_reduction (FILE *out, int level, char const *lookahead,
                  rule *r, bool enabled)
 {
-  if (r->number)
+  if (rule_is_initial (r))
+    xml_printf (out, level,
+                "<reduction symbol=\"%s\" rule=\"accept\" enabled=\"%s\"/>",
+                xml_escape (lookahead),
+                enabled ? "true" : "false");
+  else
     xml_printf (out, level,
                 "<reduction symbol=\"%s\" rule=\"%d\" enabled=\"%s\"/>",
                 xml_escape (lookahead),
                 r->number,
-                enabled ? "true" : "false");
-  else
-    xml_printf (out, level,
-                "<reduction symbol=\"%s\" rule=\"accept\" enabled=\"%s\"/>",
-                xml_escape (lookahead),
                 enabled ? "true" : "false");
 }
 
@@ -530,4 +534,44 @@ print_xml (void)
     free (escape_bufs[i].ptr);
 
   xfclose (out);
+}
+
+
+void
+print_html (void)
+{
+  assert (xml_flag);
+
+  char *xml2html = xpath_join (pkgdatadir (), "xslt/xml2xhtml.xsl");
+  char *xsltproc = muscle_percent_define_get ("tool.xsltproc");
+  char const *argv[11];
+  int i = 0;
+  argv[i++] = xsltproc;
+  argv[i++] = "-o";
+  argv[i++] = spec_html_file;
+  argv[i++] = xml2html;
+  argv[i++] = spec_xml_file;
+  argv[i++] = NULL;
+  aver (i <= ARRAY_CARDINALITY (argv));
+
+  if (trace_flag & trace_tools)
+    {
+      fputs ("running:", stderr);
+      for (int j = 0; argv[j]; ++j)
+        fprintf (stderr, " %s", argv[j]);
+      fputc ('\n', stderr);
+    }
+
+  int status
+    = execute (argv[0],
+               argv[0], argv,
+               /* directory */ NULL,
+               /* ignore_sigpipe */ false,
+               /* null_stdin, null_stdout, null_stderr */ true, true, true,
+               /* slave_process */ true, /* exit_on_error */ false,
+               /* termsigp */ NULL);
+  if (status)
+    complain (NULL, complaint, _("%s failed with status %d"), argv[0], status);
+  free (xsltproc);
+  free (xml2html);
 }

@@ -1,6 +1,6 @@
 /* Allocate input grammar variables for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 2001-2003, 2005-2015, 2018-2020 Free
+   Copyright (C) 1984, 1986, 1989, 2001-2003, 2005-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
@@ -55,14 +55,17 @@ item_print (item_number *item, rule const *previous_rule, FILE *out)
   rule const *r = item_rule (item);
   rule_lhs_print (r, previous_rule ? previous_rule->lhs : NULL, out);
 
-  for (item_number *sp = r->rhs; sp < item; sp++)
-    fprintf (out, " %s", symbols[*sp]->tag);
-  fprintf (out, " %s", dot);
   if (0 <= *r->rhs)
-    for (item_number *sp = item; 0 <= *sp; ++sp)
-      fprintf (out, " %s", symbols[*sp]->tag);
+    {
+      // Non-empty rhs.
+      for (item_number *sp = r->rhs; sp < item; sp++)
+        fprintf (out, " %s", symbols[*sp]->tag);
+      fprintf (out, " %s", dot);
+      for (item_number *sp = item; 0 <= *sp; ++sp)
+        fprintf (out, " %s", symbols[*sp]->tag);
+    }
   else
-    fprintf (out, " %%empty");
+    fprintf (out, " %s %s", empty, dot);
 }
 
 
@@ -122,7 +125,7 @@ rule_rhs_print (rule const *r, FILE *out)
     for (item_number *rhsp = r->rhs; 0 <= *rhsp; ++rhsp)
       fprintf (out, " %s", symbols[*rhsp]->tag);
   else
-    fputs (" %empty", out);
+    fprintf (out, " %s", empty);
 }
 
 static void
@@ -155,11 +158,22 @@ void
 ritem_print (FILE *out)
 {
   fputs ("RITEM\n", out);
+  bool first = true;
   for (int i = 0; i < nritems; ++i)
-    if (ritem[i] >= 0)
-      fprintf (out, "  %s", symbols[ritem[i]]->tag);
-    else
-      fprintf (out, "  (rule %d)\n", item_number_as_rule_number (ritem[i]));
+    {
+      if (first)
+        {
+          fprintf (out, "  %d: ", i);
+          first = false;
+        }
+      if (ritem[i] >= 0)
+        fprintf (out, "  %s", symbols[ritem[i]]->tag);
+      else
+        {
+          fprintf (out, "  (rule %d)\n", item_number_as_rule_number (ritem[i]));
+          first = true;
+        }
+    }
   fputs ("\n\n", out);
 }
 

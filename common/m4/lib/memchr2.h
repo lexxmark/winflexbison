@@ -1,5 +1,5 @@
 /* Scan memory for the first of two bytes.
-   Copyright (C) 2008-2011 Free Software Foundation, Inc.
+   Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stddef.h>
 
@@ -24,7 +24,8 @@ extern "C" {
    char) that occurs within N bytes of the memory region S.  If
    neither byte appears, return NULL.  */
 
-extern void *memchr2 (void const *s, int c1, int c2, size_t n);
+extern void *memchr2 (void const *s, int c1, int c2, size_t n)
+  _GL_ATTRIBUTE_PURE;
 
 #ifdef __cplusplus
 }

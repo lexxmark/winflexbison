@@ -2,7 +2,7 @@
 
 # Java skeleton dispatching for Bison.
 
-# Copyright (C) 2007, 2009-2015, 2018-2020 Free Software Foundation,
+# Copyright (C) 2007, 2009-2015, 2018-2021 Free Software Foundation,
 # Inc.
 
 # This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 b4_glr_if(             [b4_complain([%%glr-parser not supported for Java])])
 b4_nondeterministic_if([b4_complain([%%nondeterministic-parser not supported for Java])])

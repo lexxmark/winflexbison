@@ -1,5 +1,5 @@
 /* Creation of autonomous subprocesses.
-   Copyright (C) 2001-2003, 2008-2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2003, 2008-2021 Free Software Foundation, Inc.
    Written by Bruno Haible <haible@clisp.cons.org>, 2001.
 
    This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _EXECUTE_H
 #define _EXECUTE_H
@@ -24,6 +24,17 @@
    descriptors to /dev/null.  Return its exit code.
    If it didn't terminate correctly, exit if exit_on_error is true, otherwise
    return 127.
+   progname is the name of the program to be executed by the subprocess, used
+   for error messages.
+   prog_path is the file name of the program to be executed by the subprocess.
+   If it contains no slashes, a search is conducted in $PATH.  An operating
+   system dependent suffix is added, if necessary.
+   prog_argv is the array of strings that the subprocess shall receive in
+   argv[].  It is a NULL-terminated array.  prog_argv[0] should normally be
+   identical to prog_path.
+   If directory is not NULL, the command is executed in that directory.  If
+   prog_path is a relative file name, it resolved before changing to that
+   directory.  The current directory of the current process remains unchanged.
    If ignore_sigpipe is true, consider a subprocess termination due to SIGPIPE
    as equivalent to a success.  This is suitable for processes whose only
    purpose is to write to standard output.
@@ -33,9 +44,10 @@
    the subprocess (if supported by the platform: not on native Windows
    platforms), otherwise 0.
    It is recommended that no signal is blocked or ignored while execute()
-   is called.  See pipe.h for the reason.  */
+   is called.  See spawn-pipe.h for the reason.  */
 extern int execute (const char *progname,
-                    const char *prog_path, char **prog_argv,
+                    const char *prog_path, const char * const *prog_argv,
+                    const char *directory,
                     bool ignore_sigpipe,
                     bool null_stdin, bool null_stdout, bool null_stderr,
                     bool slave_process, bool exit_on_error,

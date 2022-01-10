@@ -117,7 +117,25 @@
     <ClInclude Include="..\..\common\misc\gettext.h">
       <Filter>misc</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\misc\gl_hash_map.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\gl_map.h" />
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\gl_xmap.h" />
+      <Filter>misc</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\common\misc\hash.h">
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\ialloc.h" />
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\idx.h" />
+      <Filter>misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\misc\integer_length.h" />
       <Filter>misc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\misc\intprops.h">
@@ -455,7 +473,13 @@
     <ClCompile Include="..\..\common\misc\getopt1.c">
       <Filter>misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\misc\gl_hash_map.c" />
+      <Filter>misc</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\common\misc\hash.c">
+      <Filter>misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\misc\integer_length_l.c" />
       <Filter>misc</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\misc\localcharset.c">
@@ -485,7 +509,10 @@
     <ClCompile Include="..\..\common\misc\quotearg.c">
       <Filter>misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\misc\relocatable.c">
+    <ClCompile Include="..\..\common\misc\reallocarray.c" />
+     <Filter>misc</Filter>
+   </ClCompile>
+   <ClCompile Include="..\..\common\misc\relocatable.c">
       <Filter>misc</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\misc\strverscmp.c">

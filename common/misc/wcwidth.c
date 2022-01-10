@@ -1,17 +1,17 @@
 /* Determine the number of screen columns needed for a character.
-   Copyright (C) 2006-2007, 2010-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2007, 2010-2021 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
@@ -34,7 +34,7 @@ is_locale_utf8 (void)
   return STREQ_OPT (encoding, "UTF-8", 'U', 'T', 'F', '-', '8', 0, 0, 0, 0);
 }
 
-#if GNULIB_WCHAR_SINGLE
+#if GNULIB_WCHAR_SINGLE_LOCALE
 /* When we know that the locale does not change, provide a speedup by
    caching the value of is_locale_utf8.  */
 static int cached_is_locale_utf8 = -1;
@@ -59,7 +59,16 @@ wcwidth (wchar_t wc)
     {
       /* We assume that in a UTF-8 locale, a wide character is the same as a
          Unicode character.  */
+#ifndef _WIN32
       return uc_width (wc, "UTF-8");
+#else
+     uint16_t v = wc;
+     if (v >= 0xd800 && v <= 0xdbff)
+         return 4;
+     if (v >= 0xdc00 && v <= 0xdfff)
+       v -= 0xdc00;
+     return v <= 0x7f ? 1 : (v <= 0x7ff ? 2 : 3);
+#endif
     }
   else
     {

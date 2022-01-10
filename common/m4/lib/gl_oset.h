@@ -1,5 +1,5 @@
 /* Abstract ordered set data type.
-   Copyright (C) 2006-2007, 2009-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2007, 2009-2021 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2006.
 
    This program is free software: you can redistribute it and/or modify
@@ -69,6 +69,7 @@ extern "C" {
    gl_oset_search            O(log n) O(log n)
    gl_oset_search_atleast    O(log n) O(log n)
    gl_oset_iterator            O(1)   O(log n)
+   gl_oset_iterator_atleast  O(log n) O(log n)
    gl_oset_iterator_next       O(1)   O(log n)
  */
 
@@ -186,6 +187,13 @@ typedef struct
    except for removing the last returned element.  */
 extern gl_oset_iterator_t gl_oset_iterator (gl_oset_t set);
 
+/* Creates an iterator traversing the tail of an ordered set, that comprises
+   the elements that compare greater or equal to the given THRESHOLD.  The
+   representation of the THRESHOLD is defined by the THRESHOLD_FN.  */
+extern gl_oset_iterator_t gl_oset_iterator_atleast (gl_oset_t set,
+                                                    gl_setelement_threshold_fn threshold_fn,
+                                                    const void *threshold);
+
 /* If there is a next element, stores the next element in *ELTP, advances the
    iterator and returns true.  Otherwise, returns false.  */
 extern bool gl_oset_iterator_next (gl_oset_iterator_t *iterator,
@@ -217,6 +225,9 @@ struct gl_oset_implementation
   void (*oset_free) (gl_oset_t set);
   /* gl_oset_iterator_t functions.  */
   gl_oset_iterator_t (*iterator) (gl_oset_t set);
+  gl_oset_iterator_t (*iterator_atleast) (gl_oset_t set,
+                                          gl_setelement_threshold_fn threshold_fn,
+                                          const void *threshold);
   bool (*iterator_next) (gl_oset_iterator_t *iterator, const void **eltp);
   void (*iterator_free) (gl_oset_iterator_t *iterator);
 };
@@ -293,6 +304,15 @@ GL_OSET_INLINE gl_oset_iterator_t
 gl_oset_iterator (gl_oset_t set)
 {
   return ((const struct gl_oset_impl_base *) set)->vtable->iterator (set);
+}
+
+GL_OSET_INLINE gl_oset_iterator_t
+gl_oset_iterator_atleast (gl_oset_t set,
+                          gl_setelement_threshold_fn threshold_fn,
+                          const void *threshold)
+{
+  return ((const struct gl_oset_impl_base *) set)->vtable
+         ->iterator_atleast (set, threshold_fn, threshold);
 }
 
 GL_OSET_INLINE bool

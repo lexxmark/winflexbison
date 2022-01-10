@@ -1,20 +1,20 @@
 /* hash - hashing table processing.
 
-   Copyright (C) 1998-2004, 2006-2007, 2009-2020 Free Software Foundation, Inc.
+   Copyright (C) 1998-2004, 2006-2007, 2009-2021 Free Software Foundation, Inc.
 
    Written by Jim Meyering, 1992.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* A generic hash table package.  */
@@ -27,8 +27,7 @@
 #include "hash.h"
 
 #include "bitrotate.h"
-//#include "xalloc-oversized.h"
-#include "xalloc.h"
+#include "xalloc-oversized.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -499,7 +498,7 @@ compute_bucket_size (size_t candidate, const Hash_tuning *tuning)
   if (!tuning->is_n_buckets)
     {
       float new_candidate = candidate / tuning->growth_threshold;
-      if (SIZE_MAX <= new_candidate)
+      if ((float) SIZE_MAX <= new_candidate)
         return 0;
       candidate = new_candidate;
     }
@@ -962,7 +961,7 @@ hash_insert_if_absent (Hash_table *table, void const *entry,
              : (table->n_buckets * tuning->growth_factor
                 * tuning->growth_threshold));
 
-          if (SIZE_MAX <= candidate)
+          if ((float) SIZE_MAX <= candidate)
             return -1;
 
           /* If the rehash fails, arrange to return NULL.  */

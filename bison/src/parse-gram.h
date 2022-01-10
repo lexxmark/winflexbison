@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.7.4.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -57,7 +57,7 @@ extern int gram_debug;
 
   #include "symlist.h"
   #include "symtab.h"
-#line 269 "src/parse-gram.y"
+#line 268 "src/parse-gram.y"
 
   typedef enum
   {
@@ -66,7 +66,7 @@ extern int gram_debug;
     param_parse  = 1 << 1,
     param_both   = param_lex | param_parse
   } param_type;
-#line 730 "src/parse-gram.y"
+#line 737 "src/parse-gram.y"
 
   #include "muscle-tab.h"
   typedef struct
@@ -103,13 +103,13 @@ extern int gram_debug;
     PERCENT_CODE = 17,             /* "%code"  */
     PERCENT_DEFAULT_PREC = 18,     /* "%default-prec"  */
     PERCENT_DEFINE = 19,           /* "%define"  */
-    PERCENT_DEFINES = 20,          /* "%defines"  */
-    PERCENT_ERROR_VERBOSE = 21,    /* "%error-verbose"  */
-    PERCENT_EXPECT = 22,           /* "%expect"  */
-    PERCENT_EXPECT_RR = 23,        /* "%expect-rr"  */
+    PERCENT_ERROR_VERBOSE = 20,    /* "%error-verbose"  */
+    PERCENT_EXPECT = 21,           /* "%expect"  */
+    PERCENT_EXPECT_RR = 22,        /* "%expect-rr"  */
+    PERCENT_FILE_PREFIX = 23,      /* "%file-prefix"  */
     PERCENT_FLAG = 24,             /* "%<flag>"  */
-    PERCENT_FILE_PREFIX = 25,      /* "%file-prefix"  */
-    PERCENT_GLR_PARSER = 26,       /* "%glr-parser"  */
+    PERCENT_GLR_PARSER = 25,       /* "%glr-parser"  */
+    PERCENT_HEADER = 26,           /* "%header"  */
     PERCENT_INITIAL_ACTION = 27,   /* "%initial-action"  */
     PERCENT_LANGUAGE = 28,         /* "%language"  */
     PERCENT_NAME_PREFIX = 29,      /* "%name-prefix"  */
@@ -159,10 +159,11 @@ union GRAM_STYPE
   char* BRACED_PREDICATE;                  /* "%?{...}"  */
   char* EPILOGUE;                          /* "epilogue"  */
   char* PROLOGUE;                          /* "%{...%}"  */
+  char* yykind_75;                         /* string.opt  */
   code_props_type code_props_type;         /* code_props_type  */
   int INT_LITERAL;                         /* "integer literal"  */
-  int yykind_82;                           /* int.opt  */
-  named_ref* yykind_95;                    /* named_ref.opt  */
+  int yykind_84;                           /* int.opt  */
+  named_ref* yykind_97;                    /* named_ref.opt  */
   param_type PERCENT_PARAM;                /* "%param"  */
   symbol* token_decl;                      /* token_decl  */
   symbol* alias;                           /* alias  */
@@ -175,27 +176,27 @@ union GRAM_STYPE
   symbol_list* generic_symlist_item;       /* generic_symlist_item  */
   symbol_list* nterm_decls;                /* nterm_decls  */
   symbol_list* token_decls;                /* token_decls  */
-  symbol_list* yykind_80;                  /* token_decl.1  */
+  symbol_list* yykind_82;                  /* token_decl.1  */
   symbol_list* token_decls_for_prec;       /* token_decls_for_prec  */
-  symbol_list* yykind_85;                  /* token_decl_for_prec.1  */
+  symbol_list* yykind_87;                  /* token_decl_for_prec.1  */
   symbol_list* symbol_decls;               /* symbol_decls  */
-  symbol_list* yykind_88;                  /* symbol_decl.1  */
+  symbol_list* yykind_90;                  /* symbols.1  */
   uniqstr PERCENT_ERROR_VERBOSE;           /* "%error-verbose"  */
-  uniqstr PERCENT_FLAG;                    /* "%<flag>"  */
   uniqstr PERCENT_FILE_PREFIX;             /* "%file-prefix"  */
+  uniqstr PERCENT_FLAG;                    /* "%<flag>"  */
   uniqstr PERCENT_NAME_PREFIX;             /* "%name-prefix"  */
   uniqstr PERCENT_PURE_PARSER;             /* "%pure-parser"  */
   uniqstr BRACKETED_ID;                    /* "[identifier]"  */
   uniqstr ID;                              /* "identifier"  */
   uniqstr ID_COLON;                        /* "identifier:"  */
   uniqstr TAG;                             /* "<tag>"  */
-  uniqstr yykind_74;                       /* tag.opt  */
+  uniqstr yykind_76;                       /* tag.opt  */
   uniqstr tag;                             /* tag  */
   uniqstr variable;                        /* variable  */
   unsigned char CHAR_LITERAL;              /* "character literal"  */
   value_type value;                        /* value  */
 
-#line 199 "src/parse-gram.h"
+#line 200 "src/parse-gram.h"
 
 };
 typedef union GRAM_STYPE GRAM_STYPE;
@@ -219,7 +220,9 @@ struct GRAM_LTYPE
 
 
 
+
 int gram_parse (void);
+
 /* "%code provides" blocks.  */
 #line 27 "src/parse-gram.y"
 
@@ -228,6 +231,6 @@ int gram_parse (void);
   /* Deallocate storage for unquote.  */
   void parser_free (void);
 
-#line 232 "src/parse-gram.h"
+#line 235 "src/parse-gram.h"
 
 #endif /* !YY_GRAM_SRC_PARSE_GRAM_H_INCLUDED  */

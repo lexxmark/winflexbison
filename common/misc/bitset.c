@@ -1,6 +1,6 @@
 /* General bitsets.
 
-   Copyright (C) 2002-2006, 2009-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2006, 2009-2015, 2018-2021 Free Software Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -94,7 +94,7 @@ bitset_init (bitset bset, bitset_bindex n_bits, enum bitset_type type)
    specified by ATTR.  For variable size bitsets, N_BITS is only a
    hint and may be zero.  */
 enum bitset_type
-bitset_type_choose (bitset_bindex n_bits MAYBE_UNUSED, unsigned attr)
+bitset_type_choose (MAYBE_UNUSED bitset_bindex n_bits, unsigned attr)
 {
   /* Check attributes.  */
   if (attr & BITSET_FIXED && attr & BITSET_VARIABLE)
@@ -207,8 +207,6 @@ bitset_type_name_get (bitset bset)
 }
 
 
-/* Find next bit set in SRC starting from and including BITNO.
-   Return BITSET_BINDEX_MAX if SRC empty.  */
 bitset_bindex
 bitset_next (bitset src, bitset_bindex bitno)
 {
@@ -228,8 +226,6 @@ bitset_compatible_p (bitset bset1, bitset bset2)
 }
 
 
-/* Find previous bit set in SRC starting from and including BITNO.
-   Return BITSET_BINDEX_MAX if SRC empty.  */
 bitset_bindex
 bitset_prev (bitset src, bitset_bindex bitno)
 {
@@ -275,7 +271,8 @@ static void
 bitset_print (FILE *file, bitset bset, bool verbose)
 {
   if (verbose)
-    fprintf (file, "n_bits = %lu, set = {",
+    fprintf (file, "%s{n_bits = %lu, set = {",
+             bitset_type_name_get (bset),
              (unsigned long) bitset_size (bset));
 
   unsigned pos = 30;
@@ -294,7 +291,7 @@ bitset_print (FILE *file, bitset bset, bool verbose)
   }
 
   if (verbose)
-    fprintf (file, "}\n");
+    fprintf (file, "}}\n");
 }
 
 

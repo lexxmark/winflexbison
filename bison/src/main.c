@@ -1,7 +1,7 @@
 /* Top level entry point of Bison.
 
    Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2002, 2004-2015,
-   2018-2020 Free Software Foundation, Inc.
+   2018-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <io.h>
 #include <fcntl.h>
@@ -66,6 +66,12 @@
 int
 main (int argc, char *argv[])
 {
+  {
+    char *cp = getenv ("BISON_PROGRAM_NAME");
+    if (cp)
+      argv[0] = cp;
+  }
+
 #define DEPENDS_ON_LIBINTL 1
   set_program_name (argv[0]);
   setlocale (LC_ALL, "");
@@ -102,8 +108,12 @@ main (int argc, char *argv[])
   uniqstrs_new ();
   muscle_init ();
   complain_init ();
+  code_scanner_init ();
 
   getargs (argc, argv);
+
+  if (trace_flag)
+    fprintf (stderr, "bison (GNU Bison) %s\n", VERSION);
 
   timevar_enabled = trace_flag & trace_time;
   timevar_init ();
@@ -200,11 +210,19 @@ main (int argc, char *argv[])
         }
 
       /* Output xml.  */
-      if (xml_flag)
+      if (html_flag || xml_flag)
         {
           timevar_push (tv_xml);
           print_xml ();
           timevar_pop (tv_xml);
+        }
+
+      /* Output html.  */
+      if (html_flag)
+        {
+          timevar_push (tv_html);
+          print_html ();
+          timevar_pop (tv_html);
         }
     }
 

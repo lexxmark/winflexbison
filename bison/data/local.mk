@@ -1,4 +1,4 @@
-## Copyright (C) 2002, 2005-2015, 2018-2020 Free Software Foundation,
+## Copyright (C) 2002, 2005-2015, 2018-2021 Free Software Foundation,
 ## Inc.
 
 ## This program is free software: you can redistribute it and/or modify
@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 dist_pkgdata_DATA =                             \
   data/README.md                                \
@@ -28,6 +28,7 @@ dist_skeletons_DATA =                           \
   data/skeletons/c.m4                           \
   data/skeletons/glr.c                          \
   data/skeletons/glr.cc                         \
+  data/skeletons/glr2.cc                        \
   data/skeletons/java-skel.m4                   \
   data/skeletons/java.m4                        \
   data/skeletons/lalr1.cc                       \
@@ -40,7 +41,6 @@ dist_skeletons_DATA =                           \
 
 # Experimental support for the D language.
 dist_skeletons_DATA +=                          \
-  data/skeletons/README-D.txt                   \
   data/skeletons/d-skel.m4                      \
   data/skeletons/d.m4                           \
   data/skeletons/lalr1.d

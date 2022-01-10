@@ -158,9 +158,15 @@
     <ClInclude Include="..\..\common\misc\getopt.h" />
     <ClInclude Include="..\..\common\misc\getopt_int.h" />
     <ClInclude Include="..\..\common\misc\gettext.h" />
+    <ClInclude Include="..\..\common\misc\gl_hash_map.h" />
+    <ClInclude Include="..\..\common\misc\gl_map.h" />
+    <ClInclude Include="..\..\common\misc\gl_xmap.h" />
     <ClInclude Include="..\..\common\misc\glthread\lock.h" />
     <ClInclude Include="..\..\common\misc\glthread\tls.h" />
     <ClInclude Include="..\..\common\misc\hash.h" />
+    <ClInclude Include="..\..\common\misc\ialloc.h" />
+    <ClInclude Include="..\..\common\misc\idx.h" />
+    <ClInclude Include="..\..\common\misc\integer_length.h" />
     <ClInclude Include="..\..\common\misc\intprops.h" />
     <ClInclude Include="..\..\common\misc\libiberty.h" />
     <ClInclude Include="..\..\common\misc\localcharset.h" />
@@ -255,10 +261,12 @@
     <ClCompile Include="..\..\common\misc\getline.c" />
     <ClCompile Include="..\..\common\misc\getopt.c" />
     <ClCompile Include="..\..\common\misc\getopt1.c" />
+    <ClCompile Include="..\..\common\misc\gl_hash_map.c" />
     <ClCompile Include="..\..\common\misc\glthread\lock.c" />
     <ClCompile Include="..\..\common\misc\glthread\threadlib.c" />
     <ClCompile Include="..\..\common\misc\glthread\tls.c" />
     <ClCompile Include="..\..\common\misc\hash.c" />
+    <ClCompile Include="..\..\common\misc\integer_length_l.c" />
     <ClCompile Include="..\..\common\misc\localcharset.c" />
     <ClCompile Include="..\..\common\misc\mbchar.c" />
     <ClCompile Include="..\..\common\misc\mbfile.c" />
@@ -268,6 +276,7 @@
     <ClCompile Include="..\..\common\misc\path-join.c" />
     <ClCompile Include="..\..\common\misc\progname.c" />
     <ClCompile Include="..\..\common\misc\quotearg.c" />
+    <ClCompile Include="..\..\common\misc\reallocarray.c" />
     <ClCompile Include="..\..\common\misc\relocatable.c" />
     <ClCompile Include="..\..\common\misc\strverscmp.c" />
     <ClCompile Include="..\..\common\misc\timespec.c" />

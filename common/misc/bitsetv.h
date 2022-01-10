@@ -1,6 +1,6 @@
 /* Bitset vectors.
 
-   Copyright (C) 2002, 2004, 2009-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 2002, 2004, 2009-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
@@ -25,16 +25,18 @@
 
 typedef bitset * bitsetv;
 
+/* Free vector of bitsets.  Do nothing if NULL.  */
+void bitsetv_free (bitsetv);
+
 /* Create a vector of N_VECS bitsets, each of N_BITS, and of
    type TYPE.  */
-bitsetv bitsetv_alloc (bitset_bindex, bitset_bindex, enum bitset_type);
+bitsetv bitsetv_alloc (bitset_bindex, bitset_bindex, enum bitset_type)
+  _GL_ATTRIBUTE_DEALLOC (bitsetv_free, 1);
 
 /* Create a vector of N_VECS bitsets, each of N_BITS, and with
    attribute hints specified by ATTR.  */
-bitsetv bitsetv_create (bitset_bindex, bitset_bindex, unsigned);
-
-/* Free vector of bitsets.  Do nothing if NULL.  */
-void bitsetv_free (bitsetv);
+bitsetv bitsetv_create (bitset_bindex, bitset_bindex, unsigned)
+  _GL_ATTRIBUTE_DEALLOC (bitsetv_free, 1);
 
 /* Zero vector of bitsets.  */
 void bitsetv_zero (bitsetv);

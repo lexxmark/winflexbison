@@ -1,7 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2006-2014, 2016 Free Software Foundation,
-   Inc.
+   Copyright (C) 1989-1994, 2006-2014, 2016-2017, 2020-2021 Free Software
+   Foundation, Inc.
 
    This file is part of GNU M4.
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /* This module handles frozen files.  */
@@ -36,12 +36,69 @@ reverse_symbol_list (symbol *sym)
   result = NULL;
   while (sym)
     {
-      next = SYMBOL_NEXT (sym);
-      SYMBOL_NEXT (sym) = result;
+      next = SYMBOL_STACK (sym);
+      SYMBOL_STACK (sym) = result;
       result = sym;
       sym = next;
     }
   return result;
+}
+
+static void
+freeze_symbol (symbol *sym, void *arg)
+{
+  symbol *s = sym;
+  FILE *file = arg;
+  const builtin *bp;
+
+  /* Process all entries in one stack, from the last to the first.
+     This order ensures that, at reload time, pushdef's will be
+     executed with the oldest definitions first.  */
+
+  s = reverse_symbol_list (s);
+  for (sym = s; sym; sym = SYMBOL_STACK (sym))
+    {
+      switch (SYMBOL_TYPE (sym))
+        {
+        case TOKEN_TEXT:
+          xfprintf (file, "T%d,%d\n",
+                    (int) strlen (SYMBOL_NAME (sym)),
+                    (int) strlen (SYMBOL_TEXT (sym)));
+          fputs (SYMBOL_NAME (sym), file);
+          fputs (SYMBOL_TEXT (sym), file);
+          fputc ('\n', file);
+          break;
+
+        case TOKEN_FUNC:
+          bp = find_builtin_by_addr (SYMBOL_FUNC (sym));
+          if (bp == NULL)
+            {
+              M4ERROR ((warning_status, 0, "\
+INTERNAL ERROR: builtin not found in builtin table!"));
+              abort ();
+            }
+          xfprintf (file, "F%d,%d\n",
+                    (int) strlen (SYMBOL_NAME (sym)),
+                    (int) strlen (bp->name));
+          fputs (SYMBOL_NAME (sym), file);
+          fputs (bp->name, file);
+          fputc ('\n', file);
+          break;
+
+        case TOKEN_VOID:
+          /* Ignore placeholder tokens that exist due to traceon.  */
+          break;
+
+        default:
+          M4ERROR ((warning_status, 0, "\
+INTERNAL ERROR: bad token data type in freeze_symbol ()"));
+          abort ();
+          break;
+        }
+    }
+
+  /* Reverse the stack once more, putting it back as it was.  */
+  reverse_symbol_list (s);
 }
 
 /*------------------------------------------------.
@@ -52,16 +109,10 @@ void
 produce_frozen_state (const char *name)
 {
   FILE *file;
-  size_t h;
-  symbol *sym;
-  const builtin *bp;
 
-  file = fopen (name, O_BINARY ? "wb" : "w");
+  file = fopen (name, O_BINARY ? "wbN" : "wN");
   if (!file)
-    {
-      M4ERROR ((EXIT_FAILURE, errno, "cannot open `%s'", name));
-      return;
-    }
+    m4_failure (errno, _("cannot open `%s'"), name);
 
   /* Write a recognizable header.  */
 
@@ -91,59 +142,7 @@ produce_frozen_state (const char *name)
 
   /* Dump all symbols.  */
 
-  for (h = 0; h < hash_table_size; h++)
-    {
-
-      /* Process all entries in one bucket, from the last to the first.
-         This order ensures that, at reload time, pushdef's will be
-         executed with the oldest definitions first.  */
-
-      symtab[h] = reverse_symbol_list (symtab[h]);
-      for (sym = symtab[h]; sym; sym = SYMBOL_NEXT (sym))
-        {
-          switch (SYMBOL_TYPE (sym))
-            {
-            case TOKEN_TEXT:
-              xfprintf (file, "T%d,%d\n",
-                        (int) strlen (SYMBOL_NAME (sym)),
-                        (int) strlen (SYMBOL_TEXT (sym)));
-              fputs (SYMBOL_NAME (sym), file);
-              fputs (SYMBOL_TEXT (sym), file);
-              fputc ('\n', file);
-              break;
-
-            case TOKEN_FUNC:
-              bp = find_builtin_by_addr (SYMBOL_FUNC (sym));
-              if (bp == NULL)
-                {
-                  M4ERROR ((warning_status, 0, "\
-INTERNAL ERROR: builtin not found in builtin table!"));
-                  abort ();
-                }
-              xfprintf (file, "F%d,%d\n",
-                        (int) strlen (SYMBOL_NAME (sym)),
-                        (int) strlen (bp->name));
-              fputs (SYMBOL_NAME (sym), file);
-              fputs (bp->name, file);
-              fputc ('\n', file);
-              break;
-
-            case TOKEN_VOID:
-              /* Ignore placeholder tokens that exist due to traceon.  */
-              break;
-
-            default:
-              M4ERROR ((warning_status, 0, "\
-INTERNAL ERROR: bad token data type in freeze_one_symbol ()"));
-              abort ();
-              break;
-            }
-        }
-
-      /* Reverse the bucket once more, putting it back as it was.  */
-
-      symtab[h] = reverse_symbol_list (symtab[h]);
-    }
+  hack_all_symbols (freeze_symbol, file);
 
   /* Let diversions be issued from output.c module, its cleaner to have this
      piece of code there.  */
@@ -154,7 +153,7 @@ INTERNAL ERROR: bad token data type in freeze_one_symbol ()"));
 
   fputs ("# End of frozen state file\n", file);
   if (close_stream (file) != 0)
-    M4ERROR ((EXIT_FAILURE, errno, "unable to create frozen state"));
+    m4_failure (errno, _("unable to create frozen state"));
 }
 
 /*----------------------------------------------------------------------.
@@ -165,10 +164,9 @@ static void
 issue_expect_message (int expected)
 {
   if (expected == '\n')
-    M4ERROR ((EXIT_FAILURE, 0, "expecting line feed in frozen file"));
+    m4_failure (0, _("expecting line feed in frozen file"));
   else
-    M4ERROR ((EXIT_FAILURE, 0, "expecting character `%c' in frozen file",
-              expected));
+    m4_failure (0, _("expecting character `%c' in frozen file"), expected);
 }
 
 /*-------------------------------------------------.
@@ -207,15 +205,14 @@ reload_frozen_state (const char *name)
   do                                                            \
     {                                                           \
       unsigned int n = 0;                                       \
-      while (isdigit (character) && n <= INT_MAX / 10U)         \
+      while (c_isdigit (character) && n <= INT_MAX / 10U)       \
         {                                                       \
           n = 10 * n + character - '0';                         \
           GET_CHARACTER;                                        \
         }                                                       \
       if (((AllowNeg) ? INT_MIN : INT_MAX) + 0U < n             \
-          || isdigit (character))                               \
-        m4_error (EXIT_FAILURE, 0,                              \
-                  _("integer overflow in frozen file"));        \
+          || c_isdigit (character))                             \
+        m4_failure (0, _("integer overflow in frozen file"));   \
       (Number) = n;                                             \
     }                                                           \
   while (0)
@@ -257,8 +254,7 @@ reload_frozen_state (const char *name)
         }                                                               \
       if (number[(i)] > 0                                               \
           && !fread (string[(i)], (size_t) number[(i)], 1, file))       \
-        m4_error (EXIT_FAILURE, 0,                                      \
-                  _("premature end of frozen file"));                   \
+        m4_failure (0, _("premature end of frozen file"));              \
       string[(i)][number[(i)]] = '\0';                                  \
       p = string[(i)];                                                  \
       while ((tmp = memchr(p, '\n', number[(i)] - (p - string[(i)]))))  \
@@ -271,7 +267,7 @@ reload_frozen_state (const char *name)
 
   file = m4_path_search (name, NULL);
   if (file == NULL)
-    M4ERROR ((EXIT_FAILURE, errno, "cannot open %s", name));
+    m4_failure (errno, _("cannot open %s"), name);
   current_file = name;
 
   allocated[0] = 100;
@@ -286,11 +282,10 @@ reload_frozen_state (const char *name)
   GET_NUMBER (number[0], false);
   if (number[0] > 1)
     M4ERROR ((EXIT_MISMATCH, 0,
-              "frozen file version %d greater than max supported of 1",
+              _("frozen file version %d greater than max supported of 1"),
               number[0]));
   else if (number[0] < 1)
-    M4ERROR ((EXIT_FAILURE, 0,
-              "ill-formed frozen file, version directive expected"));
+    m4_failure (0, _("ill-formed frozen file, version directive expected"));
   VALIDATE ('\n');
 
   GET_DIRECTIVE;
@@ -299,7 +294,7 @@ reload_frozen_state (const char *name)
       switch (character)
         {
         default:
-          M4ERROR ((EXIT_FAILURE, 0, "ill-formed frozen file"));
+          m4_failure (0, _("ill-formed frozen file"));
 
         case 'C':
         case 'D':
@@ -387,7 +382,7 @@ reload_frozen_state (const char *name)
   free (string[0]);
   free (string[1]);
   if (close_stream (file) != 0)
-    m4_error (EXIT_FAILURE, errno, _("unable to read frozen state"));
+    m4_failure (errno, _("unable to read frozen state"));
   current_file = NULL;
   current_line = 0;
 

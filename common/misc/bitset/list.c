@@ -1,6 +1,6 @@
 /* Functions to support link list bitsets.
 
-   Copyright (C) 2002-2004, 2006, 2009-2015, 2018-2020 Free Software
+   Copyright (C) 2002-2004, 2006, 2009-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
@@ -428,7 +428,7 @@ lbitset_equal_p (bitset dst, bitset src)
 
 /* Copy bits from bitset SRC to bitset DST.  */
 static inline void
-lbitset_copy (bitset dst, bitset src)
+lbitset_copy_ (bitset dst, bitset src)
 {
   if (src == dst)
     return;
@@ -462,6 +462,15 @@ lbitset_copy (bitset dst, bitset src)
   dst->b.cindex = LBITSET_HEAD (dst)->index;
 }
 
+
+static void
+lbitset_copy (bitset dst, bitset src)
+{
+  if (BITSET_COMPATIBLE_ (dst, src))
+    lbitset_copy_ (dst, src);
+  else
+    bitset_copy_ (dst, src);
+}
 
 /* Copy bits from bitset SRC to bitset DST.  Return true if
    bitsets different.  */
@@ -571,21 +580,21 @@ lbitset_list_reverse (bitset bset, bitset_bindex *list,
   if (!elt)
     return 0;
 
-  unsigned bcount;
+  unsigned bitcnt;
   if (windex >= elt->index + LBITSET_ELT_WORDS)
     {
       /* We are trying to start in no-mans land so start
          at end of current elt.  */
-      bcount = BITSET_WORD_BITS - 1;
+      bitcnt = BITSET_WORD_BITS - 1;
       windex = elt->index + LBITSET_ELT_WORDS - 1;
     }
   else
     {
-      bcount = bitno % BITSET_WORD_BITS;
+      bitcnt = bitno % BITSET_WORD_BITS;
     }
 
   bitset_bindex count = 0;
-  bitset_bindex boffset = windex * BITSET_WORD_BITS;
+  bitset_bindex bitoff = windex * BITSET_WORD_BITS;
 
   /* If num is 1, we could speed things up with a binary search
      of the word of interest.  */
@@ -595,36 +604,34 @@ lbitset_list_reverse (bitset bset, bitset_bindex *list,
       bitset_word *srcp = elt->words;
 
       for (; (windex - elt->index) < LBITSET_ELT_WORDS;
-           windex--, boffset -= BITSET_WORD_BITS,
-             bcount = BITSET_WORD_BITS - 1)
+           windex--)
         {
-          bitset_word word =
-            srcp[windex - elt->index] << (BITSET_WORD_BITS - 1 - bcount);
-
-          for (; word; bcount--)
+          bitset_word word = srcp[windex - elt->index];
+          if (bitcnt + 1 < BITSET_WORD_BITS)
+            /* We're starting in the middle of a word: smash bits to ignore.  */
+            word &= ((bitset_word) 1 << (bitcnt + 1)) - 1;
+          BITSET_FOR_EACH_BIT_REVERSE(pos, word)
             {
-              if (word & BITSET_MSB)
+              list[count++] = bitoff + pos;
+              if (count >= num)
                 {
-                  list[count++] = boffset + bcount;
-                  if (count >= num)
-                    {
-                      *next = n_bits - (boffset + bcount);
-                      return count;
-                    }
+                  *next = n_bits - (bitoff + pos);
+                  return count;
                 }
-              word <<= 1;
             }
+          bitoff -= BITSET_WORD_BITS;
+          bitcnt = BITSET_WORD_BITS - 1;
         }
 
       elt = elt->prev;
       if (elt)
         {
           windex = elt->index + LBITSET_ELT_WORDS - 1;
-          boffset = windex * BITSET_WORD_BITS;
+          bitoff = windex * BITSET_WORD_BITS;
         }
     }
 
-  *next = n_bits - (boffset + 1);
+  *next = n_bits - (bitoff + 1);
   return count;
 }
 
@@ -682,19 +689,14 @@ lbitset_list (bitset bset, bitset_bindex *list,
           for (; (windex - elt->index) < LBITSET_ELT_WORDS; windex++)
             {
               bitset_word word = srcp[windex - elt->index] >> (bitno % BITSET_WORD_BITS);
-
-              for (; word; bitno++)
+              BITSET_FOR_EACH_BIT (pos, word)
                 {
-                  if (word & 1)
+                  list[count++] = bitno + pos;
+                  if (count >= num)
                     {
-                      list[count++] = bitno;
-                      if (count >= num)
-                        {
-                          *next = bitno + 1;
-                          return count;
-                        }
+                      *next = bitno + pos + 1;
+                      return count;
                     }
-                  word >>= 1;
                 }
               bitno = (windex + 1) * BITSET_WORD_BITS;
             }
@@ -708,14 +710,11 @@ lbitset_list (bitset bset, bitset_bindex *list,
         }
     }
 
-
-  /* If num is 1, we could speed things up with a binary search
-     of the word of interest.  */
-
   while (elt)
     {
       bitset_word *srcp = elt->words;
 
+      /* Is there enough room to avoid checking in each iteration? */
       if ((count + LBITSET_ELT_BITS) < num)
         {
           /* The coast is clear, plant boot!  */
@@ -723,42 +722,15 @@ lbitset_list (bitset bset, bitset_bindex *list,
 #if LBITSET_ELT_WORDS == 2
           bitset_word word = srcp[0];
           if (word)
-            {
-              if (!(word & 0xffff))
-                {
-                  word >>= 16;
-                  bitno += 16;
-                }
-              if (!(word & 0xff))
-                {
-                  word >>= 8;
-                  bitno += 8;
-                }
-              for (; word; bitno++)
-                {
-                  if (word & 1)
-                    list[count++] = bitno;
-                  word >>= 1;
-                }
-            }
+            BITSET_FOR_EACH_BIT (pos, word)
+              list[count++] = bitno + pos;
           windex++;
           bitno = windex * BITSET_WORD_BITS;
 
           word = srcp[1];
           if (word)
-            {
-              if (!(word & 0xffff))
-                {
-                  word >>= 16;
-                  bitno += 16;
-                }
-              for (; word; bitno++)
-                {
-                  if (word & 1)
-                    list[count++] = bitno;
-                  word >>= 1;
-                }
-            }
+            BITSET_FOR_EACH_BIT (pos, word)
+              list[count++] = bitno + pos;
           windex++;
           bitno = windex * BITSET_WORD_BITS;
 #else
@@ -766,24 +738,8 @@ lbitset_list (bitset bset, bitset_bindex *list,
             {
               bitset_word word = srcp[i];
               if (word)
-                {
-                  if (!(word & 0xffff))
-                    {
-                      word >>= 16;
-                      bitno += 16;
-                    }
-                  if (!(word & 0xff))
-                    {
-                      word >>= 8;
-                      bitno += 8;
-                    }
-                  for (; word; bitno++)
-                    {
-                      if (word & 1)
-                        list[count++] = bitno;
-                      word >>= 1;
-                    }
-                }
+                BITSET_FOR_EACH_BIT (pos, word)
+                  list[count++] = bitno + pos;
               windex++;
               bitno = windex * BITSET_WORD_BITS;
             }
@@ -793,22 +749,19 @@ lbitset_list (bitset bset, bitset_bindex *list,
         {
           /* Tread more carefully since we need to check
              if array overflows.  */
-
           for (int i = 0; i < LBITSET_ELT_WORDS; i++)
             {
-              for (bitset_word word = srcp[i]; word; bitno++)
-                {
-                  if (word & 1)
-                    {
-                      list[count++] = bitno;
-                      if (count >= num)
-                        {
-                          *next = bitno + 1;
-                          return count;
-                        }
-                    }
-                  word >>= 1;
-                }
+              bitset_word word = srcp[i];
+              if (word)
+                BITSET_FOR_EACH_BIT (pos, word)
+                  {
+                    list[count++] = bitno + pos;
+                    if (count >= num)
+                      {
+                        *next = bitno + pos + 1;
+                        return count;
+                      }
+                  }
               windex++;
               bitno = windex * BITSET_WORD_BITS;
             }
@@ -1276,7 +1229,7 @@ struct bitset_vtable lbitset_vtable = {
 
 /* Return size of initial structure.  */
 size_t
-lbitset_bytes (bitset_bindex n_bits MAYBE_UNUSED)
+lbitset_bytes (MAYBE_UNUSED bitset_bindex n_bits)
 {
   return sizeof (struct lbitset_struct);
 }
@@ -1284,7 +1237,7 @@ lbitset_bytes (bitset_bindex n_bits MAYBE_UNUSED)
 
 /* Initialize a bitset.  */
 bitset
-lbitset_init (bitset bset, bitset_bindex n_bits MAYBE_UNUSED)
+lbitset_init (bitset bset, MAYBE_UNUSED bitset_bindex n_bits)
 {
   BITSET_NBITS_ (bset) = n_bits;
   bset->b.vtable = &lbitset_vtable;

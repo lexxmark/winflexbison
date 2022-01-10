@@ -1,6 +1,6 @@
 /* Data definitions for internal representation of Bison's input.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2001-2007, 2009-2015, 2018-2020
+   Copyright (C) 1984, 1986, 1989, 1992, 2001-2007, 2009-2015, 2018-2021
    Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef GRAM_H_
 # define GRAM_H_
@@ -24,12 +24,12 @@
 /* Representation of the grammar rules:
 
    NTOKENS is the number of tokens, and NNTERMS is the number of
-   variables (nonterminals).  NSYMS is the total number, ntokens +
-   nnterms.
+   nonterminals (aka variables).  NSYMS is the total number, NTOKENS +
+   NNTERMS.
 
-   Each symbol (either token or variable) receives a symbol number.
+   Each symbol (either token or nterm) receives a symbol number.
    Numbers 0 to NTOKENS - 1 are for tokens, and NTOKENS to NSYMS - 1
-   are for variables.  Symbol number zero is the end-of-input token.
+   are for nterms.  Symbol number zero is the end-of-input token.
    This token is counted in ntokens.  The true number of token values
    assigned is NTOKENS reduced by one for each alias declaration.
 
@@ -41,7 +41,7 @@
    are 0, 1, 2...
 
    Internally, we cannot use the number 0 for a rule because for
-   instance RITEM stores both symbol (the RHS) and rule numbers: the
+   instance RITEM stores both symbols (the RHS) and rule numbers: the
    symbols are integers >= 0, and rule numbers are stored negative.
    Therefore 0 cannot be used, since it would be both the rule number
    0, and the token $end.
@@ -77,8 +77,8 @@
    RULES[R].useful -- whether the rule is used.  False if thrown away
    by reduce().
 
-   The right hand side is stored as symbol numbers in a portion of
-   RITEM.
+   The right hand side of rules is stored as symbol numbers in a
+   portion of RITEM.
 
    The length of the portion is one greater than the number of symbols
    in the rule's right hand side.  The last element in the portion
@@ -87,7 +87,8 @@
 
    The portions of RITEM come in order of increasing rule number.
    NRITEMS is the total length of RITEM.  Each element of RITEM is
-   called an "item" and its index in RITEM is an item number.
+   called an "item" of type item_number and its index in RITEM is an
+   item_index.
 
    Item numbers are used in the finite state machine to represent
    places that parsing can get to.
@@ -232,8 +233,23 @@ item_rule (item_number const *item)
 void item_print (item_number *item, rule const *previous_rule,
                  FILE *out);
 
+/*--------.
+| Rules.  |
+`--------*/
+
 /* A function that selects a rule.  */
 typedef bool (*rule_filter) (rule const *);
+
+/* Whether is an accepting rule (i.e., its reduction terminates
+   parsing with success). */
+static inline bool
+rule_is_initial (rule const *r)
+{
+  /* In the case of multistart, we need to check whether the LHS is
+     $accept.  In the case of "unistart", it would suffice to
+     check whether this is rule number 0.  */
+  return r->lhs == acceptsymbol->content;
+}
 
 /* Whether the rule has a 'number' smaller than NRULES.  That is, it
    is useful in the grammar.  */

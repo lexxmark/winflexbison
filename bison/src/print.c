@@ -1,6 +1,6 @@
 /* Print information on generated parser, for bison,
 
-   Copyright (C) 1984, 1986, 1989, 2000-2005, 2007, 2009-2015, 2018-2020
+   Copyright (C) 1984, 1986, 1989, 2000-2005, 2007, 2009-2015, 2018-2021
    Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -43,6 +43,8 @@
 #include "symtab.h"
 #include "tables.h"
 
+/* For a given state, the symbol numbers of the lookahead tokens for
+   shifts and errors (i.e. not reduce).  */
 static bitset no_reduce_set;
 
 
@@ -196,11 +198,11 @@ print_reduction (FILE *out, size_t width,
     fputc (' ', out);
   if (!enabled)
     fputc ('[', out);
-  if (r->number)
+  if (rule_is_initial (r))
+    fprintf (out, _("accept"));
+  else
     fprintf (out, _("reduce using rule %d (%s)"), r->number,
              r->lhs->symbol->tag);
-  else
-    fprintf (out, _("accept"));
   if (!enabled)
     fputc (']', out);
   fputc ('\n', out);
@@ -315,7 +317,7 @@ print_reductions (FILE *out, const state *s)
       aver (STREQ (default_reductions, "most")
             || (STREQ (default_reductions, "consistent")
                 && default_reduction_only)
-            || (reds->num == 1 && reds->rules[0]->number == 0));
+            || (reds->num == 1 && rule_is_initial (reds->rules[0])));
       (void) default_reduction_only;
       free (default_reductions);
     }

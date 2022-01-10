@@ -1,7 +1,7 @@
 /* Input parser for Bison
 
    Copyright (C) 1984, 1986, 1989, 1992, 1998, 2000-2003, 2005-2007,
-   2009-2015, 2018-2020 Free Software Foundation, Inc.
+   2009-2015, 2018-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -16,12 +16,13 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
 
 #include <quote.h>
+#include <vasnprintf.h>
 
 #include "complain.h"
 #include "conflicts.h"
@@ -40,8 +41,8 @@ static void prepare_percent_define_front_end_variables (void);
 static void check_and_convert_grammar (void);
 
 static symbol_list *grammar = NULL;
-static bool start_flag = false;
-merger_list *merge_functions;
+symbol_list *start_symbols = NULL;
+merger_list *merge_functions = NULL;
 
 /* Was %union seen?  */
 bool union_seen = false;
@@ -49,20 +50,40 @@ bool union_seen = false;
 /* Should rules have a default precedence?  */
 bool default_prec = true;
 
-/*-----------------------.
-| Set the start symbol.  |
-`-----------------------*/
 
 void
-grammar_start_symbol_set (symbol *sym, location loc)
+grammar_start_symbols_add (symbol_list *syms)
 {
-  if (start_flag)
-    complain (&loc, complaint, _("multiple %s declarations"), "%start");
-  else
+  /* Report and ignore duplicates.  Append the others to START_SYMBOLS.  */
+  symbol_list *last = symbol_list_last (start_symbols);
+  for (symbol_list *l = syms; l && l->content.sym; /* nothing */)
     {
-      start_flag = true;
-      startsymbol = sym;
-      startsymbol_loc = loc;
+      /* Is there a previous definition?  */
+      symbol_list *first = symbol_list_find_symbol (start_symbols, l->content.sym);
+      if (first)
+        {
+          duplicate_directive ("%start", first->sym_loc, l->sym_loc);
+          symbol_list *dupl = l;
+          l = l->next;
+          dupl->next = NULL;
+          symbol_list_free (dupl);
+        }
+      else
+        {
+          if (last)
+            {
+              last->next = l;
+              last = l;
+            }
+          else
+            {
+              last = l;
+              start_symbols = last;
+            }
+          symbol_list *next = l->next;
+          l->next = NULL;
+          l = next;
+        }
     }
 }
 
@@ -93,27 +114,27 @@ get_merge_function (uniqstr name)
       syms->next->name = uniqstr_new (name);
       /* After all symbol type declarations have been parsed, packgram invokes
          record_merge_function_type to set the type.  */
-      syms->next->type = NULL;
+      syms->next->sym = NULL;
       syms->next->next = NULL;
       merge_functions = head.next;
     }
   return n;
 }
 
-/*-------------------------------------------------------------------------.
-| For the existing merging function with index MERGER, record the result   |
-| type as TYPE as required by the lhs of the rule whose %merge declaration |
-| is at DECLARATION_LOC.                                                   |
-`-------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------.
+| For the existing merging function with index MERGER, record that   |
+| the result type is that of SYM, as required by the lhs (i.e., SYM) |
+| of the rule whose %merge declaration is at DECLARATION_LOC.        |
+`-------------------------------------------------------------------*/
 
 static void
-record_merge_function_type (int merger, uniqstr type, location declaration_loc)
+record_merge_function_type (int merger, symbol *sym, location declaration_loc)
 {
   if (merger <= 0)
     return;
 
-  if (type == NULL)
-    type = uniqstr_new ("");
+  uniqstr type
+    = sym->content->type_name ? sym->content->type_name : uniqstr_new ("");
 
   merger_list *merge_function;
   int merger_find = 1;
@@ -122,18 +143,24 @@ record_merge_function_type (int merger, uniqstr type, location declaration_loc)
        merge_function = merge_function->next)
     merger_find += 1;
   aver (merge_function != NULL && merger_find == merger);
-  if (merge_function->type != NULL && !UNIQSTR_EQ (merge_function->type, type))
+  if (merge_function->sym && merge_function->sym->content->type_name)
     {
-      complain (&declaration_loc, complaint,
-                _("result type clash on merge function %s: "
-                "<%s> != <%s>"),
-                quote (merge_function->name), type,
-                merge_function->type);
-      subcomplain (&merge_function->type_declaration_loc, complaint,
-                   _("previous declaration"));
+      if (!UNIQSTR_EQ (merge_function->sym->content->type_name, type))
+        {
+          complain (&declaration_loc, complaint,
+                    _("result type clash on merge function %s: "
+                      "<%s> != <%s>"),
+                    quote (merge_function->name), type,
+                    merge_function->sym->content->type_name);
+          subcomplain (&merge_function->type_declaration_loc, complaint,
+                       _("previous declaration"));
+        }
     }
-  merge_function->type = uniqstr_new (type);
-  merge_function->type_declaration_loc = declaration_loc;
+  else
+    {
+      merge_function->sym = sym;
+      merge_function->type_declaration_loc = declaration_loc;
+    }
 }
 
 /*--------------------------------------.
@@ -271,6 +298,9 @@ symbol_should_be_used (symbol_list const *s, bool *midrule_warning)
 static void
 grammar_rule_check_and_complete (symbol_list *r)
 {
+  const symbol *lhs = r->content.sym;
+  const symbol *first_rhs = r->next->content.sym;
+
   /* Type check.
 
      If there is an action, then there is nothing we can do: the user
@@ -278,13 +308,12 @@ grammar_rule_check_and_complete (symbol_list *r)
 
      Don't worry about the default action if $$ is untyped, since $$'s
      value can't be used.  */
-  if (!r->action_props.code && r->content.sym->content->type_name)
+  if (!r->action_props.code && lhs->content->type_name)
     {
-      symbol *first_rhs = r->next->content.sym;
       /* If $$ is being set in default way, report if any type mismatch.  */
       if (first_rhs)
         {
-          char const *lhs_type = r->content.sym->content->type_name;
+          char const *lhs_type = lhs->content->type_name;
           char const *rhs_type =
             first_rhs->content->type_name ? first_rhs->content->type_name : "";
           if (!UNIQSTR_EQ (lhs_type, rhs_type))
@@ -297,6 +326,7 @@ grammar_rule_check_and_complete (symbol_list *r)
               const bool is_cxx =
                 STREQ (language->language, "c++")
                 || (skeleton && (STREQ (skeleton, "glr.cc")
+                                 || STREQ (skeleton, "glr2.cc")
                                  || STREQ (skeleton, "lalr1.cc")));
               if (is_cxx)
                 {
@@ -315,25 +345,53 @@ grammar_rule_check_and_complete (symbol_list *r)
                   _("empty rule for typed nonterminal, and no action"));
     }
 
-  /* Check that symbol values that should be used are in fact used.  */
-  {
-    int n = 0;
-    for (symbol_list const *l = r; l && l->content.sym; l = l->next, ++n)
-      {
-        bool midrule_warning = false;
-        if (!l->action_props.is_value_used
-            && symbol_should_be_used (l, &midrule_warning)
-            /* The default action, $$ = $1, 'uses' both.  */
-            && (r->action_props.code || (n != 0 && n != 1)))
-          {
-            warnings warn_flag = midrule_warning ? Wmidrule_values : Wother;
-            if (n)
-              complain (&l->sym_loc, warn_flag, _("unused value: $%d"), n);
-            else
-              complain (&l->rhs_loc, warn_flag, _("unset value: $$"));
-          }
-      }
-  }
+  /* For each start symbol, build the action of its start rule.  Use
+     the same obstack as the one used by scan-code, which is in charge
+     of actions. */
+  const bool multistart = start_symbols && start_symbols->next;
+  if (multistart && lhs == acceptsymbol)
+    {
+      const symbol *start = r->next->next->content.sym;
+      if (start->content->type_name)
+        obstack_printf (obstack_for_actions,
+                        "{ ]b4_accept""([%s%d])[; }",
+                        start->content->class == nterm_sym ? "orig " : "",
+                        start->content->number);
+      else
+        obstack_printf (obstack_for_actions,
+                        "{ ]b4_accept[; }");
+      code_props_rule_action_init (&r->action_props,
+                                   obstack_finish0 (obstack_for_actions),
+                                   r->rhs_loc, r,
+                                   /* name */ NULL,
+                                   /* type */ NULL,
+                                   /* is_predicate */ false);
+    }
+
+
+  /* Check that symbol values that should be used are in fact used.
+     Don't check the generated start rules.  It has no action, so some
+     rhs symbols may appear unused, but the parsing algorithm ensures
+     that %destructor's are invoked appropriately.  */
+  if (lhs != acceptsymbol)
+    {
+      int n = 0;
+      for (symbol_list const *l = r; l && l->content.sym; l = l->next, ++n)
+        {
+          bool midrule_warning = false;
+          if (!l->action_props.is_value_used
+              && symbol_should_be_used (l, &midrule_warning)
+              /* The default action, $$ = $1, 'uses' both.  */
+              && (r->action_props.code || (n != 0 && n != 1)))
+            {
+              warnings warn_flag = midrule_warning ? Wmidrule_values : Wother;
+              if (n)
+                complain (&l->sym_loc, warn_flag, _("unused value: $%d"), n);
+              else
+                complain (&l->rhs_loc, warn_flag, _("unset value: $$"));
+            }
+        }
+    }
 
   /* Check that %empty => empty rule.  */
   if (r->percent_empty_loc.start.file
@@ -616,7 +674,7 @@ packgram (void)
   for (symbol_list *p = grammar; p; p = p->next)
     {
       symbol_list *lhs = p;
-      record_merge_function_type (lhs->merger, lhs->content.sym->content->type_name,
+      record_merge_function_type (lhs->merger, lhs->content.sym,
                                   lhs->merger_declaration_loc);
       /* If the midrule's $$ is set or its $n is used, remove the '$' from the
          symbol name so that it's a user-defined symbol so that the default
@@ -628,11 +686,7 @@ packgram (void)
                   ->action_props.is_value_used)))
         lhs->content.sym->tag += 1;
 
-      /* Don't check the generated rule 0.  It has no action, so some rhs
-         symbols may appear unused, but the parsing algorithm ensures that
-         %destructor's are invoked appropriately.  */
-      if (lhs != grammar)
-        grammar_rule_check_and_complete (lhs);
+      grammar_rule_check_and_complete (lhs);
 
       rules[ruleno].code = ruleno;
       rules[ruleno].number = ruleno;
@@ -734,6 +788,7 @@ prepare_percent_define_front_end_variables (void)
       muscle_percent_define_default ("lr.default-reduction", "accepting");
     free (lr_type);
   }
+  muscle_percent_define_default ("tool.xsltproc", "xsltproc");
 
   /* Check %define front-end variables.  */
   {
@@ -759,6 +814,127 @@ find_start_symbol (void)
     for (res = res->next; res->content.sym; res = res->next)
       continue;
   return res->content.sym;
+}
+
+
+/* Insert an initial rule, whose location is that of the first rule
+   (not that of the start symbol):
+
+   $accept: SWITCHING_TOKEN START $end.  */
+static void
+create_start_rule (symbol *swtok, symbol *start)
+{
+  symbol_list *initial_rule = symbol_list_sym_new (acceptsymbol, empty_loc);
+  initial_rule->rhs_loc = grammar->rhs_loc;
+  symbol_list *p = initial_rule;
+  if (swtok)
+    {
+      // Cannot create the action now, as the symbols have not yet
+      // been assigned their number (by symbol_pack), which we need to
+      // know the type name.  So the action is created in
+      // grammar_rule_check_and_complete, which is run after
+      // symbol_pack.
+      p->next = symbol_list_sym_new (swtok, empty_loc);
+      p = p->next;
+    }
+  p->next = symbol_list_sym_new (start, empty_loc);
+  p = p->next;
+  p->next = symbol_list_sym_new (eoftoken, empty_loc);
+  p = p->next;
+  p->next = symbol_list_sym_new (NULL, empty_loc);
+  p = p->next;
+  p->next = grammar;
+  nrules += 1;
+  nritems += 3 + !!swtok;
+  grammar = initial_rule;
+}
+
+/* Fetch (or create) a token "YY_PARSE_foo" for start symbol "foo".
+
+   We don't use the simple "YY_FOO" because (i) we might get clashes
+   with some of our symbols (e.g., cast => YY_CAST), and (ii) upcasing
+   introduces possible clashes between terminal FOO and nonterminal
+   foo.  */
+symbol *
+switching_token (const symbol *start)
+{
+  char buf[100];
+  size_t len = sizeof buf;
+  char *name = asnprintf (buf, &len, "YY_PARSE_%s", symbol_id_get (start));
+  if (!name)
+    xalloc_die ();
+  // Setting the location ensures deterministic symbol numbers.
+  symbol *res = symbol_get (name, start->location);
+  if (name != buf)
+    free (name);
+  symbol_class_set (res, token_sym, start->location, false);
+  return res;
+}
+
+/* Create the start rules in reverse order, since they are inserted at
+   the top of the grammar.  That way the rules follow the order of
+   declaration to %start.  */
+
+static void
+create_multiple_start_rules (symbol_list *start_syms)
+{
+  if (start_syms)
+    {
+      create_multiple_start_rules (start_syms->next);
+      assert (start_syms->content_type == SYMLIST_SYMBOL);
+      symbol *start = start_syms->content.sym;
+      symbol *swtok = switching_token (start);
+      create_start_rule (swtok, start);
+    }
+}
+
+/* For each start symbol "foo", create the rule "$accept: YY_FOO
+   foo $end". */
+static void
+create_start_rules (void)
+{
+  if (!start_symbols)
+    {
+      symbol *start = find_start_symbol ();
+      start_symbols = symbol_list_sym_new (start, start->location);
+    }
+
+  const bool several = start_symbols->next;
+  if (several)
+    create_multiple_start_rules (start_symbols);
+  else
+    {
+      symbol *start = start_symbols->content.sym;
+      create_start_rule (NULL, start);
+    }
+}
+
+static void
+check_start_symbols (void)
+{
+  const bool multistart = start_symbols && start_symbols->next;
+  // Sanity checks on the start symbols.
+  for (symbol_list *list = start_symbols; list; list = list->next)
+    {
+      const symbol *start = list->content.sym;
+      if (start->content->class == unknown_sym)
+        {
+          complain (&start->location, complaint,
+                    _("the start symbol %s is undefined"),
+                    start->tag);
+          // I claim this situation is unreachable.  This is caught
+          // before, and we get "symbol 'foo' is used, but is not
+          // defined as a token and has no rules".
+          abort ();
+        }
+      // If your only start symbol is a token, you're weird.
+      if (!multistart && start->content->class == token_sym)
+        complain (&start->location, complaint,
+                  _("the start symbol %s is a token"),
+                  start->tag);
+    }
+  if (complaint_status == status_complaint)
+    exit (EXIT_FAILURE);
 }
 
 
@@ -789,31 +965,11 @@ check_and_convert_grammar (void)
       }
     }
 
+  /* Insert the initial rule(s).  */
+  create_start_rules ();
+
   /* Report any undefined symbols and consider them nonterminals.  */
   symbols_check_defined ();
-
-  /* Find the start symbol if no %start.  */
-  if (!start_flag)
-    {
-      symbol *start = find_start_symbol ();
-      grammar_start_symbol_set (start, start->location);
-    }
-
-  /* Insert the initial rule, whose line is that of the first rule
-     (not that of the start symbol):
-
-     $accept: %start $end.  */
-  {
-    symbol_list *p = symbol_list_sym_new (acceptsymbol, empty_loc);
-    p->rhs_loc = grammar->rhs_loc;
-    p->next = symbol_list_sym_new (startsymbol, empty_loc);
-    p->next->next = symbol_list_sym_new (eoftoken, empty_loc);
-    p->next->next->next = symbol_list_sym_new (NULL, empty_loc);
-    p->next->next->next->next = grammar;
-    nrules += 1;
-    nritems += 3;
-    grammar = p;
-  }
 
   if (SYMBOL_NUMBER_MAXIMUM - nnterms < ntokens)
     complain (NULL, fatal, "too many symbols in input grammar (limit is %d)",
@@ -823,6 +979,8 @@ check_and_convert_grammar (void)
 
   /* Assign the symbols their symbol numbers.  */
   symbols_pack ();
+
+  check_start_symbols ();
 
   /* Scan rule actions after invoking symbol_check_alias_consistency
      (in symbols_pack above) so that token types are set correctly

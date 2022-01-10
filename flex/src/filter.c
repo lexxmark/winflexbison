@@ -31,9 +31,6 @@ static const char * check_4_gnu_m4 =
 /** global chain. */
 struct filter *output_chain = NULL;
 
-static const char letters[] =
-"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -66,93 +63,29 @@ char* add_tmp_dir(const char* tmp_file_name)
 int max_temp_file_names = 100;
 int num_temp_file_names = 0;
 char* temp_file_names[100];
-/* Generate a temporary file name based on TMPL.  TMPL must match the
-   rules for mk[s]temp (i.e. end in "XXXXXX").  The name constructed
-   does not exist at the time of the call to mkstemp.  TMPL is
-   overwritten with the result.  */
-FILE* mkstempFILE (char *tmpl, const char *mode)
+/* Generate a temporary file name based with specified prefix. */
+FILE* mkstempFILE (char *pref, const char *mode)
 {
-	int len;
-	char *XXXXXX;
-	static unsigned long long value;
-	unsigned long long random_time_bits;
-	unsigned int count;
-	FILE* fd = NULL;
-	int r;
-
-	/* A lower bound on the number of temporary files to attempt to
-	generate.  The maximum total number of temporary file names that
-	can exist for a given template is 62**6.  It should never be
-	necessary to try all these combinations.  Instead if a reasonable
-	number of names is tried (we define reasonable as 62**3) fail to
-	give the system administrator the chance to remove the problems.  */
-#define ATTEMPTS_MIN (62 * 62 * 62)
-
-	/* The number of times to attempt to generate a temporary file.  To
-	conform to POSIX, this must be no smaller than TMP_MAX.  */
-#if ATTEMPTS_MIN < TMP_MAX
-	unsigned int attempts = TMP_MAX;
-#else
-	unsigned int attempts = ATTEMPTS_MIN;
-#endif
+	char* name;
+	FILE* fd;
 
 	if (num_temp_file_names >= max_temp_file_names)
 		return NULL;
 
-	len = strlen (tmpl);
-	if (len < 6 || strcmp (&tmpl[len - 6], "XXXXXX"))
-	{
+	if (!pref || !*pref)
 		return NULL;
-	}
 
-	/* This is where the Xs start.  */
-	XXXXXX = &tmpl[len - 6];
+	name = _tempnam(flex_tmp_dir, pref);
+	if (!name)
+		return NULL;
 
-	/* Get some more or less random data but unique per process */
+	fd = fopen(name, mode);
+	if (fd)
 	{
-		static unsigned long long g_value;
-		g_value = _getpid();
- 		g_value += 100;
-		random_time_bits = (((unsigned long long)234546 << 32)
-			| (unsigned long long)g_value);
+		temp_file_names[num_temp_file_names] = _strdup(name);
+		++num_temp_file_names;
 	}
-	value += random_time_bits ^ (unsigned long long)122434;
-
-	for (count = 0; count < attempts; value += 7777, ++count)
-	{
-		char* tmp_file_name = 0;
-		unsigned long long v = value;
-
-		/* Fill in the random bits.  */
-		XXXXXX[0] = letters[v % 62];
-		v /= 62;
-		XXXXXX[1] = letters[v % 62];
-		v /= 62;
-		XXXXXX[2] = letters[v % 62];
-		v /= 62;
-		XXXXXX[3] = letters[v % 62];
-		v /= 62;
-		XXXXXX[4] = letters[v % 62];
-		v /= 62;
-		XXXXXX[5] = letters[v % 62];
-
-		tmp_file_name = add_tmp_dir(tmpl);
-		/* file doesn't exist */
-		if (r = _access(tmp_file_name, 0) == -1)
-		{
-			fd = fopen (tmp_file_name, mode);
-			if (fd)
-			{
-				temp_file_names[num_temp_file_names] = tmp_file_name;
-				++num_temp_file_names;
-				return fd;
-			}
-		}
-
-		free(tmp_file_name);
-		tmp_file_name = 0;
-	}
-
+	return fd;
 	/* We got out of the loop because we ran out of combinations to try.  */
 	return NULL;
 }
@@ -271,14 +204,10 @@ struct filter *filter_create_int (struct filter *chain,
  */
 bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
 {
-	char out_file_name[256] = "~X_flex_temp_XXXXXX";
-	static char file_num = '0';
+	char out_file_name[] = "~0_flex_";
 	FILE* mid_out_file = NULL;
 	int r;
 	bool result = true;
-
-	++file_num;
-	out_file_name[1] = file_num;
 
 	/* nothing to do */
 	if (!chain)
@@ -288,6 +217,7 @@ bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
 	chain->in_file = in_file;
 	if (chain->next)
 	{
+		++out_file_name[1];
 		mid_out_file = mkstempFILE(out_file_name, "wb+");
 		if (!mid_out_file)
 			flexerror (_("fail create temp file"));
@@ -321,7 +251,7 @@ bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
 	if (mid_out_file)
 	{
 		if (fclose(mid_out_file))
-			lerr(_("error close file %s"), out_file_name);
+			lerr(_("error close out file '%c'"), out_file_name[1]);
 	}
 
 	return result;
@@ -465,8 +395,7 @@ int filter_tee_header (struct filter *chain)
 		filter_apply_chain (chain->next);
 		to_h = stdout;
         */
-		char tmp_file_name[256] = "~temp_header_file_XXXXXX";
-		to_h = mkstempFILE(tmp_file_name, "wb+");
+		to_h = mkstempFILE("~flex_hdr_", "wb+");
 		if (!to_h)
 			flexfatal (_("fopen(headerfilename) failed"));
 	}

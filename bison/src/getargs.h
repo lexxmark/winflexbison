@@ -1,6 +1,6 @@
 /* Parse command line arguments for bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2020 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef GETARGS_H_
 # define GETARGS_H_
@@ -34,8 +34,9 @@ extern int skeleton_prio;
 /* for -I */
 extern char const *include;
 
-extern bool defines_flag;               /* for -d */
+extern bool header_flag;                /* for -d/-H */
 extern bool graph_flag;                 /* for -g */
+extern bool html_flag;                  /* for --html */
 extern bool xml_flag;                   /* for -x */
 extern bool no_lines_flag;              /* for -l */
 extern bool token_table_flag;           /* for -k */
@@ -139,6 +140,7 @@ void getargs (int argc, char *argv[]);
 /* Used by parse-gram.y.  */
 void language_argmatch (char const *arg, int prio, location loc);
 void skeleton_arg (const char *arg, int prio, location loc);
+void set_yacc (location loc);
 
 /** In the string \c s, replace all characters \c from by \c to.  */
 void tr (char *s, char from, char to);

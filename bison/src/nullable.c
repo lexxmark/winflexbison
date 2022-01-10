@@ -1,6 +1,6 @@
 /* Calculate which nonterminals can expand into the null string for Bison.
 
-   Copyright (C) 1984, 1989, 2000-2006, 2009-2015, 2018-2020 Free
+   Copyright (C) 1984, 1989, 2000-2006, 2009-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* Set up NULLABLE, a vector saying which nonterminals can expand into

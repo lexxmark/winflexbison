@@ -1,6 +1,6 @@
 /* Support for fixing grammar files.
 
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -68,7 +68,7 @@ fixit_free (fixit *f)
 
 /* GCC and Clang follow the same pattern.
    https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Message-Formatting-Options.html
-   http://clang.llvm.org/docs/UsersManual.html#cmdoption-fdiagnostics-parseable-fixits */
+   https://clang.llvm.org/docs/UsersManual.html#cmdoption-fdiagnostics-parseable-fixits */
 static void
 fixit_print (fixit const *f, FILE *out)
 {

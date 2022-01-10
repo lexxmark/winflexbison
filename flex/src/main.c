@@ -1039,6 +1039,7 @@ void flexend (int exit_status)
 
 
 /* flexinit - initialize flex */
+const char* flex_tmp_dir;
 
 void flexinit (int argc, char **argv)
 {
@@ -1047,8 +1048,13 @@ void flexinit (int argc, char **argv)
 	scanopt_t sopt;
 	char *ext_path = 0;
 
-	char   *flex_temp_out_main_template = add_tmp_dir("~flex_temp_out_main_XXXXXX");
-	flex_temp_out_main = _mktemp(flex_temp_out_main_template);
+	flex_tmp_dir = getenv ("FLEX_TMP_DIR");
+	{
+	  char *p = _tempnam(flex_tmp_dir, "~flex_out_main_");
+	  if (!p)
+  		flexfatal(_("_tempnam(main)"));
+	  flex_temp_out_main = _strdup(p);
+	}
 
 	printstats = syntaxerror = trace = spprdflt = false;
 	lex_compat = posix_compat = C_plus_plus = backing_up_report =

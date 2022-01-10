@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2020 Free Software
+   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
@@ -91,28 +91,39 @@ symbol_list_type_set (symbol_list *syms, uniqstr type_name)
 }
 
 
+symbol_list *
+symbol_list_find_symbol (symbol_list *l, const symbol *sym)
+{
+  for (/* Nothing. */; l && l->content.sym; l = l->next)
+    if (l->content.sym == sym)
+      return l;
+  return NULL;
+}
+
+
 /*-----------------------------------------------------------------------.
 | Print this list, for which every content_type must be SYMLIST_SYMBOL.  |
 `-----------------------------------------------------------------------*/
 
 void
-symbol_list_syms_print (const symbol_list *l, FILE *f)
+symbol_list_syms_print (const symbol_list *l, FILE *out)
 {
-  fputc ('[', f);
+  fputc ('[', out);
   char const *sep = "";
   for (/* Nothing. */; l && l->content.sym; l = l->next)
     {
-      fputs (sep, f);
-      fputs (l->content_type == SYMLIST_SYMBOL ? "symbol: "
-             : l->content_type == SYMLIST_TYPE ? "type: "
-             : "invalid content_type: ",
-             f);
+      fputs (sep, out);
+      fputs (l->content_type == SYMLIST_SYMBOL ? "symbol{"
+             : l->content_type == SYMLIST_TYPE ? "type{"
+             : "invalid content_type{",
+             out);
       if (l->content_type == SYMLIST_SYMBOL)
-        symbol_print (l->content.sym, f);
-      fputs (l->action_props.is_value_used ? " (used)" : " (unused)", f);
+        symbol_print (l->content.sym, out);
+      fputs (l->action_props.is_value_used ? " (used)" : " (unused)", out);
+      putc ('}', out);
       sep = ", ";
     }
-  fputc (']', f);
+  fputc (']', out);
 }
 
 
@@ -128,21 +139,27 @@ symbol_list_prepend (symbol_list *list, symbol_list *node)
 }
 
 
-/*-------------------------.
-| Append NODE to the LIST. |
-`-------------------------*/
+symbol_list *
+symbol_list_last (symbol_list *list)
+{
+  if (!list)
+    return NULL;
+  symbol_list *next = list;
+  while (next->next)
+    next = next->next;
+  return next;
+}
 
 symbol_list *
 symbol_list_append (symbol_list *list, symbol_list *node)
 {
-  if (!list)
-    return node;
-  symbol_list *next = list;
-  while (next->next)
-    next = next->next;
-  next->next = node;
+  if (list)
+    symbol_list_last (list)->next = node;
+  else
+    list = node;
   return list;
 }
+
 
 
 /*-----------------------------------------------.

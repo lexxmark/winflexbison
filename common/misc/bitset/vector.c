@@ -1,6 +1,6 @@
 /* Variable array bitsets.
 
-   Copyright (C) 2002-2006, 2009-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2006, 2009-2015, 2018-2021 Free Software Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -126,7 +126,7 @@ vbitset_set (bitset dst, bitset_bindex bitno)
 
 /* Reset bit BITNO in bitset DST.  */
 static void
-vbitset_reset (bitset dst MAYBE_UNUSED, bitset_bindex bitno MAYBE_UNUSED)
+vbitset_reset (MAYBE_UNUSED bitset dst, MAYBE_UNUSED bitset_bindex bitno)
 {
   /* We must be accessing outside the cache so the bit is
      zero anyway.  */
@@ -135,8 +135,8 @@ vbitset_reset (bitset dst MAYBE_UNUSED, bitset_bindex bitno MAYBE_UNUSED)
 
 /* Test bit BITNO in bitset SRC.  */
 static bool
-vbitset_test (bitset src MAYBE_UNUSED,
-              bitset_bindex bitno MAYBE_UNUSED)
+vbitset_test (MAYBE_UNUSED bitset src,
+              MAYBE_UNUSED bitset_bindex bitno)
 {
   /* We must be accessing outside the cache so the bit is
      zero anyway.  */
@@ -152,10 +152,10 @@ static bitset_bindex
 vbitset_list_reverse (bitset src, bitset_bindex *list,
                       bitset_bindex num, bitset_bindex *next)
 {
+  /* FIXME: almost a duplicate of abitset_list_reverse.  Factor?  */
+  bitset_bindex rbitno = *next;
   bitset_word *srcp = VBITSET_WORDS (src);
   bitset_bindex n_bits = BITSET_SIZE_ (src);
-
-  bitset_bindex rbitno = *next;
 
   /* If num is 1, we could speed things up with a binary search
      of the word of interest.  */
@@ -173,19 +173,18 @@ vbitset_list_reverse (bitset src, bitset_bindex *list,
 
   do
     {
-      bitset_word word = srcp[windex] << (BITSET_WORD_BITS - 1 - bitcnt);
-      for (; word; bitcnt--)
+      bitset_word word = srcp[windex];
+      if (bitcnt + 1 < BITSET_WORD_BITS)
+        /* We're starting in the middle of a word: smash bits to ignore.  */
+        word &= ((bitset_word) 1 << (bitcnt + 1)) - 1;
+      BITSET_FOR_EACH_BIT_REVERSE(pos, word)
         {
-          if (word & BITSET_MSB)
+          list[count++] = bitoff + pos;
+          if (count >= num)
             {
-              list[count++] = bitoff + bitcnt;
-              if (count >= num)
-                {
-                  *next = n_bits - (bitoff + bitcnt);
-                  return count;
-                }
+              *next = n_bits - (bitoff + pos);
+              return count;
             }
-          word <<= 1;
         }
       bitoff -= BITSET_WORD_BITS;
       bitcnt = BITSET_WORD_BITS - 1;
@@ -204,6 +203,7 @@ static bitset_bindex
 vbitset_list (bitset src, bitset_bindex *list,
               bitset_bindex num, bitset_bindex *next)
 {
+  /* FIXME: almost a duplicate of abitset_list.  Factor?  */
   bitset_windex size = VBITSET_SIZE (src);
   bitset_word *srcp = VBITSET_WORDS (src);
   bitset_bindex bitno = *next;
@@ -211,7 +211,6 @@ vbitset_list (bitset src, bitset_bindex *list,
 
   bitset_windex windex;
   bitset_bindex bitoff;
-  bitset_word word;
 
   if (!bitno)
     {
@@ -242,19 +241,16 @@ vbitset_list (bitset src, bitset_bindex *list,
              on the previous call to this function.  */
 
           bitoff = windex * BITSET_WORD_BITS;
-          word = srcp[windex] >> bitno;
-          for (bitno = bitoff + bitno; word; bitno++)
+          bitset_word word = srcp[windex] >> bitno;
+          bitno = bitoff + bitno;
+          BITSET_FOR_EACH_BIT (pos, word)
             {
-              if (word & 1)
+              list[count++] = bitno + pos;
+              if (count >= num)
                 {
-                  list[count++] = bitno;
-                  if (count >= num)
-                    {
-                      *next = bitno + 1;
-                      return count;
-                    }
+                  *next = bitno + pos + 1;
+                  return count;
                 }
-              word >>= 1;
             }
           windex++;
         }
@@ -263,34 +259,24 @@ vbitset_list (bitset src, bitset_bindex *list,
 
   for (; windex < size; windex++, bitoff += BITSET_WORD_BITS)
     {
-      if (!(word = srcp[windex]))
+      bitset_word word = srcp[windex];
+      if (!word)
         continue;
 
+      /* Is there enough room to avoid checking in each iteration? */
       if ((count + BITSET_WORD_BITS) < num)
-        {
-          for (bitno = bitoff; word; bitno++)
-            {
-              if (word & 1)
-                list[count++] = bitno;
-              word >>= 1;
-            }
-        }
+        BITSET_FOR_EACH_BIT (pos, word)
+          list[count++] = bitoff + pos;
       else
-        {
-          for (bitno = bitoff; word; bitno++)
-            {
-              if (word & 1)
-                {
-                  list[count++] = bitno;
-                  if (count >= num)
-                    {
-                      *next = bitno + 1;
-                      return count;
-                    }
-                }
-              word >>= 1;
-            }
-        }
+        BITSET_FOR_EACH_BIT (pos, word)
+          {
+            list[count++] = bitoff + pos;
+            if (count >= num)
+              {
+                *next = bitoff + pos + 1;
+                return count;
+              }
+          }
     }
 
   *next = bitoff;
@@ -978,7 +964,7 @@ struct bitset_vtable vbitset_vtable = {
 
 
 size_t
-vbitset_bytes (bitset_bindex n_bits MAYBE_UNUSED)
+vbitset_bytes (MAYBE_UNUSED bitset_bindex n_bits)
 {
   return sizeof (struct vbitset_struct);
 }
