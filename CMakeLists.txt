@@ -75,6 +75,8 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     install(DIRECTORY "bison/data/" DESTINATION "./data/")
     install(FILES "flex/src/FlexLexer.h" DESTINATION "./")
     install(FILES "changelog.md" DESTINATION "./")
+    install(FILES "COPYING" DESTINATION "./")
+    install(FILES "COPYING.DOC" DESTINATION "./")
     install(FILES "README.md" DESTINATION "./")
 
     set(PACKAGE_GENERATORS_DEFAULT ZIP)
