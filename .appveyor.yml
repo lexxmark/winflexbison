@@ -1,4 +1,4 @@
-image: Visual Studio 2019
+image: Visual Studio 2022
 
 configuration:
   - Release
@@ -12,10 +12,17 @@ environment:
   CMAKE_OPTIONS: "-A \"%platform%\" -DCMAKE_BUILD_TYPE=\"%configuration%\" -DUSE_STATIC_RUNTIME=ON"
   # VS VERSION IN CMAKE STYLE
   matrix:
+    - VSVERSION: "17 2022"
     - VSVERSION: "16 2019"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
     - VSVERSION: "15 2017"
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       
+matrix:
+  exclude:
+    - VSVERSION: "17 2022"
+      platform: Win32
+
 init:
   - cmake --version
   - msbuild /version
