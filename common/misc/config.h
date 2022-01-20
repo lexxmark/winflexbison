@@ -31,7 +31,7 @@
 #define _GL_ATTRIBUTE_COLD
 #define _GL_ASYNC_SAFE
 #define GNULIB_XALLOC_DIE 1
-#define _GL_HAVE__STATIC_ASSERT
+#define _GL_HAVE__STATIC_ASSERT 1
 #define _Static_assert(a, b)
 #define __PGI
 
@@ -39,16 +39,21 @@
 #define _GL_CMP(a, b) (a) == (b)
 
 #define __getopt_argv_const
+#if !defined (__MSYS__) && !defined (__MINGW32__) /* defined in sys/cdefs.h */
 #define _Noreturn
+#endif
 
 #ifndef _GL_INLINE
 #define _GL_INLINE inline
 #endif
 
+/* should be set by including "filename.h"
 #ifndef FILE_SYSTEM_DRIVE_PREFIX_CAN_BE_RELATIVE
 #define FILE_SYSTEM_DRIVE_PREFIX_CAN_BE_RELATIVE 1
-#endif
+#endif */
 
+#if !defined (__MSYS__) && !defined (__MINGW32__) /* defined in sys/stat.h */
 #define S_ISDIR(mode) (mode & _S_IFDIR)
+#endif
 
 extern char* _stpcpy(char *yydest, const char *yysrc);
