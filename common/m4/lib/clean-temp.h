@@ -135,7 +135,9 @@ extern int cleanup_temp_dir_contents (struct temp_dir *dir);
    Return 0 upon success, or -1 if there was some problem.  */
 extern int cleanup_temp_dir (struct temp_dir *dir);
 
+#ifndef __MINGW32__
 typedef int mode_t;
+#endif
 
 /* ================== Opening and closing temporary files ================== */
 
