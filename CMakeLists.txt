@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 project (winflexbison)
 
 if(NOT MSVC)
-   message( FATAL_ERROR "Visual Studio Build supported only" )
+   message( WARNING "Visual Studio Build supported only" )
 endif()
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
