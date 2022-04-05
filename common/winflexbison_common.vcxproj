@@ -1,0 +1,534 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DD225102-0724-3D42-8FF5-846CF53B9BA2}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.22581.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>winflexbison_common</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\winflexbison\common\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">winflexbison_common.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">winflexbison_common</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\winflexbison\common\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">winflexbison_common.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">winflexbison_common</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\winflexbison\common\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">winflexbison_common.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">winflexbison_common</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\winflexbison\common\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">winflexbison_common.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">winflexbison_common</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /source-charset:utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;inline=__inline;restrict=__restrict;__extension__;_LIB;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;inline=__inline;restrict=__restrict;__extension__;_LIB;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /source-charset:utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;inline=__inline;restrict=__restrict;__extension__;_LIB;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;inline=__inline;restrict=__restrict;__extension__;_LIB;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /source-charset:utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;inline=__inline;restrict=__restrict;__extension__;_LIB;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;inline=__inline;restrict=__restrict;__extension__;_LIB;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /source-charset:utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;inline=__inline;restrict=__restrict;__extension__;_LIB;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;inline=__inline;restrict=__restrict;__extension__;_LIB;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\winflexbison\common\misc;D:\winflexbison\common\m4;D:\winflexbison\common\m4\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\winflexbison\common\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule D:/winflexbison/common/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/winflexbison -BD:/winflexbison --check-stamp-file D:/winflexbison/common/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\winflexbison\common\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule D:/winflexbison/common/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/winflexbison -BD:/winflexbison --check-stamp-file D:/winflexbison/common/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\winflexbison\common\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule D:/winflexbison/common/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/winflexbison -BD:/winflexbison --check-stamp-file D:/winflexbison/common/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\winflexbison\common\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule D:/winflexbison/common/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/winflexbison -BD:/winflexbison --check-stamp-file D:/winflexbison/common/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\winflexbison\common\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="D:\winflexbison\common\m4\builtin.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\debug.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\eval.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\format.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\freeze.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\input.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\_Noreturn.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\asnprintf.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\asyncsafe-spin.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\asyncsafe-spin.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\binary-io.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\c-stack.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\canonicalize.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\canonicalize.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\cdefs.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\clean-temp-private.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\clean-temp-simple.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\clean-temp-simple.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\clean-temp.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\clean-temp.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\cloexec.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\cloexec.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\close-stream.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\close-stream.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\closein.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\closein.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\closeout.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\closeout.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\dynarray.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\execute.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\execute.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\fd-safer.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\file-set.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\file-set.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\filenamecat-lgpl.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\filenamecat.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\findprog-in.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\findprog.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\fpending.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\freadahead.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_anyhash1.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_anyhash2.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_anyhash_primes.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_anylinked_list1.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_anylinked_list2.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_anytree_oset.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_avltree_ordered.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\gl_avltree_oset.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_avltree_oset.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\gl_linked_list.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_linked_list.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\gl_linkedhash_list.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_linkedhash_list.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_list.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_oset.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_xlist.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\gl_xoset.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\hash-pjw.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\hash-pjw.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\hash-triple-simple.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\hash-triple.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\ignore-value.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\libc-config.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\malloc\dynarray.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\malloc\dynarray_resize.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\malloc\scratch_buffer.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\malloc\scratch_buffer_dupfree.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\malloc\scratch_buffer_grow.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\malloc\scratch_buffer_grow_preserve.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\malloc\scratch_buffer_set_array_size.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\malloca.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\memchr2.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\memchr2.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\mkdtemp.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\mkstemp-safer.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\mkstemp.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\pathmax.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\printf-args.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\printf-args.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\printf-parse.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\printf-parse.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\progname.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\regex.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\regex.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\regex_internal.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\same-inode.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\scratch_buffer.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\stdio--.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\stdlib--.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\stdlib-safer.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\tempname.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\tempname.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\tmpdir.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\tmpdir.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\unistd--.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\unistd-safer.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\vasnprintf.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\vasnprintf.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\vasprintf.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\verror.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\verror.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\windows-spawn.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\windows-spawn.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\windows-spin.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\windows-spin.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\xalloc-oversized.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\xasprintf.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\xmalloca.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\xprintf.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\xprintf.h" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\xsize.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\lib\xvasprintf.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\lib\xvasprintf.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\m4.c" />
+    <ClInclude Include="D:\winflexbison\common\m4\m4.h" />
+    <ClCompile Include="D:\winflexbison\common\m4\macro.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\output.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\path.c" />
+    <ClCompile Include="D:\winflexbison\common\m4\symtab.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\alignof.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\app_path.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\arg-nonnull.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\argmatch.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\argmatch.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\attribute.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\basename-lgpl.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\basename-lgpl.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\bitrotate.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\bitset.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\bitset.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\bitset\array.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\bitset\array.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\bitset\base.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\bitset\list.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\bitset\list.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\bitset\stats.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\bitset\stats.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\bitset\table.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\bitset\table.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\bitset\vector.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\bitset\vector.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\bitsetv.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\bitsetv.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\c-ctype.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\c-ctype.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\c-strcase.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\c-strcasecmp.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\c-strcaseeq.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\c-strncasecmp.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\concat-filename.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\concat-filename.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\config.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\diffseq.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\dirname-lgpl.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\dirname.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\dirname.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\error.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\error.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\exitfail.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\exitfail.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\filename.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\fstrcmp.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\fstrcmp.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\get-errno.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\get-errno.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\getdelim.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\gethrxtime.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\gethrxtime.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\getline.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\getopt.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\getopt.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\getopt1.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\getopt_int.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\getprogname.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\getprogname.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\gettext.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_anyrbtree_list1.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_anyrbtree_list2.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_anytree_list1.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_anytree_list2.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_anytreehash_list1.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_anytreehash_list2.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\gl_array_list.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_array_list.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\gl_hash_map.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_hash_map.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_map.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_rbtree_ordered.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\gl_rbtree_oset.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_rbtree_oset.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\gl_rbtreehash_list.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_rbtreehash_list.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\gl_xmap.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\glthread\lock.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\glthread\lock.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\glthread\threadlib.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\glthread\tls.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\glthread\tls.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\hash.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\hash.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\ialloc.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\idx.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\integer_length.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\integer_length_l.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\intprops.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\localcharset.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\localcharset.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\mbchar.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\mbchar.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\mbfile.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\mbfile.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\mbswidth.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\mbswidth.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\obstack.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\obstack.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\obstack_printf.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\path-join.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\path-join.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\progname.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\progname.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\quote.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\quotearg.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\quotearg.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\reallocarray.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\relocatable.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\relocatable.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\stdio-safer.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\streq.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\strverscmp.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\system.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\timespec.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\timespec.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\timevar.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\timevar.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\unitypes.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\uniwidth.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\verify.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\wcwidth.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\xalloc-die.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\xalloc-oversized.h" />
+    <ClInclude Include="D:\winflexbison\common\misc\xalloc.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\xconcat-filename.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\xhash.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\xmalloc.c" />
+    <ClCompile Include="D:\winflexbison\common\misc\xmemdup0.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\xmemdup0.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\xstrndup.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\xstrndup.h" />
+    <ClCompile Include="D:\winflexbison\common\misc\xtime.c" />
+    <ClInclude Include="D:\winflexbison\common\misc\xtime.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="D:\winflexbison\ZERO_CHECK.vcxproj">
+      <Project>{A4935C9F-62F8-3CF8-9EB5-442349923DB2}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
