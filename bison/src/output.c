@@ -44,6 +44,7 @@
 #include "scan-skel.h"
 #include "symtab.h"
 #include "tables.h"
+#include "pid_tempname.h"
 #include "strversion.h"
 
 static struct obstack format_obstack;
@@ -727,7 +728,7 @@ output_skeleton (void)
 {
   FILE *m4_in = NULL;
   FILE *m4_out = NULL;
-  char m4_in_file_name[/*MAX_PATH*/260]; 
+  char m4_in_file_name[/*MAX_PATH*/260];
   char m4_out_file_name[/*MAX_PATH*/260];
   char const *argv[11];
 
@@ -813,10 +814,7 @@ output_skeleton (void)
   if (trace_flag & trace_muscles)
     muscles_output (stderr);
   {
-    char* p = _tempnam(NULL, "~m4_in_");    
-    if (!p)
-      error (EXIT_FAILURE, get_errno (),
-             "_tempnam");
+    char* p = pid_tempname("~m4_in_");
     m4_in = fopen(strcpy(m4_in_file_name, p), "wb+");
     if (!m4_in)
       error (EXIT_FAILURE, get_errno (),
@@ -832,10 +830,7 @@ output_skeleton (void)
   /* Read and process m4's output.  */
   timevar_push (tv_m4);
   {
-    char *p = _tempnam(NULL, "~m4_out_");    
-    if (!m4_out_file_name)
-      error (EXIT_FAILURE, get_errno (),
-             "_tempnam");
+    char *p = pid_tempname("~m4_out_");
     m4_out = fopen(strcpy(m4_out_file_name, p), "wb+");
     if (!m4_out)
       error (EXIT_FAILURE, get_errno (),

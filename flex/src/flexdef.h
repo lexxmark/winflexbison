@@ -1136,7 +1136,6 @@ extern int filter_tee_header(struct filter *chain);
 extern int filter_fix_linedirs(struct filter *chain);
 extern int filter_m4_p(struct filter *chain);
 
-extern const char* flex_tmp_dir;
 extern FILE* mkstempFILE(char *pref, const char *mode);
 extern void unlinktemp();
 

@@ -36,6 +36,7 @@
 //#include "version.h"
 #include "options.h"
 #include "tables.h"
+#include "pid_tempname.h"
 #include "parse.h"
 #include <io.h>
 #include <fcntl.h>
@@ -411,12 +412,14 @@ void check_options (void)
 	*/
 
 	/* collect all output to temp file to use it as input for filter chain */
-	prev_stdout = _dup(1);   // prev_stdout now refers to "stdout" 
+	prev_stdout = _dup(1);   // prev_stdout now refers to "stdout"
+
+	flex_temp_out_main = _strdup(pid_tempname("~flex_out_main_"));
 	freopen(flex_temp_out_main, "w+", stdout);
 
 	if (stdout == NULL)
 		lerr(_("could not create %s"), flex_temp_out_main);
-	
+
 	yyout = stdout;
 
 
@@ -1039,22 +1042,12 @@ void flexend (int exit_status)
 
 
 /* flexinit - initialize flex */
-const char* flex_tmp_dir;
-
 void flexinit (int argc, char **argv)
 {
 	int     i, sawcmpflag, rv, optind;
 	char   *arg;
 	scanopt_t sopt;
 	char *ext_path = 0;
-
-	flex_tmp_dir = getenv ("FLEX_TMP_DIR");
-	{
-	  char *p = _tempnam(flex_tmp_dir, "~flex_out_main_");
-	  if (!p)
-  		flexfatal(_("_tempnam(main)"));
-	  flex_temp_out_main = _strdup(p);
-	}
 
 	printstats = syntaxerror = trace = spprdflt = false;
 	lex_compat = posix_compat = C_plus_plus = backing_up_report =

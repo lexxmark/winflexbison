@@ -22,6 +22,7 @@
 /*  PURPOSE. */
 
 #include "flexdef.h"
+#include "pid_tempname.h"
 static const char * check_4_gnu_m4 =
     "m4_dnl ifdef(`__gnu__', ,"
     "`errprint(Flex requires GNU M4. Set the PATH or set the M4 environment variable to its path name.)"
@@ -75,9 +76,7 @@ FILE* mkstempFILE (char *pref, const char *mode)
 	if (!pref || !*pref)
 		return NULL;
 
-	name = _tempnam(flex_tmp_dir, pref);
-	if (!name)
-		return NULL;
+	name = pid_tempname(pref);
 
 	fd = fopen(name, mode);
 	if (fd)
@@ -255,7 +254,7 @@ bool filter_apply_chain (struct filter * chain, FILE* in_file, FILE* out_file)
 	}
 
 	return result;
-#if 0		
+#if 0
 	int     pid, pipes[2];
 
 
