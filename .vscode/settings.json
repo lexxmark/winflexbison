@@ -1,0 +1,10 @@
+{
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": true,
+    "files.trimTrailingWhitespace": true,
+    "editor.rulers": [80,120],
+    "git.rebaseWhenSync": true,
+    "git.pruneOnFetch": true,
+    "cmake.preferredGenerators": ["Ninja"],
+}
