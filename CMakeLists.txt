@@ -8,7 +8,7 @@ if(POLICY CMP0177)
 endif()
 
 if(NOT MSVC)
-   message( WARNING "Visual Studio Build supported only" )
+   message(WARNING "Only Visual Studio Build is officially supported right now")
 endif()
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -25,11 +25,8 @@ add_definitions(-Drestrict=__restrict)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W3 /MD /Od /Zi /EHsc")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W3 /GL /Od /Oi /Gy /Zi /EHsc")
 
-# Define Release by default.
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
-  message(STATUS "Build type not specified: Use Release by default.")
-endif()
+# Define Release by default
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type")
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     # Output Variables
