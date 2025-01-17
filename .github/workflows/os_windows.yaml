@@ -29,8 +29,8 @@ jobs:
     - name: "Clang: Configure CMake"
       if: matrix.compiler == 'clang'
       run: | 
-        PACKAGE_VERSION="dev-${{ matrix.compiler }}18-x64-${{ matrix.build_type }}"
-        cmake -S . -B build -G "Ninja" -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -A "x64" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCPACK_PACKAGE_VERSION="${PACKAGE_VERSION}" -DUSE_STATIC_RUNTIME=ON ..
+        set PACKAGE_VERSION="dev-${{ matrix.compiler }}18-x64-${{ matrix.build_type }}"
+        cmake -S . -B build -G "Ninja" -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -A "x64" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCPACK_PACKAGE_VERSION="%PACKAGE_VERSION%" -DUSE_STATIC_RUNTIME=ON ..
 
     - name: Build with CMake
       run: cmake --build build --config ${{ matrix.build_type }}"
