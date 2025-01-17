@@ -34,10 +34,10 @@ jobs:
       if: matrix.compiler == 'clang'
       run: | 
         set PACKAGE_VERSION="dev-${{ matrix.compiler }}18-x64-${{ matrix.build_type }}"
-        cmake -S . -B build -G "Ninja" -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCPACK_PACKAGE_VERSION="%PACKAGE_VERSION%" -DUSE_STATIC_RUNTIME=ON ..
+        cmake -S . -B build -G "Ninja" -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCPACK_PACKAGE_VERSION="%PACKAGE_VERSION%" -DUSE_STATIC_RUNTIME=ON
 
     - name: Build with CMake
-      run: cmake --build build --config ${{ matrix.build_type }}"
+      run: cmake --build build --config "${{ matrix.build_type }}"
 
     - name: Create package
       run: cmake --build build --target package
