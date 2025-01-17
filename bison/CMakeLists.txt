@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project(win_bison C)
+project(win_bison LANGUAGES C)
 
 file(GLOB SOURCE_FILES
     "src/*.c"

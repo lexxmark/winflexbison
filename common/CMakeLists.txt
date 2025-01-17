@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project(winflexbison_common C)
+project(winflexbison_common LANGUAGES C)
 
 # Definition of Macros
 add_definitions(-D_LIB)
