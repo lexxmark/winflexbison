@@ -34,9 +34,8 @@ before_build:
   - cd build
   - cmake -G "Visual Studio %VSVERSION%" -DCPACK_PACKAGE_VERSION="%APPVEYOR_REPO_TAG_NAME%" %CMAKE_OPTIONS% ..
 
-build:
-  project: "build\\winflexbison.sln"
-  parallel: false
+build_script:
+  - cmake --build . --config %configuration%
 
 after_build:
   - cmake --build . --target package
