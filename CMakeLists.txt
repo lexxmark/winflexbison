@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project (winflexbison)
+project (winflexbison C)
 
 # cmake 3.31+ - enable `install` destination paths normalization.
 if(POLICY CMP0177)
