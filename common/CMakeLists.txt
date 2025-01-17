@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-set(PROJECT_NAME winflexbison_common)
-
-project(${PROJECT_NAME} C)
+project(winflexbison_common C)
 
 # Definition of Macros
 add_definitions(-D_LIB)
