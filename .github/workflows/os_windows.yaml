@@ -3,7 +3,7 @@ name: Windows Build with open source compilers
 on: [push, pull_request]
 
 jobs:
-  build:
+  Windows:
     runs-on: windows-latest
 
     strategy:
