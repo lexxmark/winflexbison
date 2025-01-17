@@ -1,0 +1,44 @@
+name: Windows Build with open source compilers
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        compiler: [clang]
+        build_type: [Release, Debug]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: "Clang: Set up LLVM"
+      if: matrix.compiler == 'clang'
+      uses: KyleMayes/install-llvm-action@e0a8dc9cb8a22e8a7696e8a91a4e9581bec13181
+      with:
+        version: "18"
+
+    - name: Output environment information
+      run: |
+        cmake --version
+        ${{ matrix.compiler }} --version
+
+    - name: "Clang: Configure CMake"
+      if: matrix.compiler == 'clang'
+      run: | 
+        PACKAGE_VERSION="dev-${{ matrix.compiler }}18-x64-${{ matrix.build_type }}"
+        cmake -S . -B build -G "Ninja" -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -A "x64" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCPACK_PACKAGE_VERSION="${PACKAGE_VERSION}" -DUSE_STATIC_RUNTIME=ON ..
+
+    - name: Build with CMake
+      run: cmake --build build --config ${{ matrix.build_type }}"
+
+    - name: Create package
+      run: cmake --build build --target package
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        path: build/win_flex_bison*.zip
