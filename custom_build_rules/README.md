@@ -1,6 +1,6 @@
 
-How to setup custom build rules for Visual Studio 2010 and up.
----------------
+# How to setup custom build rules for Visual Studio 2017 and up
+
 
 First of all you should have the necessary files.
 Custom Build rules are separated into a file triplet of `.xml`, `.targets` and `.props`.
