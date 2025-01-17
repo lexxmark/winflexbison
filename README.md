@@ -25,7 +25,7 @@ The release page includes the full Changelog but you may also see the [changelog
 
 ## Build requirements
 * Visual Studio 2017 or newer
-* optional: CMake (when building with CMake)
+* CMake
 
 ## HowTo
 You may use win_flex and win_bison directly on the command line or [use them via CustomBuildRules in VisualStudio](custom_build_rules/README.md).
