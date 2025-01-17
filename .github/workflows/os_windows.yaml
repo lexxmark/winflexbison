@@ -21,9 +21,13 @@ jobs:
       with:
         version: "18"
 
+    - name: Install Ninja
+      run: choco install ninja
+    
     - name: Output environment information
       run: |
         cmake --version
+        ninja --version
         ${{ matrix.compiler }} --version
 
     - name: "Clang: Configure CMake"
