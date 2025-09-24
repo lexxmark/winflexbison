@@ -19,4 +19,5 @@ extern char* _stpcpy(char *yydest, const char *yysrc);
 
 extern int strverscmp(const char* s1, const char* s2);
 
+struct obstack;
 extern int obstack_printf(struct obstack* obs, const char* format, ...);

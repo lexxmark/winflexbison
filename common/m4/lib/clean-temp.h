@@ -136,9 +136,10 @@ extern int cleanup_temp_subdir (struct temp_dir *dir,
    Return 0 upon success, or -1 if there was some problem.  */
 extern int cleanup_temp_dir_contents (struct temp_dir *dir);
 
-#if !defined (__GNUC__) && !defined (__clang__)
+#ifndef _MODE_T_
+#define	_MODE_T_
 typedef int mode_t;
-#endif
+#endif /* _MODE_T_ */
 
 /* ================== Opening and closing temporary files ================== */
 
