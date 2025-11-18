@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 project (winflexbison)
 
+# cmake 3.31+ - enable `install` destination paths normalization.
+if(POLICY CMP0177)
+  cmake_policy(SET CMP0177 OLD)
+endif()
+
 if(NOT MSVC)
    message( WARNING "Visual Studio Build supported only" )
 endif()
