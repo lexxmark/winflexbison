@@ -3,7 +3,7 @@
   <metadata>
     <id>winflexbison3</id>
     <title>WinFlexBison (bison 3.8.2, flex 2.6.4)</title>
-    <version>2.5.25.20211207</version>
+    <version>2.5.25.20220111</version>
     <authors>Alex Zhondin (in addition to original authors of flex and bison)</authors>
     <owners>lexxmark</owners>
     <summary>WinFlexBison is a port Flex/Bison tools to the Windows platform</summary>

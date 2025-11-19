@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-set(PROJECT_NAME winflexbison_common)
-
-project(${PROJECT_NAME} C)
+project(winflexbison_common LANGUAGES C)
 
 # Definition of Macros
 add_definitions(-D_LIB)
@@ -37,4 +35,3 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 90)
 target_include_directories(${PROJECT_NAME} PUBLIC "misc")
 target_include_directories(${PROJECT_NAME} PUBLIC "m4")
 target_include_directories(${PROJECT_NAME} PUBLIC "m4/lib")
-

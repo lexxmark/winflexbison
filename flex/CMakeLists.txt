@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-set(PROJECT_NAME win_flex)
-
-project(${PROJECT_NAME} C)
+project(win_flex LANGUAGES C)
 
 file(GLOB SOURCE_FILES
     "src/*.c"

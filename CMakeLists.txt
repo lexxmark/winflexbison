@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project (winflexbison)
+project(winflexbison VERSION 2.5.25 LANGUAGES C)
 
 # cmake 3.31+ - enable `install` destination paths normalization.
 if(POLICY CMP0177)
@@ -8,7 +8,7 @@ if(POLICY CMP0177)
 endif()
 
 if(NOT MSVC)
-   message( WARNING "Visual Studio Build supported only" )
+   message(WARNING "Only Visual Studio Build is officially supported right now")
 endif()
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -25,11 +25,8 @@ add_definitions(-Drestrict=__restrict)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W3 /MD /Od /Zi /EHsc")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W3 /GL /Od /Oi /Gy /Zi /EHsc")
 
-# Define Release by default.
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
-  message(STATUS "Build type not specified: Use Release by default.")
-endif()
+# Define Release by default
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type")
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     # Output Variables
@@ -78,10 +75,12 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 
     install(DIRECTORY "custom_build_rules/" DESTINATION "./custom_build_rules/")
     install(DIRECTORY "bison/data/" DESTINATION "./data/")
+    install(FILES "bison/src/COPYING" DESTINATION "./" RENAME "COPYING.bison")
     install(FILES "flex/src/FlexLexer.h" DESTINATION "./")
-    install(FILES "changelog.md" DESTINATION "./")
+    install(FILES "flex/src/COPYING" DESTINATION "./" RENAME "COPYING.flex")
     install(FILES "COPYING" DESTINATION "./")
     install(FILES "COPYING.DOC" DESTINATION "./")
+    install(FILES "changelog.md" DESTINATION "./")
     install(FILES "README.md" DESTINATION "./")
 
     set(PACKAGE_GENERATORS_DEFAULT ZIP)
@@ -91,9 +90,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 
     set(ENV_VERSION "$ENV{WINFLEXBISON_VERSION}")
     if(NOT ENV_VERSION)
-      set(CPACK_PACKAGE_VERSION "master" CACHE STRING "Complete version of the created package.")
+      set(CPACK_PACKAGE_VERSION "dev-${PROJECT_VERSION}" CACHE STRING "Complete version string of the created package.")
     else()
-      set(CPACK_PACKAGE_VERSION "${ENV_VERSION}" CACHE STRING "Complete version of the created package.")
+      set(CPACK_PACKAGE_VERSION "${ENV_VERSION}" CACHE STRING "Complete version string of the created package.")
     endif()
 
     set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
