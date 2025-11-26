@@ -56,4 +56,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v5
       with:
+        name: ${{ env.PACKAGE_VERSION }}
         path: build/win_flex_bison*.zip
