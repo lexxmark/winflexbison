@@ -17,33 +17,35 @@ add_definitions(-Dinline=__inline)
 # next line needed for VS2017 only
 add_definitions(-Drestrict=__restrict)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /EHsc")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /GL /Oi /Gy")
-
 # Define Release by default
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type")
+
 # Only apply to MSVC frontend (not clang frontends)
+# Make __extension__ expand to nothing on MSVC (so GCC/Clang keeps the keyword)
 if (MSVC AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
-  # Make __extension__ expand to nothing on MSVC (so GCC/Clang keep the keyword)
   add_compile_definitions("__extension__=")
 endif()
 
+# Only change those variables for top-level project else use parent values
+if(PROJECT_IS_TOP_LEVEL) 
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/bin")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/bin")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/bin")
+    if(MSVC AND DEFINED USE_STATIC_RUNTIME)
+        # Legacy compatibility for top-level builds
+        option(WINFLEXBISON_USE_STATIC_RUNTIME "Set ON to change /MD(DLL) to /MT(static)" USE_STATIC_RUNTIME)
+    endif()
+endif()
 
-if(PROJECT_IS_TOP_LEVEL)
-    # Output Variables
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/bin/Debug")
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bin/Release")
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/bin/RelWithDebInfo")
-    if (MSVC)
-        add_compile_options("/source-charset:utf-8")
-        option( USE_STATIC_RUNTIME "Set ON to change /MD(DLL) to /MT(static)" OFF )
-        if (USE_STATIC_RUNTIME)
-            # /MT or /MTd depending on config
-            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-        else ()
-            # /MD or /MDd depending on config
-            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-        endif ()
+if (MSVC)
+    add_compile_options("/source-charset:utf-8")
+    option(WINFLEXBISON_USE_STATIC_RUNTIME "Set ON to change /MD(DLL) to /MT(static)" Off)
+    if (WINFLEXBISON_USE_STATIC_RUNTIME)
+        # /MT or /MTd depending on config
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    else ()
+        # /MD or /MDd depending on config
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     endif ()
 endif ()
 
