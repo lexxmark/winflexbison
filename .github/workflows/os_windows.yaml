@@ -8,19 +8,30 @@ jobs:
 
     strategy:
       matrix:
-        compiler: [clang]
+        compiler: [clang-cl]
         build_type: [Release, Debug]
       fail-fast: false
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
-    - name: "Clang: Set up LLVM"
-      if: matrix.compiler == 'clang'
-      uses: KyleMayes/install-llvm-action@e0a8dc9cb8a22e8a7696e8a91a4e9581bec13181
+    - name: "Clang-cl: Define compiler version"
+      if: matrix.compiler == 'clang-cl'
+      run: |
+        $env:COMPILER_VERSION = "18"
+        Add-Content -Path $env:GITHUB_ENV -Value "COMPILER_VERSION=$env:COMPILER_VERSION"
+
+    - name: "Define package name"
+      run: |
+        $env:PACKAGE_VERSION = "PACKAGE_VERSION=dev-${{ matrix.compiler }}$env:COMPILER_VERSION-x64-${{ matrix.build_type }}"
+        Add-Content -Path $env:GITHUB_ENV -Value "PACKAGE_VERSION=$env:PACKAGE_VERSION"
+
+    - name: "Clang-cl: Set up LLVM"
+      if: matrix.compiler == 'clang-cl'
+      uses: KyleMayes/install-llvm-action@98e68e10c96dffcb7bfed8b2144541a66b49aa02 # v2.0.8
       with:
-        version: "18"
+        version: ${{ env.COMPILER_VERSION }}
 
     - name: Install Ninja
       run: choco install ninja
@@ -31,11 +42,10 @@ jobs:
         ninja --version
         ${{ matrix.compiler }} --version
 
-    - name: "Clang: Configure CMake"
-      if: matrix.compiler == 'clang'
+    - name: "Configure CMake"
+      if: matrix.compiler == 'clang-cl'
       run: | 
-        set PACKAGE_VERSION="dev-${{ matrix.compiler }}18-x64-${{ matrix.build_type }}"
-        cmake -S . -B build -G "Ninja" -DCMAKE_C_COMPILER=clang-cl -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCPACK_PACKAGE_VERSION="%PACKAGE_VERSION%" -DUSE_STATIC_RUNTIME=ON
+        cmake -S . -B build -G "Ninja" -DCMAKE_C_COMPILER=${{ matrix.compiler }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCPACK_PACKAGE_VERSION="$env:PACKAGE_VERSION" -DUSE_STATIC_RUNTIME=ON
 
     - name: Build with CMake
       run: cmake --build build --config "${{ matrix.build_type }}"
@@ -44,6 +54,6 @@ jobs:
       run: cmake --build build --target package
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         path: build/win_flex_bison*.zip
