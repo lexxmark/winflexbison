@@ -19,7 +19,7 @@ jobs:
     - name: "Clang-cl: Define compiler version"
       if: matrix.compiler == 'clang-cl'
       run: |
-        $env:COMPILER_VERSION = "18"
+        $env:COMPILER_VERSION = "21"
         Add-Content -Path $env:GITHUB_ENV -Value "COMPILER_VERSION=$env:COMPILER_VERSION"
 
     - name: "Define package name"
