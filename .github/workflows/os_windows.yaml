@@ -10,6 +10,7 @@ jobs:
       matrix:
         compiler: [clang]
         build_type: [Release, Debug]
+      fail-fast: false
 
     steps:
     - name: Checkout repository
