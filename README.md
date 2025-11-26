@@ -32,6 +32,23 @@ The release page includes the full Changelog but you may also see the [changelog
 * Visual Studio 2017 or newer
 * CMake
 
+* Clang-cl or Visual Studio 2017 and newer
+* CMake
+* Ninja (optional, recommended)
+
+## Build instructions Visual Studio 15 2017
+
+mkdir CMakeBuildVS2017
+cd CMakeBuildVS2017
+cmake .. -G "Visual Studio 15 2017"
+cmake --build . --config "Release" --target package
+
+## Build instructions clang-cl
+
+mkdir CMakeBuildClangCl
+cd CMakeBuildClangCl
+cmake .. -G"Ninja Multi-Config" -DCMAKE_C_COMPILER=clang-cl.exe
+cmake --build . --config "Release" --target package
 
 ## HowTo
 
