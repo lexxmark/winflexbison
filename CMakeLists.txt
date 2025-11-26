@@ -1,71 +1,59 @@
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
-
-project(winflexbison VERSION 2.5.25 LANGUAGES C)
+cmake_minimum_required(VERSION 3.21.0)
 
 # cmake 3.31+ - enable `install` destination paths normalization.
 if(POLICY CMP0177)
   cmake_policy(SET CMP0177 OLD)
 endif()
 
+project(winflexbison VERSION 2.5.25 LANGUAGES C)
+
 if(NOT MSVC)
    message(WARNING "Only Visual Studio Build is officially supported right now")
 endif()
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions(-D_DEBUG)
-endif()
-
 # next line needed for compile in C (nor CPP) mode (ucrt headers bug)
 add_definitions(-Dinline=__inline)
 # next line needed for VS2017 only
 add_definitions(-Drestrict=__restrict)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W3 /MD /Od /Zi /EHsc")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W3 /GL /Od /Oi /Gy /Zi /EHsc")
-
 # Define Release by default
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type")
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    # Output Variables
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/bin/Debug")
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/bin/Release")
+# Only apply to MSVC frontend (not clang frontends)
+# Make __extension__ expand to nothing on MSVC (so GCC/Clang keeps the keyword)
+if (MSVC AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  add_compile_definitions("__extension__=")
+endif()
 
-    #------------------------------------------------------------------------
-    # Static Windows Runtime
-    #   Option to statically link to the Windows runtime. Maybe only
-    #   applies to WIN32/MSVC.
-    #------------------------------------------------------------------------
-    if (MSVC)
-        add_compile_definitions("__extension__")
-        add_compile_options("/source-charset:utf-8")
-        option( USE_STATIC_RUNTIME "Set ON to change /MD(DLL) to /MT(static)" OFF )
-        if (USE_STATIC_RUNTIME)
-            set(CompilerFlags
-                CMAKE_CXX_FLAGS
-                CMAKE_CXX_FLAGS_DEBUG
-                CMAKE_CXX_FLAGS_RELEASE
-                CMAKE_C_FLAGS
-                CMAKE_C_FLAGS_DEBUG
-                CMAKE_C_FLAGS_RELEASE
-                )
-            foreach(CompilerFlag ${CompilerFlags})
-                string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-            endforeach()
-            message(STATUS "Using /MT STATIC runtime")
-        endif ()
+# Only change those variables for top-level project else use parent values
+if(PROJECT_IS_TOP_LEVEL) 
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/bin")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/bin")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/bin")
+    if(MSVC AND DEFINED USE_STATIC_RUNTIME)
+        # Legacy compatibility for top-level builds
+        option(WINFLEXBISON_USE_STATIC_RUNTIME "Set ON to change /MD(DLL) to /MT(static)" USE_STATIC_RUNTIME)
+    endif()
+endif()
+
+if (MSVC)
+    add_compile_options("/source-charset:utf-8")
+    option(WINFLEXBISON_USE_STATIC_RUNTIME "Set ON to change /MD(DLL) to /MT(static)" Off)
+    if (WINFLEXBISON_USE_STATIC_RUNTIME)
+        # /MT or /MTd depending on config
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    else ()
+        # /MD or /MDd depending on config
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     endif ()
 endif ()
-
-
 
 add_subdirectory(common)
 add_subdirectory(flex)
 add_subdirectory(bison)
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if(PROJECT_IS_TOP_LEVEL)
     # CPACK
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
       install(DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/" DESTINATION "./")
