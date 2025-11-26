@@ -24,7 +24,7 @@ jobs:
 
     - name: "Define package name"
       run: |
-        $env:PACKAGE_VERSION = "PACKAGE_VERSION=dev-${{ matrix.compiler }}$env:COMPILER_VERSION-x64-${{ matrix.build_type }}"
+        $env:PACKAGE_VERSION = "dev-${{ matrix.compiler }}-$env:COMPILER_VERSION-x64-${{ matrix.build_type }}"
         Add-Content -Path $env:GITHUB_ENV -Value "PACKAGE_VERSION=$env:PACKAGE_VERSION"
 
     - name: "Clang-cl: Set up LLVM"
