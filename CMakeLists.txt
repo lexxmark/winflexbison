@@ -28,6 +28,12 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W3 /GL /Od /Oi /Gy /Zi 
 # Define Release by default
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type")
 
+# Only apply to MSVC frontend (not clang frontends)
+if (MSVC AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    # Make __extension__ expand to nothing on MSVC (so GCC/Clang keep the keyword)
+    add_compile_definitions("__extension__=")
+endif()
+
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     # Output Variables
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/bin/Debug")
@@ -39,7 +45,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     #   applies to WIN32/MSVC.
     #------------------------------------------------------------------------
     if (MSVC)
-        add_compile_definitions("__extension__")
         add_compile_options("/source-charset:utf-8")
         option( USE_STATIC_RUNTIME "Set ON to change /MD(DLL) to /MT(static)" OFF )
         if (USE_STATIC_RUNTIME)

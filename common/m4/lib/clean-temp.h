@@ -136,9 +136,13 @@ extern int cleanup_temp_subdir (struct temp_dir *dir,
    Return 0 upon success, or -1 if there was some problem.  */
 extern int cleanup_temp_dir_contents (struct temp_dir *dir);
 
-#if !defined (__GNUC__) && !defined (__clang__)
+// _MODE_T_ is defined by msys2 env.'s
+// __mode_t_defined is defined by linux systems
+// We use the MSYS2 definition of mode_t in that case. 
+#if !defined(_MODE_T_) && !defined(__mode_t_defined)
+#define	_MODE_T_
 typedef int mode_t;
-#endif
+#endif /* _MODE_T_ */
 
 /* ================== Opening and closing temporary files ================== */
 
