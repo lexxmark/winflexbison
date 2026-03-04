@@ -1,0 +1,69 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "x64-Release",
+      "displayName": "x64-Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/CMakeBuild/build/${presetName}",
+      "installDir": "${sourceDir}/CMakeBuild/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "environment": {
+        "VSCMD_ARG_TGT_ARCH": "x64",
+        "VSCMD_ARG_HOST_ARCH": "x64"
+      }
+    },
+    {
+      "name": "x64-RelWithDebInfo",
+      "displayName": "x64-RelWithDebInfo",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/CMakeBuild/build/${presetName}",
+      "installDir": "${sourceDir}/CMakeBuild/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
+      "environment": {
+        "VSCMD_ARG_TGT_ARCH": "x64",
+        "VSCMD_ARG_HOST_ARCH": "x64"
+      }
+    },
+    {
+      "name": "x64-Debug",
+      "displayName": "x64-Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/CMakeBuild/build/${presetName}",
+      "installDir": "${sourceDir}/CMakeBuild/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "environment": {
+        "VSCMD_ARG_TGT_ARCH": "x64",
+        "VSCMD_ARG_HOST_ARCH": "x64"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "x64-Release",
+      "configurePreset": "x64-Release",
+      "verbose": true
+    },
+    {
+      "name": "x64-RelWithDebInfo",
+      "configurePreset": "x64-RelWithDebInfo",
+      "verbose": true
+    },
+    {
+      "name": "x64-Debug",
+      "configurePreset": "x64-Debug",
+      "verbose": true
+    }
+  ]
+}
