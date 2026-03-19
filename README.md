@@ -38,17 +38,13 @@ The release page includes the full Changelog but you may also see the [changelog
 
 ## Build instructions Visual Studio 15 2017
 
-mkdir CMakeBuildVS2017
-cd CMakeBuildVS2017
-cmake .. -G "Visual Studio 15 2017"
-cmake --build . --config "Release" --target package
+cmake -B CMakeBuildVS2017 -G "Visual Studio 15 2017"
+cmake --build CMakeBuildVS2017 --config "Release" --target package
 
 ## Build instructions clang-cl
 
-mkdir CMakeBuildClangCl
-cd CMakeBuildClangCl
-cmake .. -G"Ninja Multi-Config" -DCMAKE_C_COMPILER=clang-cl.exe
-cmake --build . --config "Release" --target package
+cmake -B CMakeBuildClangCl -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=clang-cl.exe
+cmake --build CMakeBuildClangCl --config "Release" --target package
 
 ## HowTo
 
