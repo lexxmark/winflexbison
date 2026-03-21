@@ -11,9 +11,7 @@
             // Resolved by CMake Tools:
             "program": "${command:cmake.launchTargetPath}",
             // "--header-file=<output_header>", "-o<output_source>", "<input_source>"
-            "args": [
-                "calc.l",
-            ],
+            "args": [],
             "cwd": "${workspaceFolder}/../flex-bison-example",
             "terminal": "integrated",
             "stopOnEntry": false,
@@ -23,7 +21,7 @@
             },
             "windows": {
                 // Warning: CodeLLDB is still slower than WinDbg (cppvsdbg) in Windows
-                //          and don't support C++ (string/vector) for MSVC ABI - this code base is C99
+                //          and don't support C++ (string/vector) for MSVC ABI - this codebase is C99
                 "env": {
                     "PATH": "${env:PATH};${command:cmake.launchTargetDirectory}"
                 }

@@ -1,5 +1,7 @@
 
-Alternatively, VS Code is available for debugging, here is a simple guide (based on the [MS documentation](https://code.visualstudio.com/docs/cpp/cmake-linux)):
+# How to setup vscode-like editors for debugging win_flex/win_bison
+
+Here is a simple guide (based on the [MS documentation](https://code.visualstudio.com/docs/cpp/cmake-linux)):
 1. Make sure the [Prerequisites](https://code.visualstudio.com/docs/cpp/cmake-linux#_prerequisites) are installed.
 2. [Select a compiler kit](https://code.visualstudio.com/docs/cpp/cmake-linux#_select-a-kit), any of the native `amd64` version of MSVC is recommended for compatibility - any of the rest with `x86` is cross-compiling a 32-bit version of `win_flex`/`win_bison`.
 
@@ -19,15 +21,14 @@ NOTE: Click `Scan for kits` when setting up C/C++ debugging for the first time i
   - here is a sample for `win_flex` target:
 ```json
             "args": [
-                "calc.l"
+                "calc.l",
             ],
 ```
   - here is a sample for `win_bison` target:
 ```json
             "args": [
-                "--header-file=sample.tab.h",
-                "-osample.tab.c",
-                "sample.l"
+                "-d",
+                "calc.y",
             ],
 ```
   - NOTE: This example uses source files without full path was achieved by setting `cwd`

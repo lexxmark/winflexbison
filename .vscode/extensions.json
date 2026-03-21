@@ -5,7 +5,7 @@
     // List of extensions which should be recommended for users of this workspace.
     "recommendations": [
         "ms-vscode.cmake-tools",                    // CMake for Debugging C/C++
-        "vs-code-extensions.vscode-clangd",         // Optional intellisense-like features with LLVM/clangd
-        "daohong-emilio.yash",                      // For flex/bison source files
+        "llvm-vs-code-extensions.vscode-clangd",    // Optional intellisense-like features with LLVM/clangd
+        "theodevelop.bison-flex-lang",              // For flex/bison source files
     ],
 }
