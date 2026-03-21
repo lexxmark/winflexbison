@@ -5,6 +5,34 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(lldb) Launch",
+            "type": "lldb",
+            "request": "launch",
+            // Resolved by CMake Tools:
+            "program": "${command:cmake.launchTargetPath}",
+            // "--header-file=<output_header>", "-o<output_source>", "<input_source>"
+            "args": [
+                "calc.l",
+            ],
+            "cwd": "${workspaceFolder}/../flex-bison-example",
+            "terminal": "integrated",
+            "stopOnEntry": false,
+            // Non-Windows is unnecessary but it helps to ensure
+            "env": {
+                "PATH": "${env:PATH}:${command:cmake.launchTargetDirectory}"
+            },
+            "windows": {
+                // Warning: CodeLLDB is still slower than WinDbg (cppvsdbg) in Windows
+                //          and don't support C++ (string/vector) for MSVC ABI - this code base is C99
+                "env": {
+                    "PATH": "${env:PATH};${command:cmake.launchTargetDirectory}"
+                }
+            },
+            "initCommands": [
+                "settings set target.process.follow-fork-mode parent"
+            ]
+        },
+        {
             // https://code.visualstudio.com/docs/cpp/config-msvc
             // https://learn.microsoft.com/en-us/windows-hardware/drivers/debugger/debugger-download-tools
             "name": "(windbg) Launch",

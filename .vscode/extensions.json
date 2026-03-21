@@ -4,8 +4,8 @@
 
     // List of extensions which should be recommended for users of this workspace.
     "recommendations": [
-        "ms-vscode.cpptools-extension-pack",        // Comes with CMake for Debugging C++
-        "VisualStudioExptTeam.vscodeintellicode",   // Optional intellisense
+        "ms-vscode.cmake-tools",                    // CMake for Debugging C/C++
+        "vs-code-extensions.vscode-clangd",         // Optional intellisense-like features with LLVM/clangd
         "daohong-emilio.yash",                      // For flex/bison source files
     ],
 }
