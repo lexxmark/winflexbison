@@ -61,6 +61,11 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
             endforeach()
             message(STATUS "Using /MT STATIC runtime")
         endif ()
+
+        # MSVC's incremental linking is offering little to no benefit,
+        # disable it for faster link times (and prevent ilk binary bloat).
+        # NOTE: Frequent build with vscode is hitting resource busy for the the ilk files.
+        add_link_options("/INCREMENTAL:NO")
     endif ()
 endif ()
 
