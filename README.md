@@ -29,9 +29,6 @@ The release page includes the full Changelog but you may also see the [changelog
 
 ## Build requirements
 
-* Visual Studio 2017 or newer
-* CMake
-
 * Clang-cl or Visual Studio 2017 and newer
 * CMake
 * Ninja (optional, recommended)
