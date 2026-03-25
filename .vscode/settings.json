@@ -1,0 +1,17 @@
+{
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": true,
+    "files.trimTrailingWhitespace": true,
+    "[markdown]": {
+        "files.trimTrailingWhitespace": false,
+    },
+    "editor.rulers": [80,120],
+    "git.rebaseWhenSync": true,
+    "git.pruneOnFetch": true,
+    // "cmake.preferredGenerators": ["Ninja Multi-Config"],
+    "cmake.generator": "Ninja Multi-Config",
+    "cmake.options.statusBarVisibility": "compact",
+    "cmake.useCMakePresets": "never",
+    "C_Cpp.intelliSenseEngine": "disabled",
+}

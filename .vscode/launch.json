@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) Launch",
+            "type": "lldb",
+            "request": "launch",
+            // Resolved by CMake Tools:
+            "program": "${command:cmake.launchTargetPath}",
+            // "--header-file=<output_header>", "-o<output_source>", "<input_source>"
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "terminal": "integrated",
+            "stopOnEntry": false,
+            // Non-Windows is unnecessary but it helps to ensure PATH correctly
+            "env": {
+                "PATH": "${env:PATH}:${command:cmake.launchTargetDirectory}"
+            },
+            "windows": {
+                // Warning: CodeLLDB is still slower than WinDbg (cppvsdbg) in Windows
+                //          and don't support C++ (string/vector) for MSVC ABI - this codebase is C99
+                "env": {
+                    "PATH": "${env:PATH};${command:cmake.launchTargetDirectory}"
+                }
+            },
+            "initCommands": [
+                "settings set target.process.follow-fork-mode parent"
+            ]
+        },
+    ]
+}
