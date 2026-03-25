@@ -35,10 +35,10 @@ The release page includes the full Changelog but you may also see the [changelog
 
 ## HowTo
 
-You may:
-- use `win_flex` and `win_bison` directly on the command line
-- [use them via CustomBuildRules in VisualStudio](custom_build_rules/README.md).
-- use them via [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) in [vscode-like editors](vscode/README.md).
+You may use `win_flex` and `win_bison`:
+- directly on the command line
+- [via CustomBuildRules in VisualStudio](custom_build_rules/README.md).
+- via [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) in [vscode-like editors](vscode/README.md).
 
 
 ## Example flex/bison files

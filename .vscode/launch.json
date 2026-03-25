@@ -12,10 +12,10 @@
             "program": "${command:cmake.launchTargetPath}",
             // "--header-file=<output_header>", "-o<output_source>", "<input_source>"
             "args": [],
-            "cwd": "${workspaceFolder}/../flex-bison-example",
+            "cwd": "${workspaceFolder}",
             "terminal": "integrated",
             "stopOnEntry": false,
-            // Non-Windows is unnecessary but it helps to ensure
+            // Non-Windows is unnecessary but it helps to ensure PATH correctly
             "env": {
                 "PATH": "${env:PATH}:${command:cmake.launchTargetDirectory}"
             },
