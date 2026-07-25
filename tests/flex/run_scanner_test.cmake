@@ -7,11 +7,14 @@
 #
 # Invoked as:
 #   cmake -DTEST_EXE=<path> [-DINPUT=<path>] [-DARG1=<a>] [-DARG2=<b>]
-#         -P run_scanner_test.cmake
+#         [-DARG3=<c>] [-DWORKDIR=<dir>] -P run_scanner_test.cmake
 #
 # INPUT     : file fed on stdin (stdin-style tests).
-# ARG1/ARG2 : positional argv passed to the scanner (e.g. external-tables tests
-#             that take a .tables path and an input-file path as arguments).
+# ARG1..3   : positional argv passed to the scanner (external-tables tests take
+#             <tables> <input>; the "direct" and yywrap tests take input-file
+#             path(s) as arguments).
+# WORKDIR   : working directory for the child (the "direct" tests must run from
+#             the cases dir so relative include-file opens resolve).
 # INPUT and ARGn are independent; a test uses whichever it needs.
 
 if(NOT DEFINED TEST_EXE)
@@ -19,23 +22,29 @@ if(NOT DEFINED TEST_EXE)
 endif()
 
 set(cmd "${TEST_EXE}")
-if(DEFINED ARG1 AND NOT "${ARG1}" STREQUAL "")
-    list(APPEND cmd "${ARG1}")
-endif()
-if(DEFINED ARG2 AND NOT "${ARG2}" STREQUAL "")
-    list(APPEND cmd "${ARG2}")
+foreach(a ARG1 ARG2 ARG3)
+    if(DEFINED ${a} AND NOT "${${a}}" STREQUAL "")
+        list(APPEND cmd "${${a}}")
+    endif()
+endforeach()
+
+set(workdir_opt "")
+if(DEFINED WORKDIR AND NOT "${WORKDIR}" STREQUAL "")
+    set(workdir_opt WORKING_DIRECTORY "${WORKDIR}")
 endif()
 
 if(DEFINED INPUT AND NOT "${INPUT}" STREQUAL "" AND EXISTS "${INPUT}")
     execute_process(
         COMMAND ${cmd}
         INPUT_FILE "${INPUT}"
+        ${workdir_opt}
         RESULT_VARIABLE rc
         OUTPUT_VARIABLE out
         ERROR_VARIABLE err)
 else()
     execute_process(
         COMMAND ${cmd}
+        ${workdir_opt}
         RESULT_VARIABLE rc
         OUTPUT_VARIABLE out
         ERROR_VARIABLE err)

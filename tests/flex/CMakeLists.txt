@@ -236,7 +236,7 @@ add_flex_cxx_test(cxx_multiple_scanners
 #       [FLEXFLAGS <...>] [DEFINES <...>] [TABLES]
 #       [INPUT <txt>] [INPUT_AS_ARG])
 function(add_flex_generated_test name)
-    cmake_parse_arguments(T "TABLES;INPUT_AS_ARG" "SRC;INPUT" "FLEXFLAGS;DEFINES" ${ARGN})
+    cmake_parse_arguments(T "TABLES;STDIN_INPUT" "SRC;INPUT" "FLEXFLAGS;DEFINES" ${ARGN})
 
     set(gen "${CMAKE_CURRENT_BINARY_DIR}/${name}.c")
     set(outputs "${gen}")
@@ -272,10 +272,16 @@ function(add_flex_generated_test name)
     set(test_args
         -DTEST_EXE=$<TARGET_FILE:flextest_${name}>)
     if(T_TABLES)
-        # argv: <tables-file> <input-file>
+        # argv[1] = tables file. Input goes either on stdin (STDIN_INPUT, e.g.
+        # tableopts, whose reentrant main relies on the default stdin yyin) or
+        # as argv[2] (reject_ver/ser, whose main opens argv[2]).
         list(APPEND test_args -DARG1=${tables})
         if(T_INPUT)
-            list(APPEND test_args "-DARG2=${FLEX_CASES_DIR}/${T_INPUT}")
+            if(T_STDIN_INPUT)
+                list(APPEND test_args "-DINPUT=${FLEX_CASES_DIR}/${T_INPUT}")
+            else()
+                list(APPEND test_args "-DARG2=${FLEX_CASES_DIR}/${T_INPUT}")
+            endif()
         endif()
     elseif(T_INPUT)
         list(APPEND test_args "-DINPUT=${FLEX_CASES_DIR}/${T_INPUT}")
@@ -306,3 +312,201 @@ add_flex_generated_test(reject_ser
     SRC reject.l4  INPUT reject.txt  TABLES
     FLEXFLAGS --unsafe-no-m4-sect3-escape
     DEFINES   TEST_HAS_TABLES_EXTERNAL)
+
+# ---------------------------------------------------------------------------
+# Phase 5a: "direct" tests. These run from the cases dir with the input file as
+# argv[1]; the scanner opens secondary include files (_2/_3) by relative name,
+# so the working directory must be the cases dir (mirrors testwrapper-direct.sh).
+function(add_flex_direct_test name)
+    cmake_parse_arguments(T "" "SCANNER;INPUT" "" ${ARGN})
+    set(gen "${CMAKE_CURRENT_BINARY_DIR}/${name}.c")
+    add_custom_command(
+        OUTPUT  "${gen}"
+        COMMAND $<TARGET_FILE:win_flex> --wincompat -o "${gen}" "${FLEX_CASES_DIR}/${T_SCANNER}"
+        DEPENDS win_flex "${FLEX_CASES_DIR}/${T_SCANNER}"
+        COMMENT "flex: generating ${name}.c"
+        VERBATIM)
+    add_executable(flextest_${name} "${gen}")
+    target_link_libraries(flextest_${name} PRIVATE winflexbison_common)
+    target_include_directories(flextest_${name} PRIVATE "${CMAKE_SOURCE_DIR}/flex/src")
+    add_test(NAME flex.${name}
+        COMMAND ${CMAKE_COMMAND}
+            -DTEST_EXE=$<TARGET_FILE:flextest_${name}>
+            "-DARG1=${FLEX_CASES_DIR}/${T_INPUT}"
+            "-DWORKDIR=${FLEX_CASES_DIR}"
+            -P "${FLEX_RUNNER}")
+    set_tests_properties(flex.${name} PROPERTIES SKIP_RETURN_CODE 77 LABELS "flex")
+endfunction()
+
+add_flex_direct_test(include_by_buffer    SCANNER include_by_buffer.direct.l    INPUT include_by_buffer.direct.txt)
+add_flex_direct_test(include_by_push      SCANNER include_by_push.direct.l      INPUT include_by_push.direct.txt)
+add_flex_direct_test(include_by_reentrant SCANNER include_by_reentrant.direct.l INPUT include_by_reentrant.direct.txt)
+add_flex_direct_test(rescan_nr            SCANNER rescan_nr.direct.l            INPUT rescan_nr.direct.txt)
+add_flex_direct_test(rescan_r            SCANNER rescan_r.direct.l            INPUT rescan_r.direct.txt)
+
+# ---------------------------------------------------------------------------
+# Phase 5b: lineno comparison-mode tests. Pass == the scanner's computed
+# yylineno equals the reference newline count (run twice, outputs compared).
+set(FLEX_COMPARE_RUNNER "${CMAKE_CURRENT_SOURCE_DIR}/run_compare_test.cmake")
+function(add_flex_compare_test name scanner input)
+    set(gen "${CMAKE_CURRENT_BINARY_DIR}/${name}.c")
+    add_custom_command(
+        OUTPUT  "${gen}"
+        COMMAND $<TARGET_FILE:win_flex> --wincompat -o "${gen}" "${FLEX_CASES_DIR}/${scanner}"
+        DEPENDS win_flex "${FLEX_CASES_DIR}/${scanner}"
+        COMMENT "flex: generating ${name}.c"
+        VERBATIM)
+    add_executable(flextest_${name} "${gen}")
+    target_link_libraries(flextest_${name} PRIVATE winflexbison_common)
+    target_include_directories(flextest_${name} PRIVATE "${CMAKE_SOURCE_DIR}/flex/src")
+    add_test(NAME flex.${name}
+        COMMAND ${CMAKE_COMMAND}
+            -DTEST_EXE=$<TARGET_FILE:flextest_${name}>
+            "-DINPUT=${FLEX_CASES_DIR}/${input}"
+            -P "${FLEX_COMPARE_RUNNER}")
+    set_tests_properties(flex.${name} PROPERTIES SKIP_RETURN_CODE 77 LABELS "flex")
+endfunction()
+
+add_flex_compare_test(lineno_nr       lineno_nr.l       lineno_nr.one.txt)
+add_flex_compare_test(lineno_r        lineno_r.l        lineno_r.one.txt)
+add_flex_compare_test(lineno_trailing lineno_trailing.l lineno_trailing.one.txt)
+
+# ---------------------------------------------------------------------------
+# Phase 5c: posixly_correct — generated with POSIXLY_CORRECT=1 in the flex env.
+add_custom_command(
+    OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/posixly_correct.c"
+    COMMAND ${CMAKE_COMMAND} -E env POSIXLY_CORRECT=1
+            $<TARGET_FILE:win_flex> --wincompat
+            -o "${CMAKE_CURRENT_BINARY_DIR}/posixly_correct.c"
+            "${FLEX_CASES_DIR}/posixly_correct.l"
+    DEPENDS win_flex "${FLEX_CASES_DIR}/posixly_correct.l"
+    COMMENT "flex: generating posixly_correct.c (POSIXLY_CORRECT=1)"
+    VERBATIM)
+add_executable(flextest_posixly_correct "${CMAKE_CURRENT_BINARY_DIR}/posixly_correct.c")
+target_link_libraries(flextest_posixly_correct PRIVATE winflexbison_common)
+target_include_directories(flextest_posixly_correct PRIVATE "${CMAKE_SOURCE_DIR}/flex/src")
+add_test(NAME flex.posixly_correct
+    COMMAND ${CMAKE_COMMAND}
+        -DTEST_EXE=$<TARGET_FILE:flextest_posixly_correct>
+        -P "${FLEX_RUNNER}")
+set_tests_properties(flex.posixly_correct PROPERTIES SKIP_RETURN_CODE 77 LABELS "flex")
+
+# ---------------------------------------------------------------------------
+# Phase 5d: cxx_yywrap — C++ scanner whose main() takes input file(s) as argv
+# (the .i3 case feeds the same input three times). Uses the C++ include/flag
+# workarounds from add_flex_cxx_test().
+add_custom_command(
+    OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/cxx_yywrap.cc"
+    COMMAND $<TARGET_FILE:win_flex> -+ --wincompat -o "cxx_yywrap.cc" "${FLEX_CASES_DIR}/cxx_yywrap.ll"
+    DEPENDS win_flex "${FLEX_CASES_DIR}/cxx_yywrap.ll"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "flex(c++): generating cxx_yywrap.cc"
+    VERBATIM)
+add_executable(flextest_cxx_yywrap "${CMAKE_CURRENT_BINARY_DIR}/cxx_yywrap.cc")
+target_include_directories(flextest_cxx_yywrap PRIVATE
+    "${CMAKE_SOURCE_DIR}/common/misc"
+    "${CMAKE_SOURCE_DIR}/flex/src")
+if(MSVC)
+    target_compile_options(flextest_cxx_yywrap PRIVATE /Uinline /Urestrict)
+endif()
+add_test(NAME flex.cxx_yywrap
+    COMMAND ${CMAKE_COMMAND}
+        -DTEST_EXE=$<TARGET_FILE:flextest_cxx_yywrap>
+        "-DARG1=${FLEX_CASES_DIR}/cxx_yywrap.txt"
+        "-DARG2=${FLEX_CASES_DIR}/cxx_yywrap.txt"
+        "-DARG3=${FLEX_CASES_DIR}/cxx_yywrap.txt"
+        -P "${FLEX_RUNNER}")
+set_tests_properties(flex.cxx_yywrap PROPERTIES SKIP_RETURN_CODE 77 LABELS "flex")
+
+# ---------------------------------------------------------------------------
+# Phase 5e: bison tests. Each links a bison-generated parser, a flex-generated
+# scanner, and a hand-written *_main.c. These exercise win_bison + win_flex
+# together, so they only register when the win_bison target is present.
+function(add_flex_bison_test name)
+    set(pgen "${CMAKE_CURRENT_BINARY_DIR}/${name}_parser.c")
+    set(phdr "${CMAKE_CURRENT_BINARY_DIR}/${name}_parser.h")
+    add_custom_command(
+        OUTPUT  "${pgen}" "${phdr}"
+        COMMAND $<TARGET_FILE:win_bison> -d -p test -o "${name}_parser.c" "${FLEX_CASES_DIR}/${name}_parser.y"
+        DEPENDS win_bison "${FLEX_CASES_DIR}/${name}_parser.y"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMENT "bison: generating ${name}_parser.c/.h"
+        VERBATIM)
+
+    set(sgen "${CMAKE_CURRENT_BINARY_DIR}/${name}_scanner.c")
+    set(shdr "${CMAKE_CURRENT_BINARY_DIR}/${name}_scanner.h")
+    add_custom_command(
+        OUTPUT  "${sgen}" "${shdr}"
+        COMMAND $<TARGET_FILE:win_flex> --wincompat -o "${name}_scanner.c" "${FLEX_CASES_DIR}/${name}_scanner.l"
+        DEPENDS win_flex "${FLEX_CASES_DIR}/${name}_scanner.l" "${phdr}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMENT "flex: generating ${name}_scanner.c/.h"
+        VERBATIM)
+
+    add_executable(flextest_${name} "${pgen}" "${sgen}" "${FLEX_CASES_DIR}/${name}_main.c")
+    target_link_libraries(flextest_${name} PRIVATE winflexbison_common)
+    target_include_directories(flextest_${name} PRIVATE
+        "${CMAKE_SOURCE_DIR}/flex/src"
+        "${CMAKE_CURRENT_BINARY_DIR}")
+    add_test(NAME flex.${name}
+        COMMAND ${CMAKE_COMMAND}
+            -DTEST_EXE=$<TARGET_FILE:flextest_${name}>
+            "-DINPUT=${FLEX_CASES_DIR}/${name}.txt"
+            -P "${FLEX_RUNNER}")
+    set_tests_properties(flex.${name} PROPERTIES SKIP_RETURN_CODE 77 LABELS "flex;bison")
+endfunction()
+
+if(TARGET win_bison)
+    add_flex_bison_test(bison_nr)
+    add_flex_bison_test(bison_yylloc)
+    add_flex_bison_test(bison_yylval)
+endif()
+
+# ---------------------------------------------------------------------------
+# Phase 5f: tableopts — the table-compression matrix. One scanner per
+# table-option (-Ca -Ce ...) x threading (nr/r) x mode (opt/ser/ver), all from
+# tableopts.l4 (same main() contract as reject.l4). Upstream generates this
+# list with a shell script; we enumerate it directly in CMake (no sh needed)
+# and reuse add_flex_generated_test().
+set(FLEX_TABLEOPTS -Ca -Ce -Cf -CF -Cm -Cem -Cae -Caef -CaeF -Cam -Caem)
+
+foreach(opt ${FLEX_TABLEOPTS})
+    # Build a case-insensitively-unique label: -Cf and -CF (also -Caef/-CaeF)
+    # differ only in case and would collide as filenames on Windows. Insert '_'
+    # before each capital, then lowercase: Cf -> c_f... wait -> "_cf", CF -> "_c_f".
+    string(REGEX REPLACE "^-" "" optname "${opt}")
+    string(REGEX REPLACE "([A-Z])" "_\\1" optname "${optname}")
+    string(TOLOWER "${optname}" optname)
+    string(REGEX REPLACE "^_" "" optname "${optname}")
+    foreach(thread nr r)
+        set(rflag "")
+        set(rdef  "")
+        if(thread STREQUAL "r")
+            set(rflag --reentrant)
+            set(rdef  TEST_IS_REENTRANT)
+        endif()
+
+        # opt: no external tables.
+        add_flex_generated_test(tableopts_opt_${thread}_${optname}
+            SRC tableopts.l4  INPUT tableopts.txt
+            FLEXFLAGS --unsafe-no-m4-sect3-escape ${opt} ${rflag}
+            DEFINES   ${rdef})
+
+        # ser: serialized external tables (input on stdin, like upstream -r -t).
+        add_flex_generated_test(tableopts_ser_${thread}_${optname}
+            SRC tableopts.l4  INPUT tableopts.txt  TABLES STDIN_INPUT
+            FLEXFLAGS --unsafe-no-m4-sect3-escape ${opt} ${rflag}
+            DEFINES   TEST_HAS_TABLES_EXTERNAL ${rdef})
+
+        # ver: serialized + verified external tables.
+        add_flex_generated_test(tableopts_ver_${thread}_${optname}
+            SRC tableopts.l4  INPUT tableopts.txt  TABLES STDIN_INPUT
+            FLEXFLAGS --unsafe-no-m4-sect3-escape ${opt} ${rflag} --tables-verify
+            DEFINES   TEST_HAS_TABLES_EXTERNAL ${rdef})
+    endforeach()
+endforeach()
+
+# ---------------------------------------------------------------------------
+# Intentionally NOT adopted on MSVC (documented in spec 03):
+#   pthread.pthread — needs a POSIX pthreads library.
+#   options.cn      — a shell (sh) option-conformance script, not a scanner.
