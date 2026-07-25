@@ -268,7 +268,12 @@ caret_set_file (const char *file)
   if (!caret_info.pos.file)
     {
       caret_info.pos.file = file;
-      if ((caret_info.file = fopen (caret_info.pos.file, "r")))
+      /* Windows port: open in binary mode ("rb"), not text ("r").  The caret
+         code smashes \r\n to \n itself (caret_getc_internal) and relies on
+         ftell/fseek returning true byte offsets to seek line starts; MSVC text
+         mode translates CRLF and desyncs those offsets, producing garbled or
+         empty source-line echoes in caret diagnostics.  On POSIX "r"=="rb". */
+      if ((caret_info.file = fopen (caret_info.pos.file, "rb")))
         {
           /* If the file is not regular (imagine #line 1 "/dev/stdin"
              in the input file for instance), don't try to quote the
