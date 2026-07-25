@@ -218,3 +218,91 @@ add_flex_cxx_test(cxx_multiple_scanners
     INPUT    cxx_multiple_scanners.txt
     SCANNERS cxx_multiple_scanners_1.ll cxx_multiple_scanners_2.ll
     SRC      cxx_multiple_scanners_main.cc)
+
+# ---------------------------------------------------------------------------
+# Phase 4: reject + table tests. All four are generated from the single
+# reject.l4 template with different win_flex flags and compile defines:
+#   reject_nr  : plain                          -> reads stdin
+#   reject_r   : --reentrant, -DTEST_IS_REENTRANT -> reads stdin
+#   reject_ver : --tables-verify --tables-file=  -> external tables, verifies
+#                -DTEST_HAS_TABLES_EXTERNAL         and exits 0
+#   reject_ser : --tables-file=                  -> external tables, then scans
+#                -DTEST_HAS_TABLES_EXTERNAL
+# reject.l4 uses m4 macros in section 3, so --unsafe-no-m4-sect3-escape is
+# required (win_flex expands them). Table tests take the .tables path and the
+# input path as argv (not stdin).
+#
+#   add_flex_generated_test(<name> SRC <file.l4>
+#       [FLEXFLAGS <...>] [DEFINES <...>] [TABLES]
+#       [INPUT <txt>] [INPUT_AS_ARG])
+function(add_flex_generated_test name)
+    cmake_parse_arguments(T "TABLES;INPUT_AS_ARG" "SRC;INPUT" "FLEXFLAGS;DEFINES" ${ARGN})
+
+    set(gen "${CMAKE_CURRENT_BINARY_DIR}/${name}.c")
+    set(outputs "${gen}")
+    set(tables_flag "")
+    if(T_TABLES)
+        set(tables "${CMAKE_CURRENT_BINARY_DIR}/${name}.tables")
+        list(APPEND outputs "${tables}")
+        set(tables_flag "--tables-file=${name}.tables")
+    endif()
+
+    add_custom_command(
+        OUTPUT  ${outputs}
+        COMMAND $<TARGET_FILE:win_flex> --wincompat ${T_FLEXFLAGS} ${tables_flag}
+                -o "${name}.c" "${FLEX_CASES_DIR}/${T_SRC}"
+        DEPENDS win_flex "${FLEX_CASES_DIR}/${T_SRC}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMENT "flex: generating ${name}.c"
+        VERBATIM)
+
+    add_executable(flextest_${name} "${gen}")
+    target_link_libraries(flextest_${name} PRIVATE winflexbison_common)
+    target_include_directories(flextest_${name} PRIVATE "${CMAKE_SOURCE_DIR}/flex/src")
+    if(T_TABLES)
+        # Serialized-tables output #includes <netinet/in.h> (ntohs/ntohl); MSVC
+        # lacks it, so provide the test shim (see tests/flex/shim/netinet/in.h).
+        target_include_directories(flextest_${name} PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/shim")
+    endif()
+    if(T_DEFINES)
+        target_compile_definitions(flextest_${name} PRIVATE ${T_DEFINES})
+    endif()
+
+    set(test_args
+        -DTEST_EXE=$<TARGET_FILE:flextest_${name}>)
+    if(T_TABLES)
+        # argv: <tables-file> <input-file>
+        list(APPEND test_args -DARG1=${tables})
+        if(T_INPUT)
+            list(APPEND test_args "-DARG2=${FLEX_CASES_DIR}/${T_INPUT}")
+        endif()
+    elseif(T_INPUT)
+        list(APPEND test_args "-DINPUT=${FLEX_CASES_DIR}/${T_INPUT}")
+    endif()
+
+    add_test(NAME flex.${name}
+        COMMAND ${CMAKE_COMMAND} ${test_args} -P "${FLEX_RUNNER}")
+    set_tests_properties(flex.${name} PROPERTIES
+        SKIP_RETURN_CODE 77
+        LABELS "flex")
+endfunction()
+
+add_flex_generated_test(reject_nr
+    SRC reject.l4  INPUT reject.txt
+    FLEXFLAGS --unsafe-no-m4-sect3-escape)
+
+add_flex_generated_test(reject_r
+    SRC reject.l4  INPUT reject.txt
+    FLEXFLAGS --unsafe-no-m4-sect3-escape --reentrant
+    DEFINES   TEST_IS_REENTRANT)
+
+add_flex_generated_test(reject_ver
+    SRC reject.l4  INPUT reject.txt  TABLES
+    FLEXFLAGS --unsafe-no-m4-sect3-escape --tables-verify
+    DEFINES   TEST_HAS_TABLES_EXTERNAL)
+
+add_flex_generated_test(reject_ser
+    SRC reject.l4  INPUT reject.txt  TABLES
+    FLEXFLAGS --unsafe-no-m4-sect3-escape
+    DEFINES   TEST_HAS_TABLES_EXTERNAL)
