@@ -1,0 +1,7 @@
+# These are consumed by WSL/Linux (autom4te, bash, the autotest harness); they
+# must stay LF regardless of the repo's autocrlf setting, or generation/run
+# breaks under WSL.
+*.sh        text eol=lf
+*.at        text eol=lf
+*.m4        text eol=lf
+testsuite.h text eol=lf

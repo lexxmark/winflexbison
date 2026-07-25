@@ -1,0 +1,5 @@
+# generate.sh runs under WSL/Linux and must stay LF. Golden files are compared
+# after CRLF normalization, but keep them LF so the committed bytes match what
+# the reference bison produced.
+generate.sh text eol=lf
+golden/*    text eol=lf
