@@ -1,0 +1,5 @@
+# Parser/report files bison may write into the cases dirs during a golden run.
+# The launcher/generator clean these up; ignore them as a safety net.
+*.tab.c
+*.tab.h
+*.output

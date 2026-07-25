@@ -7,3 +7,4 @@
 enable_language(CXX)
 
 add_subdirectory(flex)
+add_subdirectory(bison)

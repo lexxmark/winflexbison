@@ -1,0 +1,3 @@
+useless.y: warning: 1 nonterminal useless in grammar [-Wother]
+useless.y: warning: 1 rule useless in grammar [-Wother]
+useless.y:6.1-6: warning: nonterminal useless in grammar: unused [-Wother]

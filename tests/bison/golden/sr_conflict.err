@@ -1,0 +1,2 @@
+sr_conflict.y: warning: 4 shift/reduce conflicts [-Wconflicts-sr]
+sr_conflict.y: note: rerun with option '-Wcounterexamples' to generate conflict counterexamples
