@@ -64,3 +64,80 @@ foreach(name ${FLEX_SIMPLE_TESTS})
         SKIP_RETURN_CODE 77
         LABELS "flex")
 endforeach()
+
+# ---------------------------------------------------------------------------
+# Phase 2: multi-file C exit-code tests. Each combines one or more generated
+# scanners (whose .l carries %option header="<stem>.h", so win_flex emits both
+# <stem>.c and <stem>.h) with a hand-written *_main.c. Scanners are generated
+# into the build dir (WORKING_DIRECTORY) so the bare header= filename lands
+# next to the .c and the main can #include it.
+#
+#   add_flex_multifile_test(<name> [INPUT <file.txt>]
+#                           SCANNERS <a.l> [<b.l> ...]
+#                           SRC      <main.c> [...])
+function(add_flex_multifile_test name)
+    cmake_parse_arguments(T "" "INPUT" "SCANNERS;SRC" ${ARGN})
+
+    set(gen_srcs "")
+    foreach(lscan ${T_SCANNERS})
+        get_filename_component(stem "${lscan}" NAME_WE)
+        set(csrc "${CMAKE_CURRENT_BINARY_DIR}/${stem}.c")
+        set(hsrc "${CMAKE_CURRENT_BINARY_DIR}/${stem}.h")
+        add_custom_command(
+            OUTPUT  "${csrc}" "${hsrc}"
+            COMMAND $<TARGET_FILE:win_flex> --wincompat -o "${stem}.c" "${FLEX_CASES_DIR}/${lscan}"
+            DEPENDS win_flex "${FLEX_CASES_DIR}/${lscan}"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+            COMMENT "flex: generating ${stem}.c/.h"
+            VERBATIM)
+        list(APPEND gen_srcs "${csrc}")
+    endforeach()
+
+    set(main_srcs "")
+    foreach(m ${T_SRC})
+        list(APPEND main_srcs "${FLEX_CASES_DIR}/${m}")
+    endforeach()
+
+    add_executable(flextest_${name} ${gen_srcs} ${main_srcs})
+    target_link_libraries(flextest_${name} PRIVATE winflexbison_common)
+    target_include_directories(flextest_${name} PRIVATE
+        "${CMAKE_SOURCE_DIR}/flex/src"
+        "${CMAKE_CURRENT_BINARY_DIR}")
+
+    set(input "")
+    if(T_INPUT)
+        set(input "${FLEX_CASES_DIR}/${T_INPUT}")
+    endif()
+
+    add_test(NAME flex.${name}
+        COMMAND ${CMAKE_COMMAND}
+            -DTEST_EXE=$<TARGET_FILE:flextest_${name}>
+            "-DINPUT=${input}"
+            -P "${FLEX_RUNNER}")
+    set_tests_properties(flex.${name} PROPERTIES
+        SKIP_RETURN_CODE 77
+        LABELS "flex")
+endfunction()
+
+add_flex_multifile_test(header_nr
+    INPUT header_nr.txt
+    SCANNERS header_nr_scanner.l
+    SRC      header_nr_main.c)
+
+add_flex_multifile_test(header_r
+    INPUT header_r.txt
+    SCANNERS header_r_scanner.l
+    SRC      header_r_main.c)
+
+add_flex_multifile_test(top
+    INPUT top.txt
+    SCANNERS top.l
+    SRC      top_main.c)
+
+add_flex_multifile_test(multiple_scanners_nr
+    SCANNERS multiple_scanners_nr_1.l multiple_scanners_nr_2.l
+    SRC      multiple_scanners_nr_main.c)
+
+add_flex_multifile_test(multiple_scanners_r
+    SCANNERS multiple_scanners_r_1.l multiple_scanners_r_2.l
+    SRC      multiple_scanners_r_main.c)
