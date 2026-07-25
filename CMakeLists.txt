@@ -70,6 +70,12 @@ add_subdirectory(common)
 add_subdirectory(flex)
 add_subdirectory(bison)
 
+# Test suite (opt-in; only for a top-level build). Run with `ctest`.
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     # CPACK
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
