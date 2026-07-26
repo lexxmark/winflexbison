@@ -71,6 +71,16 @@ exit \$rc
 WRAP
 chmod +x bin/bison
 
+# Detect optional compilers to enable the compile tiers. These compile the
+# parsers win_bison generates and run them (validating the generator output).
+# Absent -> the C/C++ tiers auto-skip. Compiled programs are native Linux (no
+# .exe) when a compiler is present.
+CC_BIN=$(command -v gcc 2>/dev/null || command -v cc 2>/dev/null || true)
+CXX_BIN=$(command -v g++ 2>/dev/null || command -v c++ 2>/dev/null || true)
+if [ -n "$CC_BIN" ]; then EXEEXT=''; else EXEEXT='.exe'; fi
+echo "C compiler  : ${CC_BIN:-<none, C tier skipped>}"
+echo "C++ compiler: ${CXX_BIN:-<none, C++ tier skipped>}"
+
 cat > atconfig <<CFG
 at_testdir='.'
 abs_builddir='$WORK'
@@ -81,15 +91,26 @@ abs_top_srcdir='${ORIG_BISON:-$WORK}'
 at_top_build_prefix=''
 abs_top_builddir='$WORK'
 AUTOTEST_PATH='$WORK/bin'
-EXEEXT='.exe'
+EXEEXT='$EXEEXT'
+OBJEXT='o'
+GREP='grep'
+EGREP='grep -E'
+FGREP='grep -F'
+AWK='awk'
 CFG
 
-# No compilers by default -> compile/Java/D tiers skip. Export CC=gcc etc.
-# before running to enable them.
-cat > atlocal <<'LOC'
-: ${CC=''} ${CXX=''} ${DC=''} ${CONF_JAVAC=''} ${CONF_JAVA=''}
-: ${CPPFLAGS=''} ${CFLAGS=''} ${CXXFLAGS=''}
-: ${BISON_C_WORKS=false} ${BISON_CXX_WORKS=false} ${BISON_DC_WORKS=false}
+# atlocal: enable the C/C++ tiers when compilers are present. -w silences
+# warnings in generated parsers (some checks compile with -Werror otherwise).
+c_works=false;   [ -n "$CC_BIN" ]  && c_works=true
+cxx_works=false; [ -n "$CXX_BIN" ] && cxx_works=true
+cat > atlocal <<LOC
+: \${CC='$CC_BIN'} \${CXX='$CXX_BIN'} \${DC=''} \${CONF_JAVAC=''} \${CONF_JAVA=''}
+: \${CPPFLAGS='-I$WORK'} \${CFLAGS='-w'} \${CXXFLAGS='-w'}
+: \${NO_WERROR_CFLAGS='-w'} \${NO_WERROR_CXXFLAGS='-w'}
+: \${CXX98_CXXFLAGS='-std=c++98'} \${CXX03_CXXFLAGS='-std=c++03'}
+: \${CXX11_CXXFLAGS='-std=c++11'} \${CXX14_CXXFLAGS='-std=c++14'}
+: \${CXX17_CXXFLAGS='-std=c++17'} \${CXX20_CXXFLAGS='-std=c++20'} \${CXX2B_CXXFLAGS='-std=c++2b'}
+: \${BISON_C_WORKS=$c_works} \${BISON_CXX_WORKS=$cxx_works} \${BISON_DC_WORKS=false}
 POSIXLY_CORRECT_IS_EXPORTED=false
 LOC
 
