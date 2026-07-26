@@ -959,10 +959,25 @@ m4_syscmd (struct obstack *obs MAYBE_UNUSED, int argc, token_data **argv)
   /* special case only used in bison - "cat" some text to output */
   if (strncmp (cmd, "cat <<", 6) == 0)
   {
+	  /* bison's b4_cat writes text to stdout via a POSIX here-document:
+	         cat <<'_m4eof'
+	         <BODY>
+	         _m4eof
+	     There is no shell here, so emulate cat by extracting BODY only: skip
+	     the "<<'_m4eof'" delimiter line and stop at the closing "_m4eof" line.
+	     b4_cat escapes any _m4eof inside BODY, so the closing delimiter is the
+	     unique remaining occurrence.  Without this trimming the delimiter lines
+	     leak into the output (the "_m4eof" lines seen in generated code and
+	     diagnostics). */
+	  const char *nl = strchr (&cmd[6], '\n');
+	  const char *body = nl ? nl + 1 : &cmd[6];
+	  const char *end = strstr (body, "_m4eof");
+	  int blen = (int) (end ? (size_t) (end - body) : strlen (body));
+
 	  if (cat_string)
-		cat_string = asnprintf (NULL, &len, "%s%s", cat_string, &cmd[6]);
+		cat_string = asnprintf (NULL, &len, "%s%.*s", cat_string, blen, body);
 	  else
-		  cat_string = asnprintf (NULL, &len, "%s", &cmd[6]);
+		  cat_string = asnprintf (NULL, &len, "%.*s", blen, body);
 
 	  if (old_cat_string != cat_string)
 		  free(old_cat_string);
