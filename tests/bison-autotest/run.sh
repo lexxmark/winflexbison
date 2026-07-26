@@ -134,9 +134,15 @@ LOC
 #   165  skeletons.at  Complaining during macro argument expansion
 #   166  skeletons.at  Fatal errors make M4 exit immediately
 #
+# win_bison diagnostic byte-escaping differs (locale/quotearg): high/invalid
+# bytes (e.g. 0xFF) print as \xff or raw instead of upstream's octal \377,
+# because win_bison's Windows locale treats 0x80-0xFF as printable:
+#   4   input.at      Invalid inputs
+#   78  named-refs.at Stray symbols in brackets
+#
 # Harness edge case (perl in-place $at_dir substitution + heredoc on Windows):
 #   124  output.at     Output files: ... api.location.file="$at_dir/..."
-BISON_XFAIL="129 314 165 166 124 283 284 285 286 287"
+BISON_XFAIL="129 314 165 166 124 283 284 285 286 287 4 78"
 
 echo "running testsuite $*..."
 ./testsuite "$@" 2>&1 | tee testsuite.out

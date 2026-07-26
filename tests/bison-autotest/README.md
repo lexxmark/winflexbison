@@ -64,9 +64,15 @@ defects, so the run exits 0 when only they (or nothing) fail:
 complaints emitted via `b4_cat`/`@complain` during macro-argument expansion do
 not reach `scan-skel`, so the diagnostics are dropped and the exit code is not
 set:
-- **54** (`input.at`) — C++ namespace reference errors.
 - **165** (`skeletons.at`) — Complaining during macro argument expansion.
 - **166** (`skeletons.at`) — Fatal errors make M4 exit immediately.
+
+*win_bison diagnostic byte-escaping difference* (locale/`quotearg`): high or
+invalid bytes (e.g. `0xFF`) are printed as `\xff` or raw rather than upstream's
+octal `\377`, because win_bison's Windows locale treats `0x80`–`0xFF` as
+printable:
+- **4** (`input.at`) — Invalid inputs.
+- **78** (`named-refs.at`) — Stray symbols in brackets.
 
 *Harness edge case*:
 - **124** (`output.at`) — the `$at_dir` test uses a perl in-place substitution
