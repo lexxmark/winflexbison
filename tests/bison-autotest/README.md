@@ -21,10 +21,21 @@ Linux**; it is deliberately *not* part of the Windows `ctest` gate.
 
 ## Prerequisites (WSL, once)
 
+Run the installer (Debian/Ubuntu WSL):
+
 ```
-sudo apt-get install -y autoconf m4        # autom4te + m4
-# optional, to enable the compile tiers:
-sudo apt-get install -y build-essential    # gcc/g++ (C, C++ tiers)
+tests/bison-autotest/install-wsl-deps.sh              # required deps
+tests/bison-autotest/install-wsl-deps.sh --with-java-d # also the Java + D tiers
+```
+
+It installs `autoconf`/`m4` (build the testsuite), `build-essential` (C/C++
+tiers), `perl` (error-message normalization — without it many tests silently
+skip), and the reference `bison` (for `tests/bison/generate.sh` golden), then
+verifies everything. Manual equivalent:
+
+```
+sudo apt-get install -y autoconf m4 perl build-essential bison
+sudo apt-get install -y default-jdk gdc     # optional: Java + D tiers
 ```
 
 ## Running
