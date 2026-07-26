@@ -53,26 +53,20 @@ sed -i 's/@tb@/\t/g' testsuite
 # harness compares against upstream-style output.
 cat > bin/bison <<WRAP
 #!/usr/bin/env bash
-# win_bison.exe writes CRLF (MSVC text-mode stdio) and names itself
-# "win_bison.exe"; strip CR and rewrite the program name so the harness sees
-# upstream-style output.
-norm() { tr -d '\r' | sed 's/win_bison\.exe/bison/g'; }
-# WSL does not forward env vars to Windows processes unless listed in WSLENV.
-# The suite sets several env vars that win_bison reads via getenv (COLUMNS for
-# caret width, YYFLAT for flat counterexamples, POSIXLY_CORRECT, TIME_LIMIT,
-# BISON_USE_PUSH_FOR_PULL, BISON_PROGRAM_NAME, LC_CTYPE); forward them all (no
-# flag = shared as-is) so win_bison behaves like the reference.
-_fwd="COLUMNS:YYFLAT:POSIXLY_CORRECT:TIME_LIMIT:BISON_USE_PUSH_FOR_PULL:BISON_PROGRAM_NAME:LC_CTYPE"
+# Make win_bison behave like a native 'bison' with NO post-processing, so the
+# wrapper is a plain exec (no temp files, no piping, no races):
+#   BISON_PROGRAM_NAME=bison     -> diagnostics say "bison:", not "win_bison.exe:"
+#   WINFLEXBISON_BINARY_OUTPUT=Y -> LF stdout/stderr instead of MSVC CRLF
+#     (generated files are already LF via the xfopen binary-mode port fix)
+export BISON_PROGRAM_NAME=bison
+export WINFLEXBISON_BINARY_OUTPUT=Y
+# WSL only forwards env vars to Windows processes listed in WSLENV. Forward the
+# two above plus the vars the suite sets that win_bison reads (COLUMNS for caret
+# width, YYFLAT for flat counterexamples, POSIXLY_CORRECT, TIME_LIMIT,
+# BISON_USE_PUSH_FOR_PULL, LC_CTYPE).
+_fwd="BISON_PROGRAM_NAME:WINFLEXBISON_BINARY_OUTPUT:COLUMNS:YYFLAT:POSIXLY_CORRECT:TIME_LIMIT:BISON_USE_PUSH_FOR_PULL:LC_CTYPE"
 export WSLENV="\${_fwd}\${WSLENV:+:\$WSLENV}"
-# Capture to temp files and normalize synchronously. (Process substitution with
-# a trailing 'wait' does NOT reliably flush the substitution processes before
-# the parent exits, which intermittently truncated output under load.)
-_o=\$(mktemp); _e=\$(mktemp)
-"$BISON" "\$@" >"\$_o" 2>"\$_e"; rc=\$?
-norm <"\$_o"
-norm <"\$_e" >&2
-rm -f "\$_o" "\$_e"
-exit \$rc
+exec "$BISON" "\$@"
 WRAP
 chmod +x bin/bison
 
