@@ -61,47 +61,26 @@ char* add_tmp_dir(const char* tmp_file_name)
 	return new_tmp_file_name;
 }
 
-int max_temp_file_names = 100;
-int num_temp_file_names = 0;
-char* temp_file_names[100];
-/* Generate a temporary file name based with specified prefix. */
+/* Create a temporary file with a unique name (pid_tempname, honoring
+   FLEX_TMP_DIR/TEMP) for the given prefix.  It is opened delete-on-close via the
+   MSVC "D" mode flag, so the CRT removes it automatically when the last handle
+   is closed — no name tracking or explicit unlink is needed, and cleanup also
+   happens on abnormal exit.  Used only as a FILE* buffer between filters, so the
+   name never has to be reopened. */
 FILE* mkstempFILE (char *pref, const char *mode)
 {
+	char dmode[16];
 	char* name;
-	FILE* fd;
-
-	if (num_temp_file_names >= max_temp_file_names)
-		return NULL;
 
 	if (!pref || !*pref)
 		return NULL;
 
 	name = pid_tempname(pref);
+	if (!name)
+		return NULL;
 
-	fd = fopen(name, mode);
-	if (fd)
-	{
-		temp_file_names[num_temp_file_names] = _strdup(name);
-		++num_temp_file_names;
-	}
-	return fd;
-	/* We got out of the loop because we ran out of combinations to try.  */
-	return NULL;
-}
-
-/* delete all temp files */
-void unlinktemp()
-{
-	while (num_temp_file_names)
-	{
-		--num_temp_file_names;
-
-		if (_unlink(temp_file_names[num_temp_file_names]))
-			fprintf(stderr, _("error delete file %s"), temp_file_names[num_temp_file_names]);
-
-		free(temp_file_names[num_temp_file_names]);
-		temp_file_names[num_temp_file_names] = NULL;
-	}
+	snprintf(dmode, sizeof dmode, "%sD", mode);
+	return fopen(name, dmode);
 }
 
 #if 0

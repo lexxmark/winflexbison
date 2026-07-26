@@ -1137,7 +1137,6 @@ extern int filter_fix_linedirs(struct filter *chain);
 extern int filter_m4_p(struct filter *chain);
 
 extern FILE* mkstempFILE(char *pref, const char *mode);
-extern void unlinktemp();
 
 
 /*

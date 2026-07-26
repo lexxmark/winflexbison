@@ -602,9 +602,6 @@ void flexend (int exit_status)
 		}
 	}
 
-	/* cleanup temp file */
-	unlinktemp();
-
 	if (prev_stdout)
 	{
 		if (fclose(stdout))
