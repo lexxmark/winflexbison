@@ -102,6 +102,7 @@ GREP='grep'
 EGREP='grep -E'
 FGREP='grep -F'
 AWK='awk'
+PERL='perl'
 CFG
 
 # atlocal: enable the C/C++ tiers when compilers are present. -w silences
@@ -141,9 +142,11 @@ echo "running testsuite $*..."
 ./testsuite "$@" 2>&1 | tee testsuite.out
 rc=${PIPESTATUS[0]}
 
-# Post-process: treat BISON_XFAIL groups as expected failures.
-failed=$(grep -aE '^[[:space:]]*[0-9]+: .* FAILED' testsuite.out \
-         | sed -E 's/^[[:space:]]*([0-9]+):.*/\1/' | sort -un)
+# Post-process: treat BISON_XFAIL groups as expected failures. Autotest's
+# summary ends with an authoritative one-line list of every failed group:
+#   Subject: [GNU Bison 3.8.2] testsuite: 129 165 166 ... failed
+failed=$(sed -nE 's/.*testsuite:[[:space:]]*([0-9][0-9 ]*)[[:space:]]+failed.*/\1/p' \
+         testsuite.out | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -un)
 unexpected=""; xfailed=""
 for g in $failed; do
     case " $BISON_XFAIL " in
