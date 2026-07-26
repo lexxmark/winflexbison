@@ -415,7 +415,9 @@ void check_options (void)
 	prev_stdout = _dup(1);   // prev_stdout now refers to "stdout"
 
 	flex_temp_out_main = _strdup(pid_tempname("~flex_out_main_"));
-	freopen(flex_temp_out_main, "w+", stdout);
+	/* "D": delete-on-close, so the temp is removed even on abnormal exit
+	   (accessed only via the stdout FILE*, never reopened by name). */
+	freopen(flex_temp_out_main, "w+D", stdout);
 
 	if (stdout == NULL)
 		lerr(_("could not create %s"), flex_temp_out_main);
@@ -604,11 +606,9 @@ void flexend (int exit_status)
 
 	if (prev_stdout)
 	{
+		/* delete-on-close removes the temp file here */
 		if (fclose(stdout))
 			lerr(_("error closing file %s"), flex_temp_out_main);
-
-		if (_unlink(flex_temp_out_main))
-			lerr(_("error deleting file %s"), flex_temp_out_main);
 	}
 
 	if (skelfile != NULL) {

@@ -815,7 +815,9 @@ output_skeleton (void)
     muscles_output (stderr);
   {
     char* p = pid_tempname("~m4_in_");
-    m4_in = fopen(strcpy(m4_in_file_name, p), "wb+");
+    /* "D": delete-on-close, so the temp is removed even on abnormal exit
+       (only used via this FILE* handle, never reopened by name). */
+    m4_in = fopen(strcpy(m4_in_file_name, p), "wb+D");
     if (!m4_in)
       error (EXIT_FAILURE, get_errno (),
              "fopen");
@@ -831,7 +833,7 @@ output_skeleton (void)
   timevar_push (tv_m4);
   {
     char *p = pid_tempname("~m4_out_");
-    m4_out = fopen(strcpy(m4_out_file_name, p), "wb+");
+    m4_out = fopen(strcpy(m4_out_file_name, p), "wb+D");
     if (!m4_out)
       error (EXIT_FAILURE, get_errno (),
              "fopen");
@@ -851,11 +853,8 @@ output_skeleton (void)
        close the pipe, we risk letting M4 report a broken-pipe to the
        Bison user.  */
   aver (feof (m4_out));
-  xfclose (m4_in);
+  xfclose (m4_in);   /* delete-on-close removes the temp files here */
   xfclose (m4_out);
-
-  _unlink (m4_in_file_name);
-  _unlink (m4_out_file_name);
 //  wait_subprocess (pid, "m4", false, false, true, true, NULL);
   timevar_pop (tv_m4);
 
