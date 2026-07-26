@@ -117,6 +117,11 @@ fixits_run (void)
   char *backup = asnprintf (buf, &len, "%s~", input);
   if (!backup)
     xalloc_die ();
+  /* Windows port: POSIX rename() atomically replaces an existing target, but
+     MSVCRT rename() fails (EACCES) if the backup already exists.  Remove any
+     stale backup first so re-running --fixit works; on POSIX this is a
+     harmless no-op when the file is absent.  */
+  remove (backup);
   if (rename (input, backup))
     error (EXIT_FAILURE, get_errno (),
            _("%s: cannot backup"), quotearg_colon (input));
