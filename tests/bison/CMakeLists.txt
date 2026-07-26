@@ -42,6 +42,121 @@ endfunction()
 add_bison_run_test(calc GRAMMAR calc.y INPUT calc.txt)
 
 # ---------------------------------------------------------------------------
+# Issue #7: a YYSTYPE typedef declared in the grammar's prologue must
+# propagate into the generated --defines header too, not just the .c (a
+# regression once left the header's YYSTYPE defaulted to int, disagreeing
+# with the .c and causing memory errors). Needs its own custom command since
+# add_bison_run_test() above doesn't request -d/--defines.
+set(_ystype_gen "${CMAKE_CURRENT_BINARY_DIR}/ystype_header.c")
+set(_ystype_hdr "${CMAKE_CURRENT_BINARY_DIR}/ystype_header.h")
+add_custom_command(
+    OUTPUT  "${_ystype_gen}" "${_ystype_hdr}"
+    COMMAND $<TARGET_FILE:win_bison> -d -o "${_ystype_gen}" "${BISON_CASES_DIR}/ystype_header.y"
+    DEPENDS win_bison "${BISON_CASES_DIR}/ystype_header.y"
+    COMMENT "bison: generating ystype_header.c/.h"
+    VERBATIM)
+add_executable(bisontest_ystype_header "${_ystype_gen}" "${BISON_CASES_DIR}/ystype_header_main.c")
+target_include_directories(bisontest_ystype_header PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+add_test(NAME bison.ystype_header
+    COMMAND ${CMAKE_COMMAND}
+        -DTEST_EXE=$<TARGET_FILE:bisontest_ystype_header>
+        -P "${BISON_RUN_PARSER}")
+set_tests_properties(bison.ystype_header PROPERTIES SKIP_RETURN_CODE 77 LABELS "bison")
+
+# ---------------------------------------------------------------------------
+# Issue #44: %define lr.type canonical-lr / ielr must actually be honored
+# (not silently ignored). Same grammar body as calc.y, reused as two fixtures
+# each adding the respective %define; pass = win_bison accepts the option and
+# the generated parser still parses calc.txt correctly.
+add_bison_run_test(lr_type_canonical GRAMMAR lr_type_canonical.y INPUT calc.txt)
+add_bison_run_test(lr_type_ielr      GRAMMAR lr_type_ielr.y      INPUT calc.txt)
+
+# ---------------------------------------------------------------------------
+# Issue #48: win_bison must resolve its data/ directory via the executable's
+# own location (get_app_path()), not the process's current working directory.
+# No compile step needed: just invoke win_bison directly from an unrelated
+# WORKING_DIRECTORY with an absolute grammar path; CTest's default
+# nonzero-exit-is-fail already catches the historical "cannot open
+# data/m4sugar/m4sugar.m4" failure.
+add_test(NAME bison.data_dir_from_exe_location
+    COMMAND $<TARGET_FILE:win_bison> "${BISON_CASES_DIR}/calc.y"
+        -o "${CMAKE_CURRENT_BINARY_DIR}/data_dir_check_out.c"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+set_tests_properties(bison.data_dir_from_exe_location PROPERTIES LABELS "bison")
+
+# ---------------------------------------------------------------------------
+# Issue #62: `win_bison --update file.y` must not fail with "cannot backup:
+# Permission denied" on Windows, and must actually rewrite the file in place
+# and leave a `<file>~` backup. update_deprecated.y uses the deprecated
+# underscore form `%no_lines` (rewritten to `%no-lines`), which is enabled by
+# default (Wdeprecated is part of bison's default warning set).
+add_test(NAME bison.update_flag
+    COMMAND ${CMAKE_COMMAND}
+        -DTEST_EXE=$<TARGET_FILE:win_bison>
+        "-DFIXTURE=${BISON_CASES_DIR}/update_deprecated.y"
+        "-DSCRATCH=${CMAKE_CURRENT_BINARY_DIR}/update_scratch"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/run_update_test.cmake")
+set_tests_properties(bison.update_flag PROPERTIES LABELS "bison")
+
+# ---------------------------------------------------------------------------
+# C++ compile-run tests: win_bison --language=c++, compiled as C++. First
+# native C++ bison fixtures in the CTest suite (the only prior C++ bison
+# grammar lives in the separate, opt-in WSL GNU-Autotest harness).
+#   add_bison_cxx_run_test(<name> GRAMMAR <file.y> [SRC <main.cc> ...] [INPUT <file.txt>])
+function(add_bison_cxx_run_test name)
+    cmake_parse_arguments(T "" "GRAMMAR;INPUT" "SRC" ${ARGN})
+    set(gen "${CMAKE_CURRENT_BINARY_DIR}/${name}.cc")
+    set(hdr "${CMAKE_CURRENT_BINARY_DIR}/${name}.hh")
+    add_custom_command(
+        OUTPUT  "${gen}" "${hdr}"
+        COMMAND $<TARGET_FILE:win_bison> --language=c++ -d -o "${gen}" "${BISON_CASES_DIR}/${T_GRAMMAR}"
+        DEPENDS win_bison "${BISON_CASES_DIR}/${T_GRAMMAR}"
+        COMMENT "bison(c++): generating ${name}.cc/.hh"
+        VERBATIM)
+
+    set(main_srcs "")
+    foreach(m ${T_SRC})
+        list(APPEND main_srcs "${BISON_CASES_DIR}/${m}")
+    endforeach()
+
+    add_executable(bisontest_${name} "${gen}" ${main_srcs})
+    target_include_directories(bisontest_${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+    if(MSVC)
+        # Same rationale as flex's C++ tests (tests/flex/CMakeLists.txt Phase 3):
+        # undo the project-global -Dinline=__inline -Drestrict=__restrict, which
+        # macroize keywords illegally in C++ headers transitively included by
+        # the generated C++ skeleton.
+        target_compile_options(bisontest_${name} PRIVATE /Uinline /Urestrict)
+    endif()
+
+    set(input "")
+    if(T_INPUT)
+        set(input "${BISON_CASES_DIR}/${T_INPUT}")
+    endif()
+    add_test(NAME bison.${name}
+        COMMAND ${CMAKE_COMMAND}
+            -DTEST_EXE=$<TARGET_FILE:bisontest_${name}>
+            "-DINPUT=${input}"
+            -P "${BISON_RUN_PARSER}")
+    set_tests_properties(bison.${name} PROPERTIES SKIP_RETURN_CODE 77 LABELS "bison;cxx")
+endfunction()
+
+# Issue #10: %language "c++" + %locations MSVC compile fix (location.cc-
+# equivalent negate/cast ordering). main exercises @1/@$ to force real use of
+# the generated location code, not just its presence.
+add_bison_cxx_run_test(cxx_locations
+    GRAMMAR cxx_locations.y
+    SRC     cxx_locations_main.cc)
+
+# Issue #67: 800+ distinct tokens made the C++ skeleton's YY_ASSERT line in
+# symbol_type constructors exceed MSVC's ~21740-char C2026 single-line limit
+# (fixed upstream in bison 3.7.4). many_tokens.y is committed directly with
+# ~900 tokens; compiling clean is the whole assertion.
+add_bison_cxx_run_test(many_tokens
+    GRAMMAR many_tokens.y
+    SRC     many_tokens_main.cc)
+
+# ---------------------------------------------------------------------------
 # golden-diff tests. One per grammar in golden-cases/, comparing win_bison's
 # stdout/stderr/exit against golden/ (generated by generate.sh under WSL from
 # reference bison 3.8.2). A grammar is only registered when its golden exists,

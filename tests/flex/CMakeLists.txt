@@ -143,6 +143,50 @@ add_flex_multifile_test(multiple_scanners_r
     SRC      multiple_scanners_r_main.c)
 
 # ---------------------------------------------------------------------------
+# Issue #4: `win_flex --header-file=<h> -o <c> <l>` stopped generating the
+# header file in one release, though it worked in an earlier one. Not
+# attached to any add_executable (no compile needed, just file existence), so
+# it needs its own ALL-dependent custom target to actually run at build time.
+set(FLEX_FILES_EXIST_RUNNER "${CMAKE_CURRENT_SOURCE_DIR}/run_files_exist.cmake")
+add_custom_command(
+    OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/header_file_flag.c" "${CMAKE_CURRENT_BINARY_DIR}/header_file_flag.h"
+    COMMAND $<TARGET_FILE:win_flex>
+            --header-file=header_file_flag.h -o header_file_flag.c
+            "${FLEX_CASES_DIR}/basic_nr.l"
+    DEPENDS win_flex "${FLEX_CASES_DIR}/basic_nr.l"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "flex: generating header_file_flag.c/.h (--header-file)"
+    VERBATIM)
+add_custom_target(flex_header_file_flag_gen ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/header_file_flag.c" "${CMAKE_CURRENT_BINARY_DIR}/header_file_flag.h")
+add_test(NAME flex.header_file_flag
+    COMMAND ${CMAKE_COMMAND}
+        -DFILE1=${CMAKE_CURRENT_BINARY_DIR}/header_file_flag.c
+        -DFILE2=${CMAKE_CURRENT_BINARY_DIR}/header_file_flag.h
+        -P "${FLEX_FILES_EXIST_RUNNER}")
+set_tests_properties(flex.header_file_flag PROPERTIES LABELS "flex")
+
+# ---------------------------------------------------------------------------
+# Issue #29: the generated FLEXINT_H preamble checked __STDC_VERSION__ to
+# decide whether to use <inttypes.h>; MSVC doesn't set that macro but does
+# have <stdint.h> available, so the fallback branch redefined INT8_MIN etc.
+# against the SDK's own <stdint.h> (C4005). Recompile the already-generated
+# basic_nr.c a second time with that specific warning promoted to an error
+# -- the assertion IS the compile step succeeding.
+add_executable(flextest_flexint_h_stdint "${CMAKE_CURRENT_BINARY_DIR}/basic_nr.c")
+target_link_libraries(flextest_flexint_h_stdint PRIVATE winflexbison_common)
+target_include_directories(flextest_flexint_h_stdint PRIVATE "${CMAKE_SOURCE_DIR}/flex/src")
+if(MSVC)
+    target_compile_options(flextest_flexint_h_stdint PRIVATE /we4005)
+endif()
+add_test(NAME flex.flexint_h_stdint
+    COMMAND ${CMAKE_COMMAND}
+        -DTEST_EXE=$<TARGET_FILE:flextest_flexint_h_stdint>
+        "-DINPUT=${FLEX_CASES_DIR}/basic_nr.txt"
+        -P "${FLEX_RUNNER}")
+set_tests_properties(flex.flexint_h_stdint PROPERTIES SKIP_RETURN_CODE 77 LABELS "flex")
+
+# ---------------------------------------------------------------------------
 # Phase 3: C++ exit-code tests. Two input flavors, both compiled as C++:
 #   .ll  -> a real C++ scanner  (win_flex -+, generated <stem>.cc)
 #   .lll -> C output compiled as C++ (win_flex without -+, output named .cc)
@@ -218,6 +262,21 @@ add_flex_cxx_test(cxx_multiple_scanners
     INPUT    cxx_multiple_scanners.txt
     SCANNERS cxx_multiple_scanners_1.ll cxx_multiple_scanners_2.ll
     SRC      cxx_multiple_scanners_main.cc)
+
+# ---------------------------------------------------------------------------
+# Issue #3: the generated scanner used to emit the C++11-deprecated `register`
+# keyword (e.g. on yy_size_t locals), which strict C++11+ compilers warn or
+# error on. Check the content of an already-generated C++ scanner rather than
+# adding a new fixture: cxx_basic.cc (from add_flex_cxx_test above) is built
+# with --wincompat like every other scanner in this suite.
+set(FLEX_CONTENT_CHECK_RUNNER "${CMAKE_CURRENT_SOURCE_DIR}/run_content_check.cmake")
+add_test(NAME flex.cxx_no_register_keyword
+    COMMAND ${CMAKE_COMMAND}
+        -DFILE=${CMAKE_CURRENT_BINARY_DIR}/cxx_basic.cc
+        "-DPATTERN=[^A-Za-z0-9_]register[^A-Za-z0-9_]"
+        -DEXPECT_MATCH=FALSE
+        -P "${FLEX_CONTENT_CHECK_RUNNER}")
+set_tests_properties(flex.cxx_no_register_keyword PROPERTIES LABELS "flex")
 
 # ---------------------------------------------------------------------------
 # Phase 4: reject + table tests. All four are generated from the single
@@ -423,6 +482,7 @@ set_tests_properties(flex.cxx_yywrap PROPERTIES SKIP_RETURN_CODE 77 LABELS "flex
 # scanner, and a hand-written *_main.c. These exercise win_bison + win_flex
 # together, so they only register when the win_bison target is present.
 function(add_flex_bison_test name)
+    cmake_parse_arguments(T "" "" "EXTRA_COMPILE_OPTIONS" ${ARGN})
     set(pgen "${CMAKE_CURRENT_BINARY_DIR}/${name}_parser.c")
     set(phdr "${CMAKE_CURRENT_BINARY_DIR}/${name}_parser.h")
     add_custom_command(
@@ -448,6 +508,9 @@ function(add_flex_bison_test name)
     target_include_directories(flextest_${name} PRIVATE
         "${CMAKE_SOURCE_DIR}/flex/src"
         "${CMAKE_CURRENT_BINARY_DIR}")
+    if(T_EXTRA_COMPILE_OPTIONS)
+        target_compile_options(flextest_${name} PRIVATE ${T_EXTRA_COMPILE_OPTIONS})
+    endif()
     add_test(NAME flex.${name}
         COMMAND ${CMAKE_COMMAND}
             -DTEST_EXE=$<TARGET_FILE:flextest_${name}>
@@ -460,6 +523,15 @@ if(TARGET win_bison)
     add_flex_bison_test(bison_nr)
     add_flex_bison_test(bison_yylloc)
     add_flex_bison_test(bison_yylval)
+
+    # Issue #8: size_t->int narrowing in yyuserAction()/yyfill() (C4267), and
+    # yylex macro redefinition under an intermediate wrapper layer (C4005).
+    # Only meaningful under MSVC (the warning numbers are MSVC-specific).
+    if(MSVC)
+        add_flex_bison_test(core_yylex_wrapper EXTRA_COMPILE_OPTIONS /we4267 /we4005)
+    else()
+        add_flex_bison_test(core_yylex_wrapper)
+    endif()
 endif()
 
 # ---------------------------------------------------------------------------
