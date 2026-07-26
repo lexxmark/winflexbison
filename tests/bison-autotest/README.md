@@ -47,17 +47,25 @@ tests/bison-autotest/run.sh -k input        # groups matching a keyword
 tests/bison-autotest/run.sh 1 2 3           # specific group numbers
 ```
 
-The compile / Java / D tiers auto-skip unless `CC` / `CXX` / `DC` / `CONF_JAVAC`
-are exported before running.
+Or drive it from Windows:
+
+```
+runtests.bat --with-autotest                 # CTest gate, then this suite
+cmake -B build -DWFB_WSL_AUTOTEST=ON ; ctest # this suite as a ctest test
+```
+
+`run.sh` auto-detects `gcc`/`g++` to enable the C/C++ tiers; the Java / D tiers
+skip unless `javac` / a D compiler are present.
 
 ## Normalization
 
-`win_bison.exe` differs cosmetically from a native `bison`: it reports its
-program name as `win_bison.exe` (GNU tools strip `.exe`) and may emit CR. The
-`bison` wrapper rewrites `win_bison.exe -> bison` and strips CR before the
-harness compares. Remaining failures are triaged case by case (path separators
-and a few genuine port behaviors, e.g. win_bison omits the echoed source line in
-caret diagnostics — the suite runs `-fno-caret`, as upstream's own harness does).
+`run.sh`'s `bison` wrapper makes win_bison behave like a native `bison` with no
+post-processing, via env vars forwarded through `WSLENV`: `BISON_PROGRAM_NAME=bison`
+(diagnostics say `bison:`) and `WINFLEXBISON_BINARY_OUTPUT=Y` (LF, not CRLF).
+Generated files are already LF via the `xfopen` binary-mode port fix. Env vars
+the tests set (`COLUMNS`, `YYFLAT`, `POSIXLY_CORRECT`, …) are also forwarded, and
+`@tb@` (a test token meaning a literal TAB) is substituted in the generated
+testsuite. The remaining differences are captured as documented xfails below.
 
 ## Expected failures (xfail)
 
