@@ -42,6 +42,11 @@ cd "$WORK"
 echo "generating testsuite (autom4te)..."
 autom4te --language=autotest -I . testsuite.at -o testsuite || {
     echo "autom4te failed" >&2; exit 1; }
+# The bison tests use the token @tb@ to mean a literal TAB (e.g. in %parse-param
+# and api.namespace values). It is not a standard autotest quadrigraph, so our
+# stand-alone autom4te does not convert it; substitute it in the generated
+# script so grammars get a real tab (else it leaks as a stray '@' into output).
+sed -i 's/@tb@/\t/g' testsuite
 
 # Normalizing bison wrapper: rewrite the program name (win_bison[.exe] -> bison,
 # GNU tools would strip .exe) and strip CR from win_bison's streams so the
@@ -111,25 +116,26 @@ cat > atlocal <<LOC
 : \${CXX11_CXXFLAGS='-std=c++11'} \${CXX14_CXXFLAGS='-std=c++14'}
 : \${CXX17_CXXFLAGS='-std=c++17'} \${CXX20_CXXFLAGS='-std=c++20'} \${CXX2B_CXXFLAGS='-std=c++2b'}
 : \${BISON_C_WORKS=$c_works} \${BISON_CXX_WORKS=$cxx_works} \${BISON_DC_WORKS=false}
+: \${CC_IS_CXX=0}
 POSIXLY_CORRECT_IS_EXPORTED=false
 LOC
 
 # Expected failures. See README.md. Three kinds:
 #
-# WSL-environment limits (a Windows process can't do this via the WSL FS bridge):
-#   129  output.at  filename with NTFS-illegal chars (: < > | ...)
-#   314  actions.at --fixit backup rename on the 9p /tmp share
+# NTFS-illegal filenames (a Windows process cannot create/open these):
+#   129          output.at    name with : < > | ...
+#   283-287      synclines.at  name containing " quote chars
+#   314          actions.at   --fixit backup rename on the 9p /tmp share
 #
 # win_bison in-process-m4 limitation (candidate for a future fix): skeleton
 # complaints emitted via b4_cat/@complain during macro-argument expansion do
 # not reach scan-skel, so these diagnostics are dropped:
-#   54   input.at      C++ namespace reference errors
 #   165  skeletons.at  Complaining during macro argument expansion
 #   166  skeletons.at  Fatal errors make M4 exit immediately
 #
 # Harness edge case (perl in-place $at_dir substitution + heredoc on Windows):
 #   124  output.at     Output files: ... api.location.file="$at_dir/..."
-BISON_XFAIL="129 314 54 124 165 166"
+BISON_XFAIL="129 314 165 166 124 283 284 285 286 287"
 
 echo "running testsuite $*..."
 ./testsuite "$@" 2>&1 | tee testsuite.out
