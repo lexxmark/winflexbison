@@ -45,6 +45,7 @@
 #include "gram.h"
 #include "ielr.h"
 #include "lalr.h"
+#include "location.h"
 #include "lr0.h"
 #include "muscle-tab.h"
 #include "nullable.h"
@@ -279,6 +280,14 @@ main (int argc, char *argv[])
      warnings in the following runs.  */
   if (!fixits_empty ())
     {
+      /* Windows port: location_caret() caches an open FILE* on the grammar
+         file (to quote source lines in diagnostics) that isn't otherwise
+         closed until complain_free() -- called below, after fixits_run().
+         MSVCRT's rename() (unlike POSIX) fails with EACCES when the source
+         has an open handle, so fixits_run()'s rename(input, backup) would
+         fail whenever a fixit-eligible warning also triggered a caret
+         diagnostic (e.g. deprecated-directive warnings). Release it first. */
+      caret_free ();
       if (update_flag)
         fixits_run ();
       else
