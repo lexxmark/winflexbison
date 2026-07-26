@@ -59,8 +59,15 @@ norm() { tr -d '\r' | sed 's/win_bison\.exe/bison/g'; }
 # flag = shared as-is) so win_bison behaves like the reference.
 _fwd="COLUMNS:YYFLAT:POSIXLY_CORRECT:TIME_LIMIT:BISON_USE_PUSH_FOR_PULL:BISON_PROGRAM_NAME:LC_CTYPE"
 export WSLENV="\${_fwd}\${WSLENV:+:\$WSLENV}"
-"$BISON" "\$@" > >(norm) 2> >(norm >&2)
-rc=\$?; wait; exit \$rc
+# Capture to temp files and normalize synchronously. (Process substitution with
+# a trailing 'wait' does NOT reliably flush the substitution processes before
+# the parent exits, which intermittently truncated output under load.)
+_o=\$(mktemp); _e=\$(mktemp)
+"$BISON" "\$@" >"\$_o" 2>"\$_e"; rc=\$?
+norm <"\$_o"
+norm <"\$_e" >&2
+rm -f "\$_o" "\$_e"
+exit \$rc
 WRAP
 chmod +x bin/bison
 
