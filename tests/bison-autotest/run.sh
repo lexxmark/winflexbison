@@ -86,5 +86,34 @@ cat > atlocal <<'LOC'
 POSIXLY_CORRECT_IS_EXPORTED=false
 LOC
 
+# Expected failures under this WSL harness (NOT win_bison defects) — see
+# README.md. A Windows process cannot create/rename these files through the
+# WSL filesystem bridge:
+#   129  output.at  filename with NTFS-illegal chars (: < > | ...)
+#   314  actions.at --fixit backup rename on the 9p /tmp share
+BISON_XFAIL="129 314"
+
 echo "running testsuite $*..."
-./testsuite "$@"
+./testsuite "$@" 2>&1 | tee testsuite.out
+rc=${PIPESTATUS[0]}
+
+# Post-process: treat BISON_XFAIL groups as expected failures.
+failed=$(grep -aE '^[[:space:]]*[0-9]+: .* FAILED' testsuite.out \
+         | sed -E 's/^[[:space:]]*([0-9]+):.*/\1/' | sort -un)
+unexpected=""; xfailed=""
+for g in $failed; do
+    case " $BISON_XFAIL " in
+        *" $g "*) xfailed="$xfailed $g" ;;
+        *)        unexpected="$unexpected $g" ;;
+    esac
+done
+
+echo
+echo "=== winflexbison adjusted results ==="
+echo "expected failures (xfail):${xfailed:- none}"
+echo "unexpected failures:${unexpected:- none}"
+if [ -n "$unexpected" ]; then
+    exit 1
+fi
+# Only expected failures (or none) remain: success.
+exit 0

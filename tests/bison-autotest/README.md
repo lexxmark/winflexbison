@@ -48,9 +48,25 @@ harness compares. Remaining failures are triaged case by case (path separators
 and a few genuine port behaviors, e.g. win_bison omits the echoed source line in
 caret diagnostics — the suite runs `-fno-caret`, as upstream's own harness does).
 
+## Expected failures (xfail)
+
+`run.sh` post-processes the results and treats a small allowlist (`BISON_XFAIL`)
+as *expected* failures — these are WSL-environment limitations, not win_bison
+defects, so the run exits 0 when only they (or nothing) fail:
+
+- **129** (`output.at`) — output filename with NTFS-illegal characters
+  (`: < > | …`); such a file cannot exist on Windows.
+- **314** (`actions.at`) — `--fixit` backup rename; a Windows process cannot
+  `rename` on the WSL 9p `/tmp` share (works on native NTFS).
+
+The adjusted summary prints `expected failures (xfail): …` and
+`unexpected failures: …`; only unexpected failures make the run fail.
+
 ## Status
 
-Bring-up in progress. Toolchain-free tier (no compilers): the harness drives
-win_bison over all 776 groups; normalization has taken the failing count down
-substantially and triage of the remainder is ongoing. See
-`docs/specs/03-test-adoption/spec.md` (BISON) for the phased plan.
+Toolchain-free tier (no compilers): the harness drives win_bison over all 776
+groups. Normalization plus several win_bison fixes (caret binary read, binary
+output files, b4_cat `_m4eof`, `/utf-8` glyphs, fixit backup) took failures
+from ~200 down to the low single digits, with 129/314 accepted as xfail. See
+`docs/specs/03-test-adoption/spec.md` (BISON) for the phased plan; enabling the
+C tier needs `build-essential` in WSL.
