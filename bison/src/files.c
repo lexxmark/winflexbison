@@ -139,6 +139,23 @@ concat2 (char const *str1, char const *str2)
 FILE *
 xfopen (const char *name, const char *mode)
 {
+  /* Windows port: force binary mode for WRITES only.  Bison's generated output
+     (parsers, headers, the .output report, graphs, skeleton output) must be LF
+     like upstream, but MSVC text mode emits CRLF.  Reads are deliberately left
+     in text mode so that CRLF *input* grammars have their \r stripped on the
+     way in (notably scan-gram.c reads the grammar via xfopen "r").  On POSIX
+     text mode == binary, so this is a no-op there.  This centralizes the
+     per-file "wb" output fixes from commit a32e862, several of which were lost
+     when bison was re-vendored for 3.8.2; keeping it in xfopen makes it robust
+     across future upgrades.  (The caret reader in location.c opens binary
+     directly, since it needs true byte offsets.)  */
+  char binmode[8];
+  if ((strchr (mode, 'w') || strchr (mode, 'a')) && !strchr (mode, 'b'))
+    {
+      snprintf (binmode, sizeof binmode, "%sb", mode);
+      mode = binmode;
+    }
+
   FILE *res = fopen/*_safer*/ (name, mode);
   if (!res)
     error (EXIT_FAILURE, get_errno (),
