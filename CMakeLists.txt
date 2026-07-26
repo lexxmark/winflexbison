@@ -45,7 +45,12 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     #   applies to WIN32/MSVC.
     #------------------------------------------------------------------------
     if (MSVC)
-        add_compile_options("/source-charset:utf-8")
+        # /utf-8 = /source-charset:utf-8 + /execution-charset:utf-8. The
+        # execution charset matters: bison embeds UTF-8 glyph literals (the item
+        # dot, arrows in graphs/counterexamples); with only /source-charset the
+        # execution charset defaults to the system codepage (e.g. CP1252) and
+        # MSVC transcodes them (• -> 0x95), diverging from upstream's UTF-8.
+        add_compile_options("/utf-8")
         option( USE_STATIC_RUNTIME "Set ON to change /MD(DLL) to /MT(static)" OFF )
         if (USE_STATIC_RUNTIME)
             set(CompilerFlags
