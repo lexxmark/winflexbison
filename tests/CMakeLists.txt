@@ -6,6 +6,15 @@
 # builds as C only; enable CXX here so it is scoped to the test tree.
 enable_language(CXX)
 
+# Keep test executables out of bin/{Debug,Release}: the root CMakeLists points
+# the per-config runtime output there and CPack installs that whole directory,
+# so anything landing in it is shipped in the release zip. Redirecting here
+# (directory scope) covers every target added below. Tests locate each other
+# through $<TARGET_FILE:...>, so nothing else needs to change.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         "${CMAKE_CURRENT_BINARY_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_CURRENT_BINARY_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bin")
+
 add_subdirectory(flex)
 add_subdirectory(bison)
 add_subdirectory(winflexbison)
