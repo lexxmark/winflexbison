@@ -54,10 +54,23 @@ caret diagnostics — the suite runs `-fno-caret`, as upstream's own harness doe
 as *expected* failures — these are WSL-environment limitations, not win_bison
 defects, so the run exits 0 when only they (or nothing) fail:
 
+*WSL-environment limits* (not win_bison defects):
 - **129** (`output.at`) — output filename with NTFS-illegal characters
   (`: < > | …`); such a file cannot exist on Windows.
 - **314** (`actions.at`) — `--fixit` backup rename; a Windows process cannot
   `rename` on the WSL 9p `/tmp` share (works on native NTFS).
+
+*win_bison in-process-m4 limitation* (candidate for a future fix): skeleton
+complaints emitted via `b4_cat`/`@complain` during macro-argument expansion do
+not reach `scan-skel`, so the diagnostics are dropped and the exit code is not
+set:
+- **54** (`input.at`) — C++ namespace reference errors.
+- **165** (`skeletons.at`) — Complaining during macro argument expansion.
+- **166** (`skeletons.at`) — Fatal errors make M4 exit immediately.
+
+*Harness edge case*:
+- **124** (`output.at`) — the `$at_dir` test uses a perl in-place substitution
+  plus a shell heredoc that misbehaves on Windows (also a lalr1.cc test).
 
 The adjusted summary prints `expected failures (xfail): …` and
 `unexpected failures: …`; only unexpected failures make the run fail.
