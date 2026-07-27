@@ -76,8 +76,8 @@ defects, so the run exits 0 when only they (or nothing) fail:
 *WSL-environment limits* (not win_bison defects):
 - **129** (`output.at`) — output filename with NTFS-illegal characters
   (`: < > | …`); such a file cannot exist on Windows.
-- **314** (`actions.at`) — `--fixit` backup rename; a Windows process cannot
-  `rename` on the WSL 9p `/tmp` share (works on native NTFS).
+- **283–287** (`synclines.at`) — filenames containing `"` quote characters,
+  likewise impossible on NTFS.
 
 *win_bison in-process-m4 limitation* (candidate for a future fix): skeleton
 complaints emitted via `b4_cat`/`@complain` during macro-argument expansion do
@@ -93,9 +93,19 @@ printable:
 - **4** (`input.at`) — Invalid inputs.
 - **78** (`named-refs.at`) — Stray symbols in brackets.
 
-*Harness edge case*:
-- **124** (`output.at`) — the `$at_dir` test uses a perl in-place substitution
-  plus a shell heredoc that misbehaves on Windows (also a lalr1.cc test).
+Two groups were previously listed here and now pass, so they are no longer
+allowlisted — a failure in either is reported as unexpected:
+- **314** (`actions.at`, *Invalid uses of %empty*) — **fixed in win_bison.** The
+  group runs `-fcaret -u`, and the caret diagnostic's cached `FILE*` on the
+  grammar blocked `--update`'s `rename()` under MSVCRT. Releasing it via
+  `caret_free()` before `fixits_run()` (`bison/src/main.c`) resolved it. This
+  group was allowlisted *before* that fix landed, and the entry attributed the
+  failure to the WSL 9p `/tmp` share — a misdiagnosis. A failure here now means
+  the handle release regressed and should be treated as a real defect.
+- **124** (`output.at`, `api.location.file="$at_dir/…"`) — passes, but no fix is
+  known to explain it. The perl in-place substitution plus shell heredoc it
+  depends on may still be environment-sensitive, so a failure on a different WSL
+  setup is plausible without implying a win_bison regression.
 
 The adjusted summary prints `expected failures (xfail): …` and
 `unexpected failures: …`; only unexpected failures make the run fail.
@@ -105,6 +115,6 @@ The adjusted summary prints `expected failures (xfail): …` and
 Toolchain-free tier (no compilers): the harness drives win_bison over all 776
 groups. Normalization plus several win_bison fixes (caret binary read, binary
 output files, b4_cat `_m4eof`, `/utf-8` glyphs, fixit backup) took failures
-from ~200 down to the low single digits, with 129/314 accepted as xfail. See
+from ~200 down to the low single digits, with 129 accepted as xfail. See
 `docs/specs/03-test-adoption/spec.md` (BISON) for the phased plan; enabling the
 C tier needs `build-essential` in WSL.

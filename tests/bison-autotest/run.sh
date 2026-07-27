@@ -123,7 +123,6 @@ LOC
 # NTFS-illegal filenames (a Windows process cannot create/open these):
 #   129          output.at    name with : < > | ...
 #   283-287      synclines.at  name containing " quote chars
-#   314          actions.at   --fixit backup rename on the 9p /tmp share
 #
 # win_bison in-process-m4 limitation (candidate for a future fix): skeleton
 # complaints emitted via b4_cat/@complain during macro-argument expansion do
@@ -137,9 +136,17 @@ LOC
 #   4   input.at      Invalid inputs
 #   78  named-refs.at Stray symbols in brackets
 #
-# Harness edge case (perl in-place $at_dir substitution + heredoc on Windows):
-#   124  output.at     Output files: ... api.location.file="$at_dir/..."
-BISON_XFAIL="129 314 165 166 124 283 284 285 286 287 4 78"
+# Formerly listed here, now expected to pass:
+#   314  actions.at  Invalid uses of %empty -- fixed by the caret_free() call
+#        added before fixits_run() (bison/src/main.c): the test runs
+#        `-fcaret -u`, and the cached caret FILE* used to block --update's
+#        rename(). It was allowlisted before that fix landed and blamed on the
+#        9p /tmp share, which was a misdiagnosis. A failure here now means the
+#        handle-release regressed -- treat it as a real defect.
+#   124  output.at   api.location.file="$at_dir/..." -- passes, but with no
+#        identified fix; the perl in-place substitution plus heredoc it relies
+#        on may still be environment-sensitive.
+BISON_XFAIL="129 165 166 283 284 285 286 287 4 78"
 
 echo "running testsuite $*..."
 ./testsuite "$@" 2>&1 | tee testsuite.out
