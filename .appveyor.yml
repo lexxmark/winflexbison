@@ -57,6 +57,13 @@ test_script:
 # of the real build -- roughly doubling every job.
 after_test:
   - cmake --build "%APPVEYOR_BUILD_FOLDER%\build" --config %configuration% --target package
+  # TEMPORARY diagnostics: report what this image's WSL side offers, to decide
+  # whether tests/bison-autotest/ can run in CI. Runs last (after the real work
+  # and the package), in the single ctest cell, and `ver > nul` resets ERRORLEVEL
+  # so a missing or broken WSL can never fail the build. The `cd` is required:
+  # wsl inherits the working directory, and before_build left us in build/.
+  # Delete this line and ci-probe.sh once the autotest decision is made.
+  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" (cd /d "%APPVEYOR_BUILD_FOLDER%" & wsl -e bash ./tests/bison-autotest/ci-probe.sh & ver > nul)
 
 artifacts:
   - path: build/win_flex_bison*.zip
