@@ -2,9 +2,10 @@
 # enable_testing() + add_subdirectory(tests). Run with `ctest` from the build
 # tree. See docs/specs/03-test-adoption/spec.md.
 
-# C++ is needed for the flex C++ scanner tests (.ll / .lll). The main product
-# builds as C only; enable CXX here so it is scoped to the test tree.
-enable_language(CXX)
+# C++ is needed for the flex C++ scanner tests (.ll / .lll). The language is
+# enabled in the root CMakeLists rather than here: enabling it at this point is
+# too late for the root's USE_STATIC_RUNTIME flag rewrite, which then leaves
+# C++ targets on the wrong CRT. See the comment on project() there.
 
 # Keep test executables out of bin/{Debug,Release}: the root CMakeLists points
 # the per-config runtime output there and CPack installs that whole directory,

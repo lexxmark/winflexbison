@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project(winflexbison VERSION 2.5.25 LANGUAGES C)
+# CXX is enabled here, not in tests/CMakeLists.txt where the only C++ sources
+# live, because CMAKE_CXX_FLAGS_* do not exist until the language is enabled.
+# The USE_STATIC_RUNTIME block below rewrites /MD -> /MT textually; with CXX
+# enabled later, that rewrite silently skipped the C++ flags, so C++ targets got
+# MSBuild's default dynamic CRT while -D_DEBUG pulled in the static debug C++
+# library -- unresolved _malloc_dbg/_free_dbg/_calloc_dbg at link, Debug only.
+# No C++ source enters the product; this only makes the flags exist in time.
+project(winflexbison VERSION 2.5.25 LANGUAGES C CXX)
 
 # cmake 3.31+ - enable `install` destination paths normalization.
 if(POLICY CMP0177)
