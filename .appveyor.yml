@@ -51,8 +51,12 @@ test_script:
 # zip exists. AppVeyor collects artifacts after after_test, so this still ships.
 # Path given explicitly rather than relying on before_build's `cd build` still
 # being in effect this late in the job.
+#
+# --config is REQUIRED: multi-config generators default to Debug, so without it
+# this step silently rebuilt the whole project (tests included) in Debug on top
+# of the real build -- roughly doubling every job.
 after_test:
-  - cmake --build "%APPVEYOR_BUILD_FOLDER%\build" --target package
+  - cmake --build "%APPVEYOR_BUILD_FOLDER%\build" --config %configuration% --target package
 
 artifacts:
   - path: build/win_flex_bison*.zip
