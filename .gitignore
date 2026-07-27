@@ -3,6 +3,7 @@
 
 # Winflexbison specifics
 CMakeBuild*/
+CMakeFresh*/
 
 # User-specific files
 *.suo
