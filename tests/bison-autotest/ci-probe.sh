@@ -11,8 +11,15 @@
 #   5. Does WSL interop actually execute the Windows win_bison.exe? That is the
 #      mechanism the whole harness depends on.
 #
-# Diagnostics only: this never fails, and always exits 0. Delete once the
-# autotest CI decision is made.
+# Diagnostics only: this never fails, and always exits 0.
+#
+# No longer wired into .appveyor.yml -- the autotest now runs there for real,
+# which proves the same things. Kept as a manual troubleshooting tool for when
+# a worker image changes and the autotest suddenly breaks:
+#     wsl -e bash ./tests/bison-autotest/ci-probe.sh
+# Last measured on AppVeyor (Visual Studio 2022 image): WSL1, Ubuntu 20.04.3,
+# perl/diff/sed present, autom4te/m4/gcc/g++/make absent, passwordless sudo and
+# apt both working, and interop able to execute win_bison.exe.
 echo "=== distro ==="
 grep -E '^(NAME|VERSION)=' /etc/os-release 2>/dev/null || echo "  /etc/os-release unreadable"
 echo "  kernel: $(uname -r 2>/dev/null)"

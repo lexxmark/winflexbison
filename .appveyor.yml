@@ -28,6 +28,25 @@ init:
   - cmake --version
   - msbuild /version
 
+# Setup for the WSL bison autotest -- only in the cell that runs it. The image
+# ships WSL1 / Ubuntu 20.04 with perl, diff and sed but WITHOUT autom4te, m4 or
+# a compiler, and with working passwordless sudo (measured by ci-probe.sh).
+#
+# build-essential is NOT optional: run.sh's xfail list was calibrated with
+# gcc/g++ present. Without them the compile tiers auto-skip, a different set of
+# groups runs, and the list stops describing reality.
+#
+# The baseline clone is required too: two groups read fixtures from it
+# (regression.at wants src/parse-gram.y, torture.at wants tests/linear), and
+# run.sh looks for it at PORT_ROOT/../upstream/bison -- which exists in the
+# superproject but not in a bare AppVeyor checkout of this repo. Cloning it to
+# that exact path avoids plumbing ORIG_BISON through WSLENV. Shallow is enough:
+# only the tree at v3.8.2 is read, never its history.
+install:
+  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" wsl -e sudo -n apt-get update -qq
+  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" wsl -e sudo -n apt-get install -y -qq autoconf m4 build-essential
+  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" git clone --quiet --depth 1 --branch v3.8.2 https://github.com/akimd/bison.git "%APPVEYOR_BUILD_FOLDER%\..\upstream\bison"
+
 before_build:
   - set VSVERSIONSHORT=%VSVERSION:~3,4%
   - if "%APPVEYOR_REPO_TAG_NAME%"=="" ( set "APPVEYOR_REPO_TAG_NAME=dev-vs-%VSVERSIONSHORT%-%platform%-%configuration%" )
@@ -38,14 +57,20 @@ before_build:
 build_script:
   - cmake --build . --config %configuration%
 
-# The CTest gate runs in one cell only (VS2022 / x64 / Release). The test
-# executables are built in every cell regardless -- ALL_BUILD includes them --
-# so this costs test runtime, not build time. The second line makes every other
-# job say so out loud: a guarded step that silently never runs is the failure
-# mode worth designing against.
+# Windows CTest gate: EVERY cell. The test executables are compiled in all of
+# them regardless (ALL_BUILD includes them), so running them costs only test
+# time -- ~19s -- and is the difference between building the tests and actually
+# testing the toolchain/platform/configuration that cell represents.
+#
+# The bison GNU Autotest (696 groups) runs in ONE cell: it drives win_bison.exe
+# through a POSIX harness, so it exercises bison's behaviour rather than the
+# MSVC toolchain, and running it 8x would buy nothing for 8x the time. The `cd`
+# is required -- wsl inherits the working directory, and before_build left us in
+# build/. run.sh exits non-zero only on UNEXPECTED failures (its BISON_XFAIL
+# list absorbs the known environment-limited ones), so this gates the build.
 test_script:
-  - if "%VSVERSION%"=="17 2022" if "%platform%"=="x64" if "%configuration%"=="Release" ctest --test-dir "%APPVEYOR_BUILD_FOLDER%\build" -C %configuration% --output-on-failure --no-tests=error
-  - if not "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" echo [ctest] skipped for VS%VSVERSION% %platform% %configuration%
+  - ctest --test-dir "%APPVEYOR_BUILD_FOLDER%\build" -C %configuration% --output-on-failure --no-tests=error
+  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" (cd /d "%APPVEYOR_BUILD_FOLDER%" && wsl -e bash ./tests/bison-autotest/run.sh)
 
 # Packaging runs after the tests so a failing test aborts the build before a
 # zip exists. AppVeyor collects artifacts after after_test, so this still ships.
@@ -57,13 +82,6 @@ test_script:
 # of the real build -- roughly doubling every job.
 after_test:
   - cmake --build "%APPVEYOR_BUILD_FOLDER%\build" --config %configuration% --target package
-  # TEMPORARY diagnostics: report what this image's WSL side offers, to decide
-  # whether tests/bison-autotest/ can run in CI. Runs last (after the real work
-  # and the package), in the single ctest cell, and `ver > nul` resets ERRORLEVEL
-  # so a missing or broken WSL can never fail the build. The `cd` is required:
-  # wsl inherits the working directory, and before_build left us in build/.
-  # Delete this line and ci-probe.sh once the autotest decision is made.
-  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" (cd /d "%APPVEYOR_BUILD_FOLDER%" & wsl -e bash ./tests/bison-autotest/ci-probe.sh & ver > nul)
 
 artifacts:
   - path: build/win_flex_bison*.zip
