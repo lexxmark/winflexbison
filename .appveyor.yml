@@ -13,15 +13,16 @@ environment:
   # VS VERSION IN CMAKE STYLE
   matrix:
     - VSVERSION: "17 2022"
-    - VSVERSION: "18 2026"
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2026
+    - VSVERSION: "16 2019"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
 
-matrix:
-  exclude:
-    # VS2022 is x64-only here, so all Win32 coverage comes from the VS2026 rows
-    # -- do not add a Win32 exclusion for VS2026 or 32-bit builds disappear.
-    - VSVERSION: "17 2022"
-      platform: Win32
+# No matrix exclusions: both toolchains build x64 and Win32 (8 jobs).
+#
+# VS2026 was tried and removed. The "Visual Studio 2026" worker image exists and
+# ships MSBuild 18.7.8, but its CMake (4.1.2) has no "Visual Studio 18 2026"
+# generator -- its newest is "Visual Studio 17 2022" -- so every VS2026 job died
+# at configure with "Could not create named generator". Revisit when the image
+# carries a CMake that knows VS18, or drive it through Ninja instead.
 
 init:
   - cmake --version

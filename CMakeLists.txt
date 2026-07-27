@@ -22,7 +22,13 @@ add_definitions(-Dinline=__inline)
 # next line needed for VS2017 only
 add_definitions(-Drestrict=__restrict)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W3 /MD /Od /Zi /EHsc")
+# No /MD here: CMAKE_CXX_FLAGS_DEBUG already carries CMake's /MDd, and
+# USE_STATIC_RUNTIME rewrites /MD -> /MT textually. Appending /MD produced
+# "/MTd ... /MT" in one flag string, so MSVC took the last and compiled C++
+# against the RELEASE static CRT while -D_DEBUG still pulled in the debug C++
+# library (libcpmtd) -- unresolved _malloc_dbg/_free_dbg/_calloc_dbg at link.
+# C targets were unaffected because this line only touches the CXX flags.
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W3 /Od /Zi /EHsc")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W3 /GL /Od /Oi /Gy /Zi /EHsc")
 
 # Define Release by default
