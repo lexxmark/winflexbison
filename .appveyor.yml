@@ -13,13 +13,13 @@ environment:
   # VS VERSION IN CMAKE STYLE
   matrix:
     - VSVERSION: "17 2022"
-    - VSVERSION: "16 2019"
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-    - VSVERSION: "15 2017"
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      
+    - VSVERSION: "18 2026"
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2026
+
 matrix:
   exclude:
+    # VS2022 is x64-only here, so all Win32 coverage comes from the VS2026 rows
+    # -- do not add a Win32 exclusion for VS2026 or 32-bit builds disappear.
     - VSVERSION: "17 2022"
       platform: Win32
 
@@ -37,8 +37,21 @@ before_build:
 build_script:
   - cmake --build . --config %configuration%
 
-after_build:
-  - cmake --build . --target package
+# The CTest gate runs in one cell only (VS2022 / x64 / Release). The test
+# executables are built in every cell regardless -- ALL_BUILD includes them --
+# so this costs test runtime, not build time. The second line makes every other
+# job say so out loud: a guarded step that silently never runs is the failure
+# mode worth designing against.
+test_script:
+  - if "%VSVERSION%"=="17 2022" if "%platform%"=="x64" if "%configuration%"=="Release" ctest --test-dir "%APPVEYOR_BUILD_FOLDER%\build" -C %configuration% --output-on-failure --no-tests=error
+  - if not "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" echo [ctest] skipped for VS%VSVERSION% %platform% %configuration%
+
+# Packaging runs after the tests so a failing test aborts the build before a
+# zip exists. AppVeyor collects artifacts after after_test, so this still ships.
+# Path given explicitly rather than relying on before_build's `cd build` still
+# being in effect this late in the job.
+after_test:
+  - cmake --build "%APPVEYOR_BUILD_FOLDER%\build" --target package
 
 artifacts:
   - path: build/win_flex_bison*.zip
