@@ -37,6 +37,15 @@ done
 echo "win_bison : $BISON"
 echo "baseline  : ${ORIG_BISON:-<unset>}"
 echo "work dir  : $WORK"
+# Record the environment that shapes the RESULTS, not just whether tools exist.
+# autom4te generates the testsuite from the .at sources, so its version changes
+# the script being run; and win_bison's quotearg picks quote styles from the
+# locale forwarded below. A CI-vs-local mismatch in either shifts large numbers
+# of diagnostic comparisons at once, which looks like a mass failure.
+echo "autoconf  : $(autoconf --version 2>/dev/null | head -1)"
+echo "m4        : $(m4 --version 2>/dev/null | head -1)"
+echo "kernel    : $(uname -r 2>/dev/null)  (4.4.0-*-Microsoft = WSL1)"
+echo "locale    : LANG=${LANG:-unset} LC_ALL=${LC_ALL:-unset} LC_CTYPE=${LC_CTYPE:-unset}"
 
 rm -rf "$WORK"; mkdir -p "$WORK/bin"
 cp "$AT"/*.at "$AT/testsuite.h" "$AT/package.m4" "$WORK/"
@@ -146,7 +155,11 @@ LOC
 #   124  output.at   api.location.file="$at_dir/..." -- passes, but with no
 #        identified fix; the perl in-place substitution plus heredoc it relies
 #        on may still be environment-sensitive.
-BISON_XFAIL="129 165 166 283 284 285 286 287 4 78"
+# Overridable so a candidate list can be tried without editing this file --
+# useful when recalibrating for a different distro/autoconf, and it lets the
+# failure-dump path below be exercised (BISON_XFAIL= makes a known xfail
+# report as unexpected).
+BISON_XFAIL="${BISON_XFAIL-129 165 166 283 284 285 286 287 4 78}"
 
 echo "running testsuite $*..."
 ./testsuite "$@" 2>&1 | tee testsuite.out
@@ -170,6 +183,25 @@ echo "=== winflexbison adjusted results ==="
 echo "expected failures (xfail):${xfailed:- none}"
 echo "unexpected failures:${unexpected:- none}"
 if [ -n "$unexpected" ]; then
+    # Group numbers alone are not a diagnosis. autotest writes the actual
+    # expected-vs-got diffs to testsuite.log, which nothing ever prints -- so a
+    # CI failure used to cost a full build just to learn nothing. Dump the first
+    # few so one run is enough to see what actually differs.
+    n=0
+    for g in $unexpected; do
+        n=$((n + 1))
+        [ "$n" -gt "${DUMP_FAILURES:-3}" ] && break
+        echo
+        echo "================= detail: group $g ================="
+        awk -v g="$g" '
+            $0 ~ "^ *"g"\\. "        { inblock = 1 }
+            inblock && $0 ~ "^ *[0-9]+\\. " && $0 !~ "^ *"g"\\. " { exit }
+            inblock                  { print }
+        ' testsuite.log 2>/dev/null | head -"${DUMP_LINES:-50}"
+    done
+    echo
+    echo "(showing ${DUMP_FAILURES:-3} of $(echo $unexpected | wc -w); raise with"
+    echo " DUMP_FAILURES=N, lengthen each with DUMP_LINES=N; full log: $WORK/testsuite.log)"
     exit 1
 fi
 # Only expected failures (or none) remain: success.
