@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/master?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/master)
+master: [![master build status](https://ci.appveyor.com/api/projects/status/j9s6854v3pvig28t/branch/master?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison-2rnxh/branch/master) &nbsp; dev: [![dev build status](https://ci.appveyor.com/api/projects/status/j9s6854v3pvig28t/branch/dev?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison-2rnxh/branch/dev)
 
 # WinFlexBison - Flex and Bison for Windows
 
