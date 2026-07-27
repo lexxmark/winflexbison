@@ -23,8 +23,11 @@ PORT_ROOT="$(cd "$HERE/../.." && pwd)"
 BISON="${BISON:-$PORT_ROOT/bin/Release/win_bison.exe}"
 WORK="${WORK:-/tmp/winflexbison-bison-autotest}"
 # abs_top_srcdir points at the pristine bison baseline (some tests read fixture
-# grammars from it). Default to the superproject's orig/bison next to the port.
-ORIG_BISON="${ORIG_BISON:-$(cd "$PORT_ROOT/../orig/bison" 2>/dev/null && pwd)}"
+# grammars from it). Default to the superproject's upstream/bison next to the
+# port. Missing -> at_top_srcdir falls back to $WORK below and the tests that
+# read from the baseline fail, so say so rather than degrading silently.
+ORIG_BISON="${ORIG_BISON:-$(cd "$PORT_ROOT/../upstream/bison" 2>/dev/null && pwd)}"
+[ -n "$ORIG_BISON" ] || echo "warning: bison baseline not found at $PORT_ROOT/../upstream/bison; set ORIG_BISON to override" >&2
 
 [ -x "$BISON" ] || { echo "win_bison not found/executable: $BISON" >&2; exit 1; }
 for t in autom4te m4 perl diff sed; do
