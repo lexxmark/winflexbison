@@ -31,10 +31,8 @@ init:
   - cmake --version
   - msbuild /version
   # Worker width, so the autotest's -j decision rests on a measurement rather
-  # than an assumption about the image. The autotest cell runs serial today
-  # (WFB_JOBS=1 below); if this reports enough cores, raising it is a one-word
-  # change backed by the local result that -j16 and serial agree on all 776
-  # verdicts.
+  # than an assumption about the image. Measured 2 on the VS2022 image, which is
+  # what WFB_JOBS below is set to; re-check here if the image ever changes.
   - echo cores=%NUMBER_OF_PROCESSORS%
 
 # Setup for the bison autotest -- only in the cell that runs it. The harness now
@@ -94,11 +92,14 @@ test_script:
   # locally, generating different testsuites -- is gone now that install:
   # pins autoconf2.71 on both sides. Drop the `& ver > nul` to make it gate
   # again once one green run has confirmed that.
-  # WFB_JOBS=1 keeps this cell serial. run.sh defaults to parallel (min(nproc,16))
-  # because that is a large win on a dev box, but a hosted worker is narrow, so
-  # the gain is small while concurrency risk lands on the only job carrying deep
-  # win_bison signal. Revisit once the cores= line above says otherwise.
-  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" (set WFB_JOBS=1 && C:\msys64\usr\bin\bash -lc "$(cygpath -u '%APPVEYOR_BUILD_FOLDER%')/tests/bison-autotest/run.sh" & ver > nul)
+  # WFB_JOBS=2 matches the worker (cores=2, measured by the init: line above).
+  # This is a timeout defence, not a speed tweak: serial, the autotest took 53
+  # minutes of a 59m03s job against AppVeyor's 60-minute per-job limit -- 57
+  # seconds of margin, and a timeout kills the job before after_test packages
+  # the zip. -j2 should pull the suite to ~30-35 min. Parallel safety was
+  # verified at -j16 on a 32-core box (all 776 verdicts identical to serial);
+  # narrower is less contended, so this is the conservative end of that.
+  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" (set WFB_JOBS=2 && C:\msys64\usr\bin\bash -lc "$(cygpath -u '%APPVEYOR_BUILD_FOLDER%')/tests/bison-autotest/run.sh" & ver > nul)
 
 # Packaging runs after the tests so a failing test aborts the build before a
 # zip exists. AppVeyor collects artifacts after after_test, so this still ships.
