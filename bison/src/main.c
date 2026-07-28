@@ -103,6 +103,25 @@ main (int argc, char *argv[])
       }
   }
 
+  /* Windows port: setlocale (LC_ALL, "") above follows the system ANSI code
+     page and, unlike POSIX, ignores LC_ALL/LC_CTYPE/LANG entirely.  That
+     leaves MB_CUR_MAX == 1, so mbsnwidth () never decodes multibyte input and
+     measures caret diagnostics in BYTES: "d: {éééééééééééé}" reports columns
+     4-29 (24 bytes) where upstream reports 4-17 (12 characters).  Honour a
+     UTF-8 request from the environment explicitly; the UCRT accepts the
+     ".UTF-8" code page suffix (Windows 10 1803+).  Only LC_CTYPE is set, so
+     the quoting style selected from LC_CTYPE above, and message translation,
+     are unaffected -- and a non-UTF-8 locale keeps byte semantics, as on
+     POSIX.  */
+  {
+      char const* lc = getenv ("LC_ALL");
+      if (!lc || !*lc) lc = getenv ("LC_CTYPE");
+      if (!lc || !*lc) lc = getenv ("LANG");
+      if (lc && (strstr (lc, "UTF-8") || strstr (lc, "utf8")
+                 || strstr (lc, "UTF8") || strstr (lc, "utf-8")))
+        setlocale (LC_CTYPE, ".UTF-8");
+  }
+
   atexit (close_stdout);
 
   glyphs_init ();

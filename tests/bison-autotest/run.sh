@@ -75,8 +75,13 @@ export WINFLEXBISON_BINARY_OUTPUT=Y
 # WSL only forwards env vars to Windows processes listed in WSLENV. Forward the
 # two above plus the vars the suite sets that win_bison reads (COLUMNS for caret
 # width, YYFLAT for flat counterexamples, POSIXLY_CORRECT, TIME_LIMIT,
-# BISON_USE_PUSH_FOR_PULL, LC_CTYPE).
-_fwd="BISON_PROGRAM_NAME:WINFLEXBISON_BINARY_OUTPUT:COLUMNS:YYFLAT:POSIXLY_CORRECT:TIME_LIMIT:BISON_USE_PUSH_FOR_PULL:LC_CTYPE"
+# BISON_USE_PUSH_FOR_PULL, and the locale).
+#
+# LC_ALL and LANG matter as much as LC_CTYPE: diagnostics.at runs its multibyte
+# cases as `LC_ALL="$locale" bison ...`, and without LC_ALL here win_bison never
+# saw it, silently fell back to the system code page, and measured caret columns
+# in bytes -- which looked like a win_bison bug rather than a missing forward.
+_fwd="BISON_PROGRAM_NAME:WINFLEXBISON_BINARY_OUTPUT:COLUMNS:YYFLAT:POSIXLY_CORRECT:TIME_LIMIT:BISON_USE_PUSH_FOR_PULL:LC_ALL:LC_CTYPE:LANG"
 export WSLENV="\${_fwd}\${WSLENV:+:\$WSLENV}"
 # WSL drops the WSLInterop binfmt_misc entry under sustained load. Once gone,
 # every Windows exec fails with "cannot execute binary file: Exec format error"
