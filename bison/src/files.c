@@ -156,6 +156,14 @@ xfopen (const char *name, const char *mode)
       mode = binmode;
     }
 
+  /* Windows port: the CRT has no "/dev/null"; the null device is "NUL".
+     scan-skel sends skeleton output there whenever complaints have been
+     issued, so without this every diagnostic-producing run dies with
+     "/dev/null: cannot open" appended to its stderr.  compute_output_file_names
+     below already performs the same substitution for --output.  */
+  if (strcmp (name, "/dev/null") == 0)
+    name = "NUL";
+
   FILE *res = fopen/*_safer*/ (name, mode);
   if (!res)
     error (EXIT_FAILURE, get_errno (),
