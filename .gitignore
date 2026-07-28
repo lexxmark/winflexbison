@@ -4,6 +4,7 @@
 # Winflexbison specifics
 CMakeBuild*/
 CMakeFresh*/
+.autotest-work/
 
 # User-specific files
 *.suo

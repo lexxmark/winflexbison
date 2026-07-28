@@ -21,7 +21,14 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 AT="$HERE/at"
 PORT_ROOT="$(cd "$HERE/../.." && pwd)"
 BISON="${BISON:-$PORT_ROOT/bin/Release/win_bison.exe}"
-WORK="${WORK:-/tmp/winflexbison-bison-autotest}"
+# The work dir must live on a path Windows can see. WSL1 does not expose the
+# distro rootfs to Windows processes at all, so with a /tmp work dir every
+# group's cwd is unreachable and win_bison fails with "input.y: cannot open:
+# No such file or directory" -- 763 of 765 groups on AppVeyor. WSL2 tunnels
+# /tmp through \\wsl.localhost, which is why this only bites on WSL1. Placing
+# it under the port root keeps it on /mnt/<drive>, visible to both sides.
+# Slower than the native rootfs on WSL1, but correct. Override with WORK=.
+WORK="${WORK:-$(cd "$(dirname "$0")/../.." && pwd)/.autotest-work}"
 # abs_top_srcdir points at the pristine bison baseline (some tests read fixture
 # grammars from it). Default to the superproject's upstream/bison next to the
 # port. Missing -> at_top_srcdir falls back to $WORK below and the tests that
@@ -78,7 +85,7 @@ export WINFLEXBISON_BINARY_OUTPUT=Y
 # BISON_USE_PUSH_FOR_PULL, and the locale).
 #
 # LC_ALL and LANG matter as much as LC_CTYPE: diagnostics.at runs its multibyte
-# cases as `LC_ALL="$locale" bison ...`, and without LC_ALL here win_bison never
+# cases as \`LC_ALL="\$locale" bison ...\`, and without LC_ALL here win_bison never
 # saw it, silently fell back to the system code page, and measured caret columns
 # in bytes -- which looked like a win_bison bug rather than a missing forward.
 _fwd="BISON_PROGRAM_NAME:WINFLEXBISON_BINARY_OUTPUT:COLUMNS:YYFLAT:POSIXLY_CORRECT:TIME_LIMIT:BISON_USE_PUSH_FOR_PULL:LC_ALL:LC_CTYPE:LANG"
