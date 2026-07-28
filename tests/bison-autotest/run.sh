@@ -274,6 +274,27 @@ LOC
 # have before. Worth reporting upstream.
 BISON_XFAIL="${BISON_XFAIL-4 78 124 149 150 152 154 159 160 165 166 764}"
 
+# Run in parallel by default. The suite is almost pure process-spawn cost --
+# ~17,600 checks, and MSYS2 emulates fork() by copying the process image, so
+# each spawn runs ~10x a Linux one -- and the 776 groups are independent, each
+# in its own directory. Measured on a 32-core box: -j16 took 185s against ~25min
+# serial, with all 776 verdicts identical to the serial run (not just the same
+# summary), so this trades nothing for the speedup.
+#
+# Always pass an explicit count: bare -j means "one job per test group" to
+# autotest, i.e. 776 of them. WFB_JOBS overrides; WFB_JOBS=1 restores serial,
+# which is what CI uses (a small shared worker gains little from -j and the
+# autotest cell is the only deep signal on win_bison's behaviour). Capped at 16
+# because that is the width actually verified.
+case " $* " in
+    *" -j"*|*" --jobs"*) ;;    # caller picked a width; leave it alone
+    *)
+        _nproc=$(nproc 2>/dev/null || echo 1)
+        _jobs=${WFB_JOBS:-$([ "$_nproc" -gt 16 ] && echo 16 || echo "$_nproc")}
+        [ "$_jobs" -gt 1 ] 2>/dev/null && set -- "-j$_jobs" "$@"
+        ;;
+esac
+
 echo "running testsuite $*..."
 ./testsuite "$@" 2>&1 | tee testsuite.out
 rc=${PIPESTATUS[0]}

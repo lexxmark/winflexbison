@@ -62,6 +62,21 @@ cmake -B build -DWFB_MSYS2_AUTOTEST=ON ; ctest  # this suite as a ctest test
 `run.sh` auto-detects `gcc`/`g++` to enable the C/C++ tiers; the Java / D tiers
 skip unless `javac` / a D compiler are present.
 
+**Runs in parallel by default** — `min(nproc, 16)` jobs. The suite is almost
+pure process-spawn cost (~17,600 checks, and MSYS2 emulates `fork()` by copying
+the process image), so this is where nearly all the time goes. On a 32-core box
+`-j16` took **185s against ~25 min serial**, with all 776 verdicts identical to
+the serial run. Tune or disable it:
+
+```
+WFB_JOBS=1 tests/bison-autotest/run.sh    # serial (what CI uses)
+WFB_JOBS=8 tests/bison-autotest/run.sh    # pick a width
+tests/bison-autotest/run.sh -j24          # your own -j is left alone
+```
+
+Always pass a *count* with `-j`: bare `-j` means "one job per test group" to
+autotest, i.e. 776 of them.
+
 **`$PATH` must be MSYS-style inside the shell** (`/c/msys64/mingw64/bin`, not
 `C:\msys64\mingw64\bin`). Autotest splits `$PATH` on `:`, so a drive letter tears
 the entry in half and every program in it goes invisible — the symptom is

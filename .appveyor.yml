@@ -30,6 +30,12 @@ environment:
 init:
   - cmake --version
   - msbuild /version
+  # Worker width, so the autotest's -j decision rests on a measurement rather
+  # than an assumption about the image. The autotest cell runs serial today
+  # (WFB_JOBS=1 below); if this reports enough cores, raising it is a one-word
+  # change backed by the local result that -j16 and serial agree on all 776
+  # verdicts.
+  - echo cores=%NUMBER_OF_PROCESSORS%
 
 # Setup for the bison autotest -- only in the cell that runs it. The harness now
 # runs on MSYS2 (C:\msys64, pre-installed on this image) instead of WSL: MSYS2
@@ -88,7 +94,11 @@ test_script:
   # locally, generating different testsuites -- is gone now that install:
   # pins autoconf2.71 on both sides. Drop the `& ver > nul` to make it gate
   # again once one green run has confirmed that.
-  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" (C:\msys64\usr\bin\bash -lc "$(cygpath -u '%APPVEYOR_BUILD_FOLDER%')/tests/bison-autotest/run.sh" & ver > nul)
+  # WFB_JOBS=1 keeps this cell serial. run.sh defaults to parallel (min(nproc,16))
+  # because that is a large win on a dev box, but a hosted worker is narrow, so
+  # the gain is small while concurrency risk lands on the only job carrying deep
+  # win_bison signal. Revisit once the cores= line above says otherwise.
+  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" (set WFB_JOBS=1 && C:\msys64\usr\bin\bash -lc "$(cygpath -u '%APPVEYOR_BUILD_FOLDER%')/tests/bison-autotest/run.sh" & ver > nul)
 
 # Packaging runs after the tests so a failing test aborts the build before a
 # zip exists. AppVeyor collects artifacts after after_test, so this still ships.
