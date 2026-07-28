@@ -78,6 +78,20 @@ export WINFLEXBISON_BINARY_OUTPUT=Y
 # BISON_USE_PUSH_FOR_PULL, LC_CTYPE).
 _fwd="BISON_PROGRAM_NAME:WINFLEXBISON_BINARY_OUTPUT:COLUMNS:YYFLAT:POSIXLY_CORRECT:TIME_LIMIT:BISON_USE_PUSH_FOR_PULL:LC_CTYPE"
 export WSLENV="\${_fwd}\${WSLENV:+:\$WSLENV}"
+# WSL drops the WSLInterop binfmt_misc entry under sustained load. Once gone,
+# every Windows exec fails with "cannot execute binary file: Exec format error"
+# and the remainder of the suite fails wholesale -- 439 groups locally, ~700 on
+# AppVeyor, with an arbitrary onset (group 346 vs group 4). It is session-scoped
+# and re-registering restores it immediately, so heal it in place rather than
+# losing the run. The test is a stat on the common path; the write only happens
+# when the entry is actually missing.
+if [ ! -e /proc/sys/fs/binfmt_misc/WSLInterop ]; then
+    if [ "\$(id -u)" = 0 ]; then
+        echo ':WSLInterop:M::MZ::/init:PF' > /proc/sys/fs/binfmt_misc/register 2>/dev/null
+    else
+        sudo -n sh -c "echo ':WSLInterop:M::MZ::/init:PF' > /proc/sys/fs/binfmt_misc/register" 2>/dev/null
+    fi
+fi
 exec "$BISON" "\$@"
 WRAP
 chmod +x bin/bison
