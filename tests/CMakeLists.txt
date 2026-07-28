@@ -20,23 +20,32 @@ add_subdirectory(flex)
 add_subdirectory(bison)
 add_subdirectory(winflexbison)
 
-# Opt-in: run the full bison GNU Autotest (696 groups) under WSL as one ctest
+# Opt-in: run the full bison GNU Autotest (776 groups) under MSYS2 as one ctest
 # test. It is a POSIX-shell harness so it can't be a native ctest test, but this
 # lets `ctest` drive it when explicitly enabled. Default OFF keeps the gate
 # dependency-free. Passes iff run.sh reports 0 unexpected failures.
-option(WFB_WSL_AUTOTEST "Run the WSL bison autotest as a ctest test" OFF)
-if(WFB_WSL_AUTOTEST)
-    find_program(WSL_EXE wsl)
-    if(WSL_EXE)
-        # Translate the Windows source path to a WSL /mnt path.
+option(WFB_MSYS2_AUTOTEST "Run the MSYS2 bison autotest as a ctest test" OFF)
+if(WFB_MSYS2_AUTOTEST)
+    find_program(MSYS2_BASH bash
+        HINTS "C:/msys64/usr/bin" "$ENV{MSYS2_ROOT}/usr/bin"
+        NO_SYSTEM_ENVIRONMENT_PATH NO_DEFAULT_PATH)
+    if(MSYS2_BASH)
+        # MSYS2 paths are /c/... , not the C:/... CMake hands us. Autotest splits
+        # $PATH on ':', so a drive letter anywhere in it makes every program in
+        # that entry invisible -- hence the translation rather than passing the
+        # native path through.
         string(SUBSTRING "${CMAKE_SOURCE_DIR}" 0 1 _drv)
         string(TOLOWER "${_drv}" _drv)
-        string(REGEX REPLACE "^.:" "/mnt/${_drv}" _wslroot "${CMAKE_SOURCE_DIR}")
-        add_test(NAME bison.autotest.wsl
-            COMMAND ${WSL_EXE} -e bash "${_wslroot}/tests/bison-autotest/run.sh")
-        set_tests_properties(bison.autotest.wsl PROPERTIES
-            TIMEOUT 1800 LABELS "bison;wsl")
+        string(REGEX REPLACE "^.:" "/${_drv}" _msysroot "${CMAKE_SOURCE_DIR}")
+        # -l so MSYSTEM=MINGW64 puts the compilers on PATH; a login shell starts
+        # in the MSYS2 home, so run.sh is named absolutely (it derives the rest
+        # from its own location).
+        add_test(NAME bison.autotest.msys2
+            COMMAND ${MSYS2_BASH} -lc "${_msysroot}/tests/bison-autotest/run.sh")
+        set_tests_properties(bison.autotest.msys2 PROPERTIES
+            TIMEOUT 3600 LABELS "bison;msys2"
+            ENVIRONMENT "MSYSTEM=MINGW64")
     else()
-        message(WARNING "WFB_WSL_AUTOTEST=ON but 'wsl' not found; skipping bison.autotest.wsl")
+        message(WARNING "WFB_MSYS2_AUTOTEST=ON but MSYS2 bash not found; skipping bison.autotest.msys2")
     endif()
 endif()

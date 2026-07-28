@@ -1,6 +1,6 @@
 # winflexbison "our own" tests — port-specific behavior upstream doesn't cover.
 # See docs/specs/03-test-adoption.md ("our own tests"). Windows-native (CTest),
-# no WSL.
+# no POSIX layer needed.
 
 find_program(POWERSHELL_EXE NAMES pwsh powershell)
 
@@ -42,7 +42,7 @@ endif()
 # Issue #39: a CMake build with USE_STATIC_RUNTIME=ON must not pull in the
 # dynamic-CRT DLL (vcruntime140.dll) the way a plain /MD build does. Only
 # meaningful (and only registered) when that option is actually on, mirroring
-# the WFB_WSL_AUTOTEST opt-in-test precedent above.
+# the WFB_MSYS2_AUTOTEST opt-in-test precedent above.
 if(USE_STATIC_RUNTIME)
     find_program(DUMPBIN_EXE dumpbin)
     if(NOT DUMPBIN_EXE)

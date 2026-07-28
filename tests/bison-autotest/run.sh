@@ -3,14 +3,19 @@
 #
 # This is the "adopt all bison tests" path: the vendored .at sources (at/) are
 # compiled by autom4te into the ~18 MB `testsuite` shell script, which is then
-# run under WSL/Linux driving the Windows win_bison.exe via a normalizing
-# wrapper. Unlike the CTest golden suite, this needs a POSIX shell (WSL), so it
-# is a separate, opt-in runner — not part of the Windows ctest gate.
+# run under MSYS2 driving the Windows win_bison.exe via a normalizing wrapper.
+# Unlike the CTest golden suite, this needs a POSIX shell, so it is a separate,
+# opt-in runner — not part of the Windows ctest gate.
 #
-# Requires (in WSL): autoconf/autom4te, m4, perl, diff, sed. Compile/Java/D
-# test tiers auto-skip unless CC/CXX/DC/CONF_JAVAC are exported.
+# MSYS2 runs win_bison.exe as an ordinary child process: exported variables are
+# inherited directly, no interop layer is involved, and the work dir is already
+# a path Windows understands.
 #
-# Usage (from WSL):
+# Requires: autoconf2.71 (autom4te), m4, perl, diff, sed, and mingw-w64 gcc/g++
+# for the compile tiers -- install with install-msys2-deps.sh. Compile/Java/D
+# tiers auto-skip when their compilers are absent.
+#
+# Usage (from MSYS2):
 #   tests/bison-autotest/run.sh [testsuite args...]
 #   tests/bison-autotest/run.sh -k input        # only groups matching 'input'
 #   tests/bison-autotest/run.sh 1 2 3            # specific group numbers
@@ -21,13 +26,22 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 AT="$HERE/at"
 PORT_ROOT="$(cd "$HERE/../.." && pwd)"
 BISON="${BISON:-$PORT_ROOT/bin/Release/win_bison.exe}"
-# The work dir must live on a path Windows can see. WSL1 does not expose the
-# distro rootfs to Windows processes at all, so with a /tmp work dir every
-# group's cwd is unreachable and win_bison fails with "input.y: cannot open:
-# No such file or directory" -- 763 of 765 groups on AppVeyor. WSL2 tunnels
-# /tmp through \\wsl.localhost, which is why this only bites on WSL1. Placing
-# it under the port root keeps it on /mnt/<drive>, visible to both sides.
-# Slower than the native rootfs on WSL1, but correct. Override with WORK=.
+
+# Autotest splits $PATH on ':' (_AS_PATH_WALK), so a Windows-style entry like
+# C:\msys64\mingw64\bin is torn in half and every program in it becomes
+# invisible -- the symptom is "cannot find bison" at startup, or "gcc: command
+# not found" inside a compile group. Launching bash from cmd is fine (it
+# converts $PATH on the way in); prepending a drive-letter path from *inside*
+# the shell is what breaks. Warn rather than fail: only the affected entries
+# are lost, and the run may still be useful.
+case ":$PATH:" in
+    *:[A-Za-z]:[\\/]*)
+        echo "warning: \$PATH holds a Windows-style entry (X:\\...); autotest splits" >&2
+        echo "         PATH on ':' and will not see programs there. Use /c/... form." >&2 ;;
+esac
+# Work dir. Kept under the port root (gitignored) so the tree stays self
+# contained and the artifacts of a failed run are easy to find. Override WORK=
+# to put it elsewhere; any path MSYS2 and Windows both resolve will do.
 WORK="${WORK:-$(cd "$(dirname "$0")/../.." && pwd)/.autotest-work}"
 # abs_top_srcdir points at the pristine bison baseline (some tests read fixture
 # grammars from it). Default to the superproject's upstream/bison next to the
@@ -36,9 +50,24 @@ WORK="${WORK:-$(cd "$(dirname "$0")/../.." && pwd)/.autotest-work}"
 ORIG_BISON="${ORIG_BISON:-$(cd "$PORT_ROOT/../upstream/bison" 2>/dev/null && pwd)}"
 [ -n "$ORIG_BISON" ] || echo "warning: bison baseline not found at $PORT_ROOT/../upstream/bison; set ORIG_BISON to override" >&2
 
+# MSYS2 keeps the compilers in a subsystem prefix that only the MINGW64 login
+# shell puts on PATH; pick them up when invoked from a plain msys shell so the
+# compile tiers do not silently disappear.
+if ! command -v gcc >/dev/null 2>&1 && [ -x /mingw64/bin/gcc.exe ]; then
+    PATH="/mingw64/bin:$PATH"; export PATH
+fi
+
+# autom4te's version is part of the test *inputs*: it expands the .at sources,
+# so 2.69 and 2.71 emit different testsuites with different group numbering,
+# and an xfail list calibrated against one does not describe the other. Prefer
+# the versioned binary when the distro ships one (MSYS2's autoconf2.71,
+# Debian's autoconf2.69) so the pin is explicit rather than whatever won PATH.
+AUTOM4TE="${AUTOM4TE:-$(command -v autom4te-2.71 2>/dev/null || command -v autom4te 2>/dev/null || true)}"
+
 [ -x "$BISON" ] || { echo "win_bison not found/executable: $BISON" >&2; exit 1; }
-for t in autom4te m4 perl diff sed; do
-    command -v "$t" >/dev/null || { echo "missing tool: $t (apt install autoconf m4)" >&2; exit 1; }
+[ -n "$AUTOM4TE" ] || { echo "missing tool: autom4te (pacman -S autoconf2.71)" >&2; exit 1; }
+for t in m4 perl diff sed; do
+    command -v "$t" >/dev/null || { echo "missing tool: $t (pacman -S $t)" >&2; exit 1; }
 done
 
 echo "win_bison : $BISON"
@@ -49,9 +78,9 @@ echo "work dir  : $WORK"
 # the script being run; and win_bison's quotearg picks quote styles from the
 # locale forwarded below. A CI-vs-local mismatch in either shifts large numbers
 # of diagnostic comparisons at once, which looks like a mass failure.
-echo "autoconf  : $(autoconf --version 2>/dev/null | head -1)"
+echo "autom4te  : $AUTOM4TE ($("$AUTOM4TE" --version 2>/dev/null | head -1))"
 echo "m4        : $(m4 --version 2>/dev/null | head -1)"
-echo "kernel    : $(uname -r 2>/dev/null)  (4.4.0-*-Microsoft = WSL1)"
+echo "host      : $(uname -s) $(uname -r 2>/dev/null)"
 echo "locale    : LANG=${LANG:-unset} LC_ALL=${LC_ALL:-unset} LC_CTYPE=${LC_CTYPE:-unset}"
 
 rm -rf "$WORK"; mkdir -p "$WORK/bin"
@@ -59,7 +88,7 @@ cp "$AT"/*.at "$AT/testsuite.h" "$AT/package.m4" "$WORK/"
 
 cd "$WORK"
 echo "generating testsuite (autom4te)..."
-autom4te --language=autotest -I . testsuite.at -o testsuite || {
+"$AUTOM4TE" --language=autotest -I . testsuite.at -o testsuite || {
     echo "autom4te failed" >&2; exit 1; }
 # The bison tests use the token @tb@ to mean a literal TAB (e.g. in %parse-param
 # and api.namespace values). It is not a standard autotest quadrigraph, so our
@@ -70,65 +99,53 @@ sed -i 's/@tb@/\t/g' testsuite
 # Normalizing bison wrapper: rewrite the program name (win_bison[.exe] -> bison,
 # GNU tools would strip .exe) and strip CR from win_bison's streams so the
 # harness compares against upstream-style output.
+#
+# That is the whole job: MSYS2 runs win_bison.exe as an ordinary child, so the
+# two variables below are simply inherited, as are the ones the tests set
+# themselves (COLUMNS for caret width, YYFLAT, POSIXLY_CORRECT, TIME_LIMIT,
+# BISON_USE_PUSH_FOR_PULL, and the locale -- diagnostics.at runs its multibyte
+# cases as `LC_ALL="$locale" bison ...`). The wrapper is a plain exec: no temp
+# files, no piping, no races.
 cat > bin/bison <<WRAP
 #!/usr/bin/env bash
-# Make win_bison behave like a native 'bison' with NO post-processing, so the
-# wrapper is a plain exec (no temp files, no piping, no races):
 #   BISON_PROGRAM_NAME=bison     -> diagnostics say "bison:", not "win_bison.exe:"
 #   WINFLEXBISON_BINARY_OUTPUT=Y -> LF stdout/stderr instead of MSVC CRLF
 #     (generated files are already LF via the xfopen binary-mode port fix)
 export BISON_PROGRAM_NAME=bison
 export WINFLEXBISON_BINARY_OUTPUT=Y
-# WSL only forwards env vars to Windows processes listed in WSLENV. Forward the
-# two above plus the vars the suite sets that win_bison reads (COLUMNS for caret
-# width, YYFLAT for flat counterexamples, POSIXLY_CORRECT, TIME_LIMIT,
-# BISON_USE_PUSH_FOR_PULL, and the locale).
-#
-# LC_ALL and LANG matter as much as LC_CTYPE: diagnostics.at runs its multibyte
-# cases as \`LC_ALL="\$locale" bison ...\`, and without LC_ALL here win_bison never
-# saw it, silently fell back to the system code page, and measured caret columns
-# in bytes -- which looked like a win_bison bug rather than a missing forward.
-_fwd="BISON_PROGRAM_NAME:WINFLEXBISON_BINARY_OUTPUT:COLUMNS:YYFLAT:POSIXLY_CORRECT:TIME_LIMIT:BISON_USE_PUSH_FOR_PULL:LC_ALL:LC_CTYPE:LANG"
-export WSLENV="\${_fwd}\${WSLENV:+:\$WSLENV}"
-# WSL drops the WSLInterop binfmt_misc entry under sustained load. Once gone,
-# every Windows exec fails with "cannot execute binary file: Exec format error"
-# and the remainder of the suite fails wholesale -- 439 groups locally, ~700 on
-# AppVeyor, with an arbitrary onset (group 346 vs group 4). It is session-scoped
-# and re-registering restores it immediately, so heal it in place rather than
-# losing the run. The test is a stat on the common path; the write only happens
-# when the entry is actually missing.
-if [ ! -e /proc/sys/fs/binfmt_misc/WSLInterop ]; then
-    if [ "\$(id -u)" = 0 ]; then
-        echo ':WSLInterop:M::MZ::/init:PF' > /proc/sys/fs/binfmt_misc/register 2>/dev/null
-    else
-        sudo -n sh -c "echo ':WSLInterop:M::MZ::/init:PF' > /proc/sys/fs/binfmt_misc/register" 2>/dev/null
-    fi
-fi
 exec "$BISON" "\$@"
 WRAP
 chmod +x bin/bison
 
 # Detect optional compilers to enable the compile tiers. These compile the
 # parsers win_bison generates and run them (validating the generator output).
-# Absent -> the C/C++ tiers auto-skip. Compiled programs are native Linux (no
-# .exe) when a compiler is present.
+# Absent -> the C/C++ tiers auto-skip.
 CC_BIN=$(command -v gcc 2>/dev/null || command -v cc 2>/dev/null || true)
 CXX_BIN=$(command -v g++ 2>/dev/null || command -v c++ 2>/dev/null || true)
-if [ -n "$CC_BIN" ]; then EXEEXT=''; else EXEEXT='.exe'; fi
+# mingw links to name.exe, and win_bison is a .exe regardless, so this is always
+# the right suffix here.
+EXEEXT='.exe'
 echo "C compiler  : ${CC_BIN:-<none, C tier skipped>}"
 echo "C++ compiler: ${CXX_BIN:-<none, C++ tier skipped>}"
 
 # Probe which -std= flags the compiler actually accepts, rather than asserting
 # them. Upstream's configure does this; hardcoding -std=c++20/-std=c++2b made
-# g++ 9.4 (Ubuntu 20.04, which is what AppVeyor's WSL ships) fail ~90 groups
-# with "unrecognized command line option '-std=c++20'" -- it spells them
-# -std=c++2a/-std=c++2b. local.at expands these as ${CXX20_CXXFLAGS:+...}, so
-# an empty value simply drops that standard from the loop instead of failing.
+# older g++ fail ~90 groups with "unrecognized command line option" -- it spells
+# them -std=c++2a/-std=c++2b. local.at expands these as ${CXX20_CXXFLAGS:+...},
+# so an empty value simply drops that standard from the loop instead of failing.
+#
+# The probe links to a temp file, NOT to /dev/null: mingw's linker cannot write
+# there, so a /dev/null probe reports EVERY standard as unsupported. That is
+# silent -- local.at just drops the flags -- and it cost 59 glr2.cc groups,
+# which are gated on C++11 being available, to a wholesale skip that looked like
+# normal "no compiler" behaviour. Same /dev/null-is-not-a-file assumption that
+# xfopen had to be taught about.
+_probe_dir="$WORK/.cxx-probe"; mkdir -p "$_probe_dir"
 cxx_std_flag () {   # $@ = candidate flags, echoes the first the compiler takes
     [ -n "$CXX_BIN" ] || return 0
     for _f in "$@"; do
         if printf 'int main(){}\n' \
-             | "$CXX_BIN" "$_f" -x c++ - -o /dev/null >/dev/null 2>&1; then
+             | "$CXX_BIN" "$_f" -x c++ - -o "$_probe_dir/probe.exe" >/dev/null 2>&1; then
             printf '%s' "$_f"; return 0
         fi
     done
@@ -163,13 +180,31 @@ AWK='awk'
 PERL='perl'
 CFG
 
+# mingw has no alarm(2). calc.at's driver arms a 200-second watchdog around the
+# parse -- a hang guard sized for a 1995 DEC Alphastation, per its own comment --
+# and nothing else in the suite uses it. Without a definition the entire calc.at
+# compile tier (100 groups, 470-569) fails to *compile*, which tests nothing
+# about bison. Supply a no-op through -include rather than patching the vendored
+# .at sources, which stay byte-faithful to upstream.
+COMPAT=''
+if [ -n "$CC_BIN" ]; then
+    cat > wfb-native-compat.h <<'H'
+#ifndef WFB_NATIVE_COMPAT_H
+#define WFB_NATIVE_COMPAT_H
+/* mingw provides no alarm(2); calc.at uses it only as a watchdog. */
+static unsigned int alarm (unsigned int seconds) { (void) seconds; return 0; }
+#endif
+H
+    COMPAT=" -include $WORK/wfb-native-compat.h"
+fi
+
 # atlocal: enable the C/C++ tiers when compilers are present. -w silences
 # warnings in generated parsers (some checks compile with -Werror otherwise).
 c_works=false;   [ -n "$CC_BIN" ]  && c_works=true
 cxx_works=false; [ -n "$CXX_BIN" ] && cxx_works=true
 cat > atlocal <<LOC
 : \${CC='$CC_BIN'} \${CXX='$CXX_BIN'} \${DC=''} \${CONF_JAVAC=''} \${CONF_JAVA=''}
-: \${CPPFLAGS='-I$WORK'} \${CFLAGS='-w'} \${CXXFLAGS='-w'}
+: \${CPPFLAGS='-I$WORK$COMPAT'} \${CFLAGS='-w'} \${CXXFLAGS='-w'}
 : \${NO_WERROR_CFLAGS='-w'} \${NO_WERROR_CXXFLAGS='-w'}
 : \${CXX98_CXXFLAGS='$CXX98_F'} \${CXX03_CXXFLAGS='$CXX03_F'}
 : \${CXX11_CXXFLAGS='$CXX11_F'} \${CXX14_CXXFLAGS='$CXX14_F'}
@@ -220,7 +255,24 @@ LOC
 # useful when recalibrating for a different distro/autoconf, and it lets the
 # failure-dump path below be exercised (BISON_XFAIL= makes a known xfail
 # report as unexpected).
-BISON_XFAIL="${BISON_XFAIL-129 165 166 283 284 285 286 287 4 78 159 160}"
+#
+# Groups 129 and 283-287 (filenames with NTFS-illegal characters) are NOT here:
+# the create fails up front and autotest skips them, which is the honest
+# outcome. They were xfails under the previous WSL runner, where the Linux side
+# could create a file Windows then could not open.
+#
+# 124 fails here and failed under WSL too, with no identified cause (see
+# README). It was briefly delisted on the strength of a partial run that showed
+# it passing; full runs contradict that.
+#
+# 764 (glr-regression.at, glr2.cc) trips a libstdc++ assertion inside the
+# GENERATED parser: vector<bool>::operator[] with __n >= size(). That is a real
+# out-of-bounds access in upstream bison 3.8.2's glr2.cc skeleton, not a port
+# regression -- it happens under WSL too, silently, because Ubuntu's g++ builds
+# without _GLIBCXX_ASSERTIONS while MSYS2's enables them by default. Do NOT
+# "fix" this by disabling assertions: catching it is free coverage we did not
+# have before. Worth reporting upstream.
+BISON_XFAIL="${BISON_XFAIL-4 78 124 149 150 152 154 159 160 165 166 764}"
 
 echo "running testsuite $*..."
 ./testsuite "$@" 2>&1 | tee testsuite.out

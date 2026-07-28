@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
-# generate.sh — regenerate bison golden outputs (run under WSL/Linux).
+# generate.sh — regenerate bison golden outputs (run under MSYS2, or any Linux).
 #
 # For every grammar in golden-cases/, runs the REFERENCE bison (must be 3.8.2,
 # matching the vendored version) by bare filename and captures stdout, stderr
 # and exit code into golden/. win_bison is then held to these on Windows by
 # tests/bison/run_bison_test.cmake. Re-run this after a bison upgrade.
 #
-#   Usage (from WSL):  tests/bison/generate.sh
-#   Override bison:    BISON=/path/to/bison tests/bison/generate.sh
+# MSYS2's 'bison' package is 3.8.2, i.e. exactly the vendored version:
+#   pacman -S bison   (or tests/bison-autotest/install-msys2-deps.sh)
+#
+#   Usage (from MSYS2): tests/bison/generate.sh
+#   Override bison:     BISON=/path/to/bison tests/bison/generate.sh
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
