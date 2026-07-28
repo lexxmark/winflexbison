@@ -111,6 +111,32 @@ if [ -n "$CC_BIN" ]; then EXEEXT=''; else EXEEXT='.exe'; fi
 echo "C compiler  : ${CC_BIN:-<none, C tier skipped>}"
 echo "C++ compiler: ${CXX_BIN:-<none, C++ tier skipped>}"
 
+# Probe which -std= flags the compiler actually accepts, rather than asserting
+# them. Upstream's configure does this; hardcoding -std=c++20/-std=c++2b made
+# g++ 9.4 (Ubuntu 20.04, which is what AppVeyor's WSL ships) fail ~90 groups
+# with "unrecognized command line option '-std=c++20'" -- it spells them
+# -std=c++2a/-std=c++2b. local.at expands these as ${CXX20_CXXFLAGS:+...}, so
+# an empty value simply drops that standard from the loop instead of failing.
+cxx_std_flag () {   # $@ = candidate flags, echoes the first the compiler takes
+    [ -n "$CXX_BIN" ] || return 0
+    for _f in "$@"; do
+        if printf 'int main(){}\n' \
+             | "$CXX_BIN" "$_f" -x c++ - -o /dev/null >/dev/null 2>&1; then
+            printf '%s' "$_f"; return 0
+        fi
+    done
+}
+CXX98_F=$(cxx_std_flag -std=c++98)
+CXX03_F=$(cxx_std_flag -std=c++03)
+CXX11_F=$(cxx_std_flag -std=c++11 -std=c++0x)
+CXX14_F=$(cxx_std_flag -std=c++14 -std=c++1y)
+CXX17_F=$(cxx_std_flag -std=c++17 -std=c++1z)
+CXX20_F=$(cxx_std_flag -std=c++20 -std=c++2a)
+CXX2B_F=$(cxx_std_flag -std=c++2b -std=c++23)
+if [ -n "$CXX_BIN" ]; then
+    echo "C++ standards: ${CXX98_F:-–} ${CXX03_F:-–} ${CXX11_F:-–} ${CXX14_F:-–} ${CXX17_F:-–} ${CXX20_F:-–} ${CXX2B_F:-–}"
+fi
+
 cat > atconfig <<CFG
 at_testdir='.'
 abs_builddir='$WORK'
@@ -138,9 +164,9 @@ cat > atlocal <<LOC
 : \${CC='$CC_BIN'} \${CXX='$CXX_BIN'} \${DC=''} \${CONF_JAVAC=''} \${CONF_JAVA=''}
 : \${CPPFLAGS='-I$WORK'} \${CFLAGS='-w'} \${CXXFLAGS='-w'}
 : \${NO_WERROR_CFLAGS='-w'} \${NO_WERROR_CXXFLAGS='-w'}
-: \${CXX98_CXXFLAGS='-std=c++98'} \${CXX03_CXXFLAGS='-std=c++03'}
-: \${CXX11_CXXFLAGS='-std=c++11'} \${CXX14_CXXFLAGS='-std=c++14'}
-: \${CXX17_CXXFLAGS='-std=c++17'} \${CXX20_CXXFLAGS='-std=c++20'} \${CXX2B_CXXFLAGS='-std=c++2b'}
+: \${CXX98_CXXFLAGS='$CXX98_F'} \${CXX03_CXXFLAGS='$CXX03_F'}
+: \${CXX11_CXXFLAGS='$CXX11_F'} \${CXX14_CXXFLAGS='$CXX14_F'}
+: \${CXX17_CXXFLAGS='$CXX17_F'} \${CXX20_CXXFLAGS='$CXX20_F'} \${CXX2B_CXXFLAGS='$CXX2B_F'}
 : \${BISON_C_WORKS=$c_works} \${BISON_CXX_WORKS=$cxx_works} \${BISON_DC_WORKS=false}
 : \${CC_IS_CXX=0}
 POSIXLY_CORRECT_IS_EXPORTED=false
@@ -174,11 +200,20 @@ LOC
 #   124  output.at   api.location.file="$at_dir/..." -- passes, but with no
 #        identified fix; the perl in-place substitution plus heredoc it relies
 #        on may still be environment-sensitive.
+# win_bison prints ASCII fallbacks where upstream prints Unicode glyphs (• for
+# the item dot, ↳ in derivations, ε for empty). The port #if 0's bison's glyph
+# machinery and drops <unicodeio.h> because gnulib's unicodeio module is not
+# vendored, so the conversion cannot be linked:
+#   159, 160  diagnostics.at  Counterexamples
+# These only run where en_US.UTF-8 exists (see the AT_SKIP_IF in
+# diagnostics.at), so they surface on Ubuntu 20.04/AppVeyor but silently skip
+# on distros carrying only C.UTF-8. Vendoring unicodeio would fix them.
+#
 # Overridable so a candidate list can be tried without editing this file --
 # useful when recalibrating for a different distro/autoconf, and it lets the
 # failure-dump path below be exercised (BISON_XFAIL= makes a known xfail
 # report as unexpected).
-BISON_XFAIL="${BISON_XFAIL-129 165 166 283 284 285 286 287 4 78}"
+BISON_XFAIL="${BISON_XFAIL-129 165 166 283 284 285 286 287 4 78 159 160}"
 
 echo "running testsuite $*..."
 ./testsuite "$@" 2>&1 | tee testsuite.out

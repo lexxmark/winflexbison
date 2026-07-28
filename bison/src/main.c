@@ -103,24 +103,21 @@ main (int argc, char *argv[])
       }
   }
 
-  /* Windows port: setlocale (LC_ALL, "") above follows the system ANSI code
-     page and, unlike POSIX, ignores LC_ALL/LC_CTYPE/LANG entirely.  That
-     leaves MB_CUR_MAX == 1, so mbsnwidth () never decodes multibyte input and
-     measures caret diagnostics in BYTES: "d: {éééééééééééé}" reports columns
-     4-29 (24 bytes) where upstream reports 4-17 (12 characters).  Honour a
-     UTF-8 request from the environment explicitly; the UCRT accepts the
-     ".UTF-8" code page suffix (Windows 10 1803+).  Only LC_CTYPE is set, so
-     the quoting style selected from LC_CTYPE above, and message translation,
-     are unaffected -- and a non-UTF-8 locale keeps byte semantics, as on
-     POSIX.  */
-  {
-      char const* lc = getenv ("LC_ALL");
-      if (!lc || !*lc) lc = getenv ("LC_CTYPE");
-      if (!lc || !*lc) lc = getenv ("LANG");
-      if (lc && (strstr (lc, "UTF-8") || strstr (lc, "utf8")
-                 || strstr (lc, "UTF8") || strstr (lc, "utf-8")))
-        setlocale (LC_CTYPE, ".UTF-8");
-  }
+  /* Windows port, KNOWN GAP: setlocale (LC_ALL, "") above follows the system
+     ANSI code page and, unlike POSIX, ignores LC_ALL/LC_CTYPE/LANG. MB_CUR_MAX
+     therefore stays 1, mbsnwidth () never decodes multibyte input, and caret
+     diagnostics are measured in BYTES -- "d: {éééééééééééé}" reports columns
+     4-29 (24 bytes) where upstream reports 4-17 (12 characters).  This is what
+     diagnostics.at's multibyte groups (149, 150, 152) fail on; they only run
+     where en_US.UTF-8 exists, so they skip on distros carrying only C.UTF-8.
+
+     Forcing setlocale (LC_CTYPE, ".UTF-8") from the environment does fix the
+     columns, but it also flips quotearg's locale_quoting_style: gettext_quote ()
+     returns U+2018/U+2019 once locale_charset () reports UTF-8, so error
+     messages print ‘x’ where the suite expects 'x', breaking six groups (148,
+     153, 155-158) that pass today.  Net worse, so it is not applied.  Resolve
+     the quoting side first -- upstream runs those groups under a UTF-8 locale
+     and still expects ASCII quotes, which is not yet understood.  */
 
   atexit (close_stdout);
 
