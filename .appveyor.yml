@@ -10,6 +10,9 @@ platform:
 
 environment:
   CMAKE_OPTIONS: "-A \"%platform%\" -DCMAKE_BUILD_TYPE=\"%configuration%\" -DUSE_STATIC_RUNTIME=ON"
+  # Selects the MSYS2 subsystem whose bin directory a login shell puts on PATH;
+  # MINGW64 is the one carrying the native x86_64 gcc the autotest compiles with.
+  MSYSTEM: MINGW64
   # VS VERSION IN CMAKE STYLE
   matrix:
     - VSVERSION: "17 2022"
@@ -28,23 +31,29 @@ init:
   - cmake --version
   - msbuild /version
 
-# Setup for the WSL bison autotest -- only in the cell that runs it. The image
-# ships WSL1 / Ubuntu 20.04 with perl, diff and sed but WITHOUT autom4te, m4 or
-# a compiler, and with working passwordless sudo (measured by ci-probe.sh).
+# Setup for the bison autotest -- only in the cell that runs it. The harness now
+# runs on MSYS2 (C:\msys64, pre-installed on this image) instead of WSL: MSYS2
+# executes win_bison.exe as an ordinary child process, so there is no WSLENV
+# forwarding, no interop binfmt entry to repair, and no rootfs-visibility
+# constraint on the work dir. It also supplies autom4te and a compiler from the
+# same package manager, which WSL1/Ubuntu 20.04 could not do consistently.
 #
-# build-essential is NOT optional: run.sh's xfail list was calibrated with
+# autoconf2.71 is pinned deliberately, not incidentally: autom4te expands the
+# .at sources, so 2.69 and 2.71 produce different testsuites with different
+# group numbering, and an xfail list calibrated on one does not describe the
+# other. Pinning it here matches the local dev setup.
+#
+# mingw-w64-x86_64-gcc is NOT optional: run.sh's xfail list was calibrated with
 # gcc/g++ present. Without them the compile tiers auto-skip, a different set of
 # groups runs, and the list stops describing reality.
 #
 # The baseline clone is required too: two groups read fixtures from it
 # (regression.at wants src/parse-gram.y, torture.at wants tests/linear), and
 # run.sh looks for it at PORT_ROOT/../upstream/bison -- which exists in the
-# superproject but not in a bare AppVeyor checkout of this repo. Cloning it to
-# that exact path avoids plumbing ORIG_BISON through WSLENV. Shallow is enough:
-# only the tree at v3.8.2 is read, never its history.
+# superproject but not in a bare AppVeyor checkout of this repo. Shallow is
+# enough: only the tree at v3.8.2 is read, never its history.
 install:
-  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" wsl -e sudo -n apt-get update -qq
-  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" wsl -e sudo -n apt-get install -y -qq autoconf m4 build-essential
+  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" C:\msys64\usr\bin\bash -lc "pacman -Sy --noconfirm --needed autoconf2.71 m4 perl diffutils sed grep gawk mingw-w64-x86_64-gcc"
   - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" git clone --quiet --depth 1 --branch v3.8.2 https://github.com/akimd/bison.git "%APPVEYOR_BUILD_FOLDER%\..\upstream\bison"
 
 before_build:
@@ -62,22 +71,24 @@ build_script:
 # time -- ~19s -- and is the difference between building the tests and actually
 # testing the toolchain/platform/configuration that cell represents.
 #
-# The bison GNU Autotest (696 groups) runs in ONE cell: it drives win_bison.exe
+# The bison GNU Autotest (776 groups) runs in ONE cell: it drives win_bison.exe
 # through a POSIX harness, so it exercises bison's behaviour rather than the
-# MSVC toolchain, and running it 8x would buy nothing for 8x the time. The `cd`
-# is required -- wsl inherits the working directory, and before_build left us in
-# build/. run.sh exits non-zero only on UNEXPECTED failures (its BISON_XFAIL
-# list absorbs the known environment-limited ones), so this gates the build.
+# MSVC toolchain, and running it 8x would buy nothing for 8x the time.
+#
+# run.sh is invoked by absolute path rather than after a `cd`: a login shell
+# (-l, needed so MSYSTEM=MINGW64 puts the compilers on PATH) starts in the MSYS2
+# home directory and discards whatever directory cmd was in. run.sh derives
+# everything else from its own location. run.sh exits non-zero only on
+# UNEXPECTED failures -- its BISON_XFAIL list absorbs the known
+# environment-limited ones.
 test_script:
   - ctest --test-dir "%APPVEYOR_BUILD_FOLDER%\build" -C %configuration% --output-on-failure --no-tests=error
-  # NON-GATING for now (`ver > nul` resets ERRORLEVEL): the xfail list was
-  # calibrated on WSL2/Ubuntu 24.04 with autoconf 2.71, while this image is
-  # WSL1/Ubuntu 20.04 with autoconf 2.69 -- and autom4te's version changes the
-  # generated testsuite itself. Until that is reconciled, a red autotest would
-  # hide the seven other jobs' signal. run.sh now prints its toolchain versions
-  # and dumps the first failing groups' diffs, so the log is diagnosable.
-  # Drop the `& ver > nul` to make it gate again.
-  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" (cd /d "%APPVEYOR_BUILD_FOLDER%" && wsl -e bash ./tests/bison-autotest/run.sh & ver > nul)
+  # NON-GATING for this first MSYS2 run (`ver > nul` resets ERRORLEVEL). The
+  # reason it was non-gating before -- autoconf 2.69 on the image vs 2.71
+  # locally, generating different testsuites -- is gone now that install:
+  # pins autoconf2.71 on both sides. Drop the `& ver > nul` to make it gate
+  # again once one green run has confirmed that.
+  - if "%VSVERSION%_%platform%_%configuration%"=="17 2022_x64_Release" (C:\msys64\usr\bin\bash -lc "$(cygpath -u '%APPVEYOR_BUILD_FOLDER%')/tests/bison-autotest/run.sh" & ver > nul)
 
 # Packaging runs after the tests so a failing test aborts the build before a
 # zip exists. AppVeyor collects artifacts after after_test, so this still ships.
