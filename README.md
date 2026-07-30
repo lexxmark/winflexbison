@@ -33,6 +33,36 @@ The release page includes the full Changelog but you may also see the [changelog
 * CMake
 
 
+## Testing
+
+The build badges above cover the 8 build jobs: VS2022 and VS2019, each x64 and
+Win32, Release and Debug. Every one of them runs the Windows CTest gate — the
+adapted flex suite, the bison compile-run and golden-diff tests, and our own
+port-specific tests. `runtests.bat` runs the same gate locally and needs nothing
+beyond Visual Studio and CMake.
+
+On top of that, a **separate, non-gating CI job** runs the full **GNU Bison
+Autotest suite — all 776 groups** — against `win_bison.exe` through an MSYS2
+shell. Latest status:
+
+| | |
+|---|---|
+| groups | 776 |
+| passing | 694 |
+| expected failures (xfail) | 12, each with a documented cause |
+| skipped | 61 (Java/D tiers, and cases needing filenames NTFS forbids) |
+| unexpected failures | none |
+
+It is deliberately non-gating: it reports on upstream bison behaviour, and its
+xfail set can shift with the worker's locale and toolchain, so it is a signal to
+read rather than a gate to trip. The job appears in the
+[AppVeyor build](https://ci.appveyor.com/project/lexxmark/winflexbison-2rnxh) as
+the `WFB_JOB=autotest` cell — AppVeyor badges are per project rather than per
+job, so it has no badge of its own. See
+[`tests/bison-autotest/README.md`](tests/bison-autotest/README.md) for how to run
+it and what each xfail means.
+
+
 ## HowTo
 
 You may use win_flex and win_bison directly on the command line or [use them via CustomBuildRules in VisualStudio](custom_build_rules/README.md).
