@@ -39,6 +39,35 @@ else()
 endif()
 
 # ---------------------------------------------------------------------------
+# Issue #97: WinGet symlinks the executables into its Links folder, away from
+# the installed payload. win_bison must follow the link to find data/ (its
+# skeletons); win_flex has no runtime data -- its skeleton is compiled in --
+# so it is here only to keep that true.
+#
+# Symlink creation is privileged on Windows unless Developer Mode is on, so
+# these skip on a machine without it. A skip proves nothing: enable Developer
+# Mode before treating either as verified.
+foreach(tool bison flex)
+    if(tool STREQUAL "bison")
+        set(_exe win_bison)
+        set(_fixture "${CMAKE_CURRENT_SOURCE_DIR}/../bison/cases/calc.y")
+    else()
+        set(_exe win_flex)
+        set(_fixture "${CMAKE_CURRENT_SOURCE_DIR}/../flex/cases/basic_nr.l")
+    endif()
+
+    add_test(NAME winflexbison.${tool}_via_symlink
+        COMMAND ${CMAKE_COMMAND}
+            -DTEST_EXE=$<TARGET_FILE:${_exe}>
+            "-DSCRATCH=${CMAKE_CURRENT_BINARY_DIR}/symlink_${tool}"
+            "-DFIXTURE=${_fixture}"
+            -DMODE=${tool}
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/run_symlink_test.cmake")
+    set_tests_properties(winflexbison.${tool}_via_symlink PROPERTIES
+        SKIP_REGULAR_EXPRESSION "SKIP:" LABELS "winflexbison")
+endforeach()
+
+# ---------------------------------------------------------------------------
 # Issue #39: a CMake build with USE_STATIC_RUNTIME=ON must not pull in the
 # dynamic-CRT DLL (vcruntime140.dll) the way a plain /MD build does. Only
 # meaningful (and only registered) when that option is actually on, mirroring

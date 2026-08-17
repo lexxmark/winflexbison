@@ -22,6 +22,7 @@
 #include "system.h"
 
 //#include <configmake.h> /* PKGDATADIR */
+#include <app_path.h>
 #include <dirname.h>
 #include <error.h>
 #include <get-errno.h>
@@ -29,6 +30,7 @@
 #include <gl_hash_map.h>
 #include <gl_xlist.h>
 #include <gl_xmap.h>
+#include <path-join.h>
 #include <quote.h>
 #include <quotearg.h>
 #include <relocatable.h> /* relocate2 */
@@ -571,38 +573,71 @@ unlink_generated_sources (void)
 /* Memory allocated by relocate2, to free.  */
 static char *relocate_buffer = NULL;
 
-extern const char* get_app_path();
+/* "<directory of EXE_PATH>" PKGDATADIR, freshly allocated, or NULL if
+   EXE_PATH is unusable (unknown, or with no directory part at all).  */
 
-char* get_local_pkgdatadir()
+static char *
+datadir_from (const char *exe_path)
 {
-	const char* program_path = 0;
-	const char* dir = 0;
-	const char* last_divider = 0;
-	char* local_pkgdatadir = NULL;
-	size_t dir_len = 0;
-	size_t local_pkgdatadir_len = 0;
+  if (!exe_path)
+    return NULL;
 
-	program_path = dir = get_app_path();
+  const char *last_divider = NULL;
+  for (const char *p = exe_path; *p; ++p)
+    if (*p == '\\' || *p == '/')
+      last_divider = p;
 
-	while (*dir)
-	{
-		if (*dir == '\\' || *dir == '/')
-			last_divider = dir;
-		++dir;
-	}
+  if (!last_divider)
+    return NULL;
 
-	if (!last_divider)
-		return PKGDATADIR;
+  size_t dir_len = last_divider + 1 - exe_path;
+  char *res = xmalloc (dir_len + strlen (PKGDATADIR) + 1);
+  memcpy (res, exe_path, dir_len);
+  strcpy (res + dir_len, PKGDATADIR);
+  return res;
+}
 
-	++last_divider;
+/* Whether DIR really is a Bison data directory.  Probe a file rather
+   than the directory itself: WinGet's Links folder, one of the places
+   we look, is shared by every portable package it installs.  */
 
-	dir_len = last_divider - program_path;
-	local_pkgdatadir_len = dir_len + strlen(PKGDATADIR);
-	local_pkgdatadir = (char*)malloc((local_pkgdatadir_len + 1) * sizeof(char));
-	strncpy(local_pkgdatadir, program_path, dir_len);
-	strcpy(&local_pkgdatadir[dir_len], PKGDATADIR);
+static bool
+datadir_ok (const char *dir)
+{
+  if (!dir)
+    return false;
 
-	return local_pkgdatadir;
+  char *probe = xpath_join (dir, "m4sugar/m4sugar.m4");
+  struct stat buf;
+  bool res = stat (probe, &buf) == 0;
+  free (probe);
+  return res;
+}
+
+static char *
+get_local_pkgdatadir (void)
+{
+  /* Where we were launched from.  First, because that is what a normal
+     install uses, and because it lets a data/ sitting next to a symlink
+     win over the link's target.  */
+  char *launched = datadir_from (get_app_path ());
+  if (datadir_ok (launched))
+    return launched;
+
+  /* Nothing there: we may have been started through a symlink, which is
+     how WinGet installs us -- the payload, data/ included, lives next to
+     the real image.  */
+  char *resolved = datadir_from (get_app_final_path ());
+  if (datadir_ok (resolved))
+    {
+      free (launched);
+      return resolved;
+    }
+  free (resolved);
+
+  /* Neither candidate holds the data.  Fall back to the launched
+     location so the ensuing diagnostic names the expected path.  */
+  return launched ? launched : xstrdup (PKGDATADIR);
 }
 
 char const *

@@ -4,6 +4,10 @@
   * 2.4.x versions include bison version 2.7
   * 2.5.x versions include bison version 3.x
   
+### unreleased
+  * fixed win_bison not finding its data directory when started through a
+    symbolic link, e.g. the links winget creates in its Links folder (#97)
+
 ### version 2.5.25
   * upgrade win_bison to version 3.8.2
   * upgrade m4 to version 1.4.19
