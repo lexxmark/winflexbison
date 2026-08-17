@@ -7,6 +7,25 @@
 ### unreleased
   * fixed win_bison not finding its data directory when started through a
     symbolic link, e.g. the links winget creates in its Links folder (#97)
+  * win_bison now writes LF in generated files (parsers, headers, .output
+    reports, .dot graphs), matching upstream, instead of CRLF
+  * fixed garbled or blank source lines in win_bison caret diagnostics
+  * fixed stray "_m4eof" delimiter lines leaking into generated code and into
+    skeleton-emitted diagnostics
+  * fixed "bison: /dev/null: cannot open" appended to stderr by every run that
+    issued a diagnostic
+  * fixed win_bison --update/--fixit failing with "cannot backup: Permission
+    denied" when the rewritten grammar also produced a caret diagnostic
+  * win_flex/win_bison temp files are now delete-on-close, so they no longer
+    leak when the tool crashes or is killed
+  * fixed Debug builds with USE_STATIC_RUNTIME=ON failing to link, and C++
+    sources being built against the wrong CRT
+  * build with /utf-8 so UTF-8 literals survive the MSVC execution charset
+  * added a CTest suite -- the flex 2.6.4 suite, bison compile-run and
+    golden-diagnostic tests, and port-specific tests -- plus runtests.bat;
+    run as a gate on AppVeyor
+  * added the full bison GNU Autotest (776 groups) as an opt-in harness run
+    under MSYS2
 
 ### version 2.5.25
   * upgrade win_bison to version 3.8.2
