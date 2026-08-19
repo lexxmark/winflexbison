@@ -18,6 +18,10 @@
     denied" when the rewritten grammar also produced a caret diagnostic
   * win_flex/win_bison temp files are now delete-on-close, so they no longer
     leak when the tool crashes or is killed
+  * fixed random failures when several win_flex/win_bison run concurrently, as
+    ninja/meson builds do: they picked the same %TEMP% file names and truncated
+    each other's files, so a run could die with "ERROR: end of file in string",
+    a crash, or silently wrong output (#86, #100; fix by @jonnysoe in #91)
   * fixed Debug builds with USE_STATIC_RUNTIME=ON failing to link, and C++
     sources being built against the wrong CRT
   * build with /utf-8 so UTF-8 literals survive the MSVC execution charset

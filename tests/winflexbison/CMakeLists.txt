@@ -7,6 +7,11 @@ find_program(POWERSHELL_EXE NAMES pwsh powershell)
 if(POWERSHELL_EXE)
     set(RUN_PARALLEL "${CMAKE_CURRENT_SOURCE_DIR}/run_parallel.ps1")
 
+    # Issues #86 / #100: concurrent invocations (ninja/meson) used to collide
+    # on %TEMP% names -- _tempnam() hands every process the same candidate name
+    # (~m4_in_2, ~0_flex_2, ...), so one run truncated another's file and it
+    # died with "ERROR: end of file in string", crashed, or wrote wrong output.
+    #
     # Resistance: sustained concurrent invocations must not collide on %TEMP%
     # files (per-process unique temp names + delete-on-close). The launcher
     # self-verifies correctness, real overlap, and temp cleanup. --header-file
