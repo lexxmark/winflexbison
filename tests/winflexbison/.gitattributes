@@ -1,0 +1,7 @@
+# cases/crlf_input.y is a fixture whose whole purpose is its CRLF line endings:
+# winflexbison.bison_output_is_lf feeds it to win_bison to prove that CRs from a
+# Windows-authored grammar do not reach the generated parser. The repo root sets
+# "* text=auto", which would normalize it on checkout and quietly turn the test
+# into a duplicate of the LF pass, so exempt it from normalization entirely.
+# The test also checks the bytes at run time, in case this rule ever stops working.
+cases/crlf_input.y -text

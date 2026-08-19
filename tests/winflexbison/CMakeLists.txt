@@ -73,6 +73,37 @@ foreach(tool bison flex)
 endforeach()
 
 # ---------------------------------------------------------------------------
+# Generated output must be LF, never CRLF. This guarantee shipped in 2.5.16 and
+# was silently lost by the bison 3.3.1 re-vendor for 2.5.17, then stayed lost
+# through 2.5.25 -- nothing in CI could see it, because the golden-diff harness
+# normalizes CRLF away and the autotest that would catch it is non-gating. This
+# is the gate; see run_eol_test.cmake for the full history. It runs in every
+# cell, needs nothing but CMake, and cannot skip.
+foreach(tool bison flex)
+    set(_crlf_arg)
+    if(tool STREQUAL "bison")
+        set(_exe win_bison)
+        set(_fixture "${CMAKE_CURRENT_SOURCE_DIR}/../bison/cases/calc.y")
+        # Second pass: a Windows-authored (CRLF) grammar must not leak CRs.
+        set(_crlf_arg "-DFIXTURE_CRLF=${CMAKE_CURRENT_SOURCE_DIR}/cases/crlf_input.y")
+    else()
+        set(_exe win_flex)
+        set(_fixture "${CMAKE_CURRENT_SOURCE_DIR}/../flex/cases/basic_nr.l")
+    endif()
+
+    add_test(NAME winflexbison.${tool}_output_is_lf
+        COMMAND ${CMAKE_COMMAND}
+            -DTEST_EXE=$<TARGET_FILE:${_exe}>
+            "-DSCRATCH=${CMAKE_CURRENT_BINARY_DIR}/eol_${tool}"
+            "-DFIXTURE=${_fixture}"
+            ${_crlf_arg}
+            -DMODE=${tool}
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/run_eol_test.cmake")
+    set_tests_properties(winflexbison.${tool}_output_is_lf PROPERTIES
+        LABELS "winflexbison")
+endforeach()
+
+# ---------------------------------------------------------------------------
 # Issue #39: a CMake build with USE_STATIC_RUNTIME=ON must not pull in the
 # dynamic-CRT DLL (vcruntime140.dll) the way a plain /MD build does. Only
 # meaningful (and only registered) when that option is actually on, mirroring
