@@ -23,7 +23,7 @@ function(add_bison_run_test name)
     add_custom_command(
         OUTPUT  "${gen}"
         COMMAND $<TARGET_FILE:win_bison> -o "${gen}" "${BISON_CASES_DIR}/${T_GRAMMAR}"
-        DEPENDS win_bison "${BISON_CASES_DIR}/${T_GRAMMAR}"
+        DEPENDS win_bison "${BISON_CASES_DIR}/${T_GRAMMAR}" ${WFB_BISON_SKELETONS}
         COMMENT "bison: generating ${name}.c"
         VERBATIM)
     add_executable(bisontest_${name} "${gen}")
@@ -52,7 +52,7 @@ set(_ystype_hdr "${CMAKE_CURRENT_BINARY_DIR}/ystype_header.h")
 add_custom_command(
     OUTPUT  "${_ystype_gen}" "${_ystype_hdr}"
     COMMAND $<TARGET_FILE:win_bison> -d -o "${_ystype_gen}" "${BISON_CASES_DIR}/ystype_header.y"
-    DEPENDS win_bison "${BISON_CASES_DIR}/ystype_header.y"
+    DEPENDS win_bison "${BISON_CASES_DIR}/ystype_header.y" ${WFB_BISON_SKELETONS}
     COMMENT "bison: generating ystype_header.c/.h"
     VERBATIM)
 add_executable(bisontest_ystype_header "${_ystype_gen}" "${BISON_CASES_DIR}/ystype_header_main.c")
@@ -70,6 +70,15 @@ set_tests_properties(bison.ystype_header PROPERTIES SKIP_RETURN_CODE 77 LABELS "
 # the generated parser still parses calc.txt correctly.
 add_bison_run_test(lr_type_canonical GRAMMAR lr_type_canonical.y INPUT calc.txt)
 add_bison_run_test(lr_type_ielr      GRAMMAR lr_type_ielr.y      INPUT calc.txt)
+
+# ---------------------------------------------------------------------------
+# Issue #95: YYPTRDIFF_T must be pointer-wide. MSVC advertises neither
+# __PTRDIFF_TYPE__ nor PTRDIFF_MAX (the latter only via <stdint.h>, which the
+# skeleton includes only for C99+), so the width ladder fell through to
+# "long" and every x64 build warned C4244. The grammar asserts the widths
+# agree at run time; see its header comment for why it must not include
+# <stdint.h> itself. Vacuous on Win32, where both types are 32 bits.
+add_bison_run_test(ptrdiff_width GRAMMAR ptrdiff_width.y)
 
 # ---------------------------------------------------------------------------
 # Issue #48: win_bison must resolve its data/ directory via the executable's
@@ -110,7 +119,7 @@ function(add_bison_cxx_run_test name)
     add_custom_command(
         OUTPUT  "${gen}" "${hdr}"
         COMMAND $<TARGET_FILE:win_bison> --language=c++ -d -o "${gen}" "${BISON_CASES_DIR}/${T_GRAMMAR}"
-        DEPENDS win_bison "${BISON_CASES_DIR}/${T_GRAMMAR}"
+        DEPENDS win_bison "${BISON_CASES_DIR}/${T_GRAMMAR}" ${WFB_BISON_SKELETONS}
         COMMENT "bison(c++): generating ${name}.cc/.hh"
         VERBATIM)
 

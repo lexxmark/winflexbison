@@ -16,6 +16,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         "${CMAKE_CURRENT_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_CURRENT_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bin")
 
+# win_bison reads its skeletons from bison/data/ at run time, so a generated
+# parser depends on those files as surely as on the grammar it came from --
+# but nothing in the build said so, and an incremental build after a skeleton
+# edit silently recompiled the previous run's output. That cost a debugging
+# detour on issue #95 (the c.m4 fix looked like it had not taken, then like it
+# had broken a test it had already been changed to avoid). Every custom command
+# below that runs win_bison lists this alongside its grammar.
+#
+# Plain GLOB, no CONFIGURE_DEPENDS: content changes are what matter here, and
+# they are caught. Adding or removing a skeleton file needs a re-run of cmake.
+file(GLOB_RECURSE WFB_BISON_SKELETONS "${CMAKE_SOURCE_DIR}/bison/data/*")
+
 add_subdirectory(flex)
 add_subdirectory(bison)
 add_subdirectory(winflexbison)

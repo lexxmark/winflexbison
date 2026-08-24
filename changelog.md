@@ -7,6 +7,10 @@
 ### unreleased
   * fixed win_bison not finding its data directory when started through a
     symbolic link, e.g. the links winget creates in its Links folder (#97)
+  * fixed YYPTRDIFF_T being 32-bit in generated parsers on x64: MSVC exposes
+    PTRDIFF_MAX only through <stdint.h>, which the skeleton reads only for
+    C99 and later, so the type fell back to long and every 64-bit build
+    warned C4244 on the parser stack size (#95)
   * win_bison now writes LF in generated files (parsers, headers, .output
     reports, .dot graphs), matching upstream, instead of CRLF
   * fixed garbled or blank source lines in win_bison caret diagnostics

@@ -488,7 +488,7 @@ function(add_flex_bison_test name)
     add_custom_command(
         OUTPUT  "${pgen}" "${phdr}"
         COMMAND $<TARGET_FILE:win_bison> -d -p test -o "${name}_parser.c" "${FLEX_CASES_DIR}/${name}_parser.y"
-        DEPENDS win_bison "${FLEX_CASES_DIR}/${name}_parser.y"
+        DEPENDS win_bison "${FLEX_CASES_DIR}/${name}_parser.y" ${WFB_BISON_SKELETONS}
         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
         COMMENT "bison: generating ${name}_parser.c/.h"
         VERBATIM)

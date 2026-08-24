@@ -304,6 +304,24 @@ m4_define([b4_sizes_types_define],
 #  endif
 #  define YYPTRDIFF_T ptrdiff_t
 #  define YYPTRDIFF_MAXIMUM PTRDIFF_MAX
+# elif defined _MSC_VER
+   /* MSVC defines neither __PTRDIFF_MAX__ nor PTRDIFF_MAX -- the latter lives
+      in <stdint.h>, which is included above only for C99 and later, and MSVC
+      reports __STDC_VERSION__ only under /std:c11 or later.  ptrdiff_t is 64
+      bits on 64-bit Windows, so the 'long' fallback below would truncate it
+      and every x64 build would warn C4244.  <stddef.h> is enough here;
+      reaching for <stdint.h> instead would redefine the integer limits a
+      generated flex scanner declares when both files meet in one translation
+      unit.  */
+#  ifndef ptrdiff_t
+#   include <stddef.h> /* INFRINGES ON USER NAME SPACE */
+#  endif
+#  define YYPTRDIFF_T ptrdiff_t
+#  ifdef _WIN64
+#   define YYPTRDIFF_MAXIMUM LLONG_MAX
+#  else
+#   define YYPTRDIFF_MAXIMUM INT_MAX
+#  endif
 # else
 #  define YYPTRDIFF_T long
 #  define YYPTRDIFF_MAXIMUM LONG_MAX
