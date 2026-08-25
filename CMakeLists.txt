@@ -88,6 +88,42 @@ add_subdirectory(common)
 add_subdirectory(flex)
 add_subdirectory(bison)
 
+#------------------------------------------------------------------------
+# Warnings in vendored upstream code
+#
+# common/ (gnulib, GNU m4) and bison/src/ are upstream sources written for
+# GCC, where none of the codes below fire at -Wall -- they are MSVC's
+# equivalents of -Wconversion and -Wsign-compare. Upstream has never seen
+# them. Silencing them at the source would mean editing ~120 lines across 60
+# vendored files, and every one of those lines becomes a merge conflict when
+# the next flex/bison/m4 release is adopted, so they are turned off per
+# target instead:
+#
+#   C4018  signed/unsigned mismatch
+#   C4116  unnamed type definition in parentheses (gnulib obstack idiom)
+#   C4146  unary minus applied to unsigned (gnulib overflow idiom)
+#   C4244  narrowing conversion
+#   C4267  size_t -> smaller type (x64 only)
+#   C4308  negative constant converted to unsigned
+#
+# Deliberately NOT listed, so they keep catching things: C4090 (const
+# mismatches -- every one is in port-added code), C4307, C4477.
+#
+# win_flex, fl and y are deliberately left out: they carry no vendored
+# warnings today, so they stay canaries for a future upstream upgrade.
+# Neither does tests/winflexbison/ -- that code is ours.
+#
+# Configure with -DWFB_VENDOR_WARNINGS=ON to get the full log back for a
+# periodic audit.
+#------------------------------------------------------------------------
+option(WFB_VENDOR_WARNINGS "Show MSVC warnings in vendored upstream code" OFF)
+if(MSVC AND NOT WFB_VENDOR_WARNINGS)
+    set(WFB_VENDORED_WARNINGS /wd4018 /wd4116 /wd4146 /wd4244 /wd4267 /wd4308)
+    foreach(_wfb_target winflexbison_common win_bison)
+        target_compile_options(${_wfb_target} PRIVATE ${WFB_VENDORED_WARNINGS})
+    endforeach()
+endif()
+
 # Test suite (opt-in; only for a top-level build). Run with `ctest`.
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     enable_testing()
