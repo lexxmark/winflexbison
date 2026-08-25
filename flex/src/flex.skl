@@ -672,6 +672,14 @@ m4_ifdef( [[M4_YY_IN_HEADER]], [[#endif]])
 
 m4_ifdef( [[M4_YY_NO_UNISTD_H]],,
 [[
+    m4_ifdef( [[M4_YY_WIN_COMPAT]],
+    [[
+/*windows compatibility case*/
+#include <io.h>
+#define isatty _isatty
+#define fileno _fileno
+    ]],
+    [[
 #ifndef YY_NO_UNISTD_H
 /* Special case for "unistd.h", since it is non-ANSI. We include it way
  * down here because we want the user's section 1 to have been scanned first.
@@ -684,6 +692,7 @@ m4_ifdef( [[M4_YY_NO_UNISTD_H]],,
 #include <unistd.h>
 %endif
 #endif
+    ]])
 ]])
 
 m4_ifdef( [[M4_EXTRA_TYPE_DEFS]],

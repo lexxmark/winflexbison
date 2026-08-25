@@ -32,6 +32,12 @@
   * fixed Debug builds with USE_STATIC_RUNTIME=ON failing to link, and C++
     sources being built against the wrong CRT
   * build with /utf-8 so UTF-8 literals survive the MSVC execution charset
+  * restored flex.skl as the true source of skel.c: the --wincompat skeleton
+    block existed only in the generated skel.c, so regenerating the skeleton
+    the upstream way (mkskel.sh) silently dropped --wincompat
+  * MSVC warnings in vendored upstream code (gnulib, m4, bison) are now
+    disabled per target, so the warnings we can act on are no longer buried;
+    configure with -DWFB_VENDOR_WARNINGS=ON to see them again
   * added a CTest suite -- the flex 2.6.4 suite, bison compile-run and
     golden-diagnostic tests, and port-specific tests -- plus runtests.bat;
     run as a gate on AppVeyor
