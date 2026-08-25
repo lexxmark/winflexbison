@@ -11,6 +11,9 @@
     PTRDIFF_MAX only through <stdint.h>, which the skeleton reads only for
     C99 and later, so the type fell back to long and every 64-bit build
     warned C4244 on the parser stack size (#95)
+  * fixed C4244 in generated C++ scanners: yyFlexLexer::LexerInput returned
+    yyin.gcount() (a std::streamsize) as int, warning on every x64 build of a
+    non-interactive scanner (#73; same one-line cast upstream flex uses)
   * win_bison now writes LF in generated files (parsers, headers, .output
     reports, .dot graphs), matching upstream, instead of CRLF
   * fixed garbled or blank source lines in win_bison caret diagnostics

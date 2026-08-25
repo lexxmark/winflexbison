@@ -279,6 +279,43 @@ add_test(NAME flex.cxx_no_register_keyword
 set_tests_properties(flex.cxx_no_register_keyword PROPERTIES LABELS "flex")
 
 # ---------------------------------------------------------------------------
+# Issue #73: yyFlexLexer::LexerInput ended with `return yyin.gcount();`, and
+# gcount() is a std::streamsize -- 64-bit under MSVC x64 -- so returning it as
+# int warns C4244 (at the project's own /W3) in every C++ scanner. The read is
+# bounded by max_size, an int, so the value always fits; upstream flex fixed it
+# with an explicit cast (b198864a, 2021-06-22) and this port carries the same
+# one-line change.
+#
+# The gcount() return only exists in the non-interactive branch of LexerInput,
+# and flex generates interactive scanners by default -- so cxx_basic.cc from
+# the tests above never compiles the affected line. Regenerate the same grammar
+# with -B (batch) and compile that with C4244 promoted to an error; the
+# assertion IS the compile step succeeding.
+add_custom_command(
+    OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/cxx_batch.cc"
+    COMMAND $<TARGET_FILE:win_flex> -+ -B --wincompat
+            -o "${CMAKE_CURRENT_BINARY_DIR}/cxx_batch.cc"
+            "${FLEX_CASES_DIR}/cxx_basic.ll"
+    DEPENDS win_flex "${FLEX_CASES_DIR}/cxx_basic.ll"
+    COMMENT "flex(c++): generating cxx_batch.cc (-B)"
+    VERBATIM)
+add_executable(flextest_cxx_batch "${CMAKE_CURRENT_BINARY_DIR}/cxx_batch.cc")
+target_include_directories(flextest_cxx_batch PRIVATE
+    "${CMAKE_SOURCE_DIR}/common/misc"
+    "${CMAKE_SOURCE_DIR}/flex/src"
+    "${CMAKE_CURRENT_BINARY_DIR}")
+if(MSVC)
+    target_compile_options(flextest_cxx_batch PRIVATE /Uinline /Urestrict /we4244)
+endif()
+add_test(NAME flex.cxx_batch_lexer_input
+    COMMAND ${CMAKE_COMMAND}
+        -DTEST_EXE=$<TARGET_FILE:flextest_cxx_batch>
+        "-DINPUT=${FLEX_CASES_DIR}/cxx_basic.txt"
+        -P "${FLEX_RUNNER}")
+set_tests_properties(flex.cxx_batch_lexer_input PROPERTIES
+    SKIP_RETURN_CODE 77 LABELS "flex")
+
+# ---------------------------------------------------------------------------
 # Phase 4: reject + table tests. All four are generated from the single
 # reject.l4 template with different win_flex flags and compile defines:
 #   reject_nr  : plain                          -> reads stdin

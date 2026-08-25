@@ -1971,7 +1971,7 @@ const char *skel[] = {
   "	if ( yyin.bad() )",
   "		return -1;",
   "	else",
-  "		return yyin.gcount();",
+  "		return (int)yyin.gcount();",
   "#endif",
   "}",
   "",
