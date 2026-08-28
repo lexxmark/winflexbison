@@ -16,7 +16,7 @@
 int yyerror(void* scanner, const char* msg);
 %}
 
-%pure-parser
+%define api.pure
 
 %union {
     int num;

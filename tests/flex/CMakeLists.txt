@@ -65,6 +65,18 @@ foreach(name ${FLEX_SIMPLE_TESTS})
         LABELS "flex")
 endforeach()
 
+# mem_nr.l and mem_r.l print pointers through their own diagnostic printf as
+# `(long)ptrs[i].p`, which truncates on x64 (C4311 x14). Both files are
+# vendored verbatim from upstream/flex/tests/, so the cast is suppressed here
+# rather than corrected in the source -- keeping `diff upstream/flex/tests`
+# empty is worth more than a warning in a test's own trace output.
+# See docs/build-warnings-plan.md, Phase 5.
+if(MSVC)
+    foreach(name mem_nr mem_r)
+        target_compile_options(flextest_${name} PRIVATE /wd4311)
+    endforeach()
+endif()
+
 # ---------------------------------------------------------------------------
 # Phase 2: multi-file C exit-code tests. Each combines one or more generated
 # scanners (whose .l carries %option header="<stem>.h", so win_flex emits both
@@ -519,12 +531,12 @@ set_tests_properties(flex.cxx_yywrap PROPERTIES SKIP_RETURN_CODE 77 LABELS "flex
 # scanner, and a hand-written *_main.c. These exercise win_bison + win_flex
 # together, so they only register when the win_bison target is present.
 function(add_flex_bison_test name)
-    cmake_parse_arguments(T "" "" "EXTRA_COMPILE_OPTIONS" ${ARGN})
+    cmake_parse_arguments(T "" "" "EXTRA_COMPILE_OPTIONS;BISON_OPTIONS" ${ARGN})
     set(pgen "${CMAKE_CURRENT_BINARY_DIR}/${name}_parser.c")
     set(phdr "${CMAKE_CURRENT_BINARY_DIR}/${name}_parser.h")
     add_custom_command(
         OUTPUT  "${pgen}" "${phdr}"
-        COMMAND $<TARGET_FILE:win_bison> -d -p test -o "${name}_parser.c" "${FLEX_CASES_DIR}/${name}_parser.y"
+        COMMAND $<TARGET_FILE:win_bison> ${T_BISON_OPTIONS} -d -p test -o "${name}_parser.c" "${FLEX_CASES_DIR}/${name}_parser.y"
         DEPENDS win_bison "${FLEX_CASES_DIR}/${name}_parser.y" ${WFB_BISON_SKELETONS}
         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
         COMMENT "bison: generating ${name}_parser.c/.h"
@@ -557,9 +569,17 @@ function(add_flex_bison_test name)
 endfunction()
 
 if(TARGET win_bison)
-    add_flex_bison_test(bison_nr)
-    add_flex_bison_test(bison_yylloc)
-    add_flex_bison_test(bison_yylval)
+    # These three .y files are vendored verbatim from upstream/flex/tests/ and
+    # still use the deprecated `%pure-parser`, so win_bison emits -Wdeprecated
+    # plus the -Wother "rerun with --update" note for each. Running --update
+    # would put us out of sync with upstream flex's test suite, so the two
+    # warnings are turned off for these rules instead. Our own
+    # core_yylex_wrapper_parser.y was updated to `%define api.pure` and needs
+    # no flags. See docs/build-warnings-plan.md, Phase 5.
+    set(WFB_UPSTREAM_GRAMMAR_OPTIONS -Wno-deprecated -Wno-other)
+    add_flex_bison_test(bison_nr     BISON_OPTIONS ${WFB_UPSTREAM_GRAMMAR_OPTIONS})
+    add_flex_bison_test(bison_yylloc BISON_OPTIONS ${WFB_UPSTREAM_GRAMMAR_OPTIONS})
+    add_flex_bison_test(bison_yylval BISON_OPTIONS ${WFB_UPSTREAM_GRAMMAR_OPTIONS})
 
     # Issue #8: size_t->int narrowing in yyuserAction()/yyfill() (C4267), and
     # yylex macro redefinition under an intermediate wrapper layer (C4005).

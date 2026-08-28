@@ -164,6 +164,13 @@ add_bison_cxx_run_test(cxx_locations
 add_bison_cxx_run_test(many_tokens
     GRAMMAR many_tokens.y
     SRC     many_tokens_main.cc)
+if(MSVC)
+    # ~900 tokens make the C++ skeleton emit `switch` blocks that carry only a
+    # `default:` label (C4065 x13). That is the skeleton's shape, not this
+    # test's; the grammar exists to prove the C2026 line-length fix, so the
+    # warning is silenced here. See docs/build-warnings-plan.md, Phase 5.
+    target_compile_options(bisontest_many_tokens PRIVATE /wd4065)
+endif()
 
 # ---------------------------------------------------------------------------
 # golden-diff tests. One per grammar in golden-cases/, comparing win_bison's
