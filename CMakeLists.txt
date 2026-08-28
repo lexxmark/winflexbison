@@ -1,4 +1,23 @@
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+
+# These two policies turn NEW at CMake 3.15, so asking for 3.16 above turns
+# them on. Both change MSVC flags, so keep the old behaviour for now:
+#
+#   CMP0091  NEW removes /MD from CMAKE_<LANG>_FLAGS_<CONFIG>. USE_STATIC_RUNTIME
+#            below works by replacing /MD with /MT in those flags. With no /MD
+#            there, it would do nothing and static builds would link the dynamic
+#            CRT. CI builds with USE_STATIC_RUNTIME=ON.
+#   CMP0092  NEW removes /W3 from CMAKE_<LANG>_FLAGS. C++ sets /W3 itself below,
+#            but C would drop to /W1 and hide most warnings.
+#
+# Set before project(): that is where CMake fills in these flags.
+# Moving to the NEW behaviour is a good idea, but as a separate change.
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 OLD)
+endif()
+if(POLICY CMP0092)
+  cmake_policy(SET CMP0092 OLD)
+endif()
 
 # CXX is enabled here, not in tests/CMakeLists.txt where the only C++ sources
 # live, because CMAKE_CXX_FLAGS_* do not exist until the language is enabled.
@@ -24,10 +43,20 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_definitions(-D_DEBUG)
 endif()
 
-# next line needed for compile in C (nor CPP) mode (ucrt headers bug)
-add_definitions(-Dinline=__inline)
-# next line needed for VS2017 only
-add_definitions(-Drestrict=__restrict)
+# MSVC compiles C as C89, so map `inline` (ucrt headers bug) and `restrict`
+# (VS2017 only) to the __ spellings.
+#
+# C only: in C++ both are real keywords, so defining them as macros is not
+# allowed (<xkeycheck.h> rejects `inline`, `restrict` clashes with
+# __declspec(restrict)). The C++ test targets used to undo this with
+# /Uinline /Urestrict, and each one cost a D9025 warning.
+#
+# This works only while no target has both .c and .cc files. Visual Studio
+# uses one flag set per .vcxproj, so in a mixed target COMPILE_LANGUAGE is
+# CXX and the C files lose these defines. No target here mixes them.
+add_compile_definitions(
+    $<$<COMPILE_LANGUAGE:C>:inline=__inline>
+    $<$<COMPILE_LANGUAGE:C>:restrict=__restrict>)
 
 # No /MD here: CMAKE_CXX_FLAGS_DEBUG already carries CMake's /MDd, and
 # USE_STATIC_RUNTIME rewrites /MD -> /MT textually. Appending /MD produced

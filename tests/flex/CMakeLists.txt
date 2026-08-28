@@ -65,11 +65,10 @@ foreach(name ${FLEX_SIMPLE_TESTS})
         LABELS "flex")
 endforeach()
 
-# mem_nr.l and mem_r.l print pointers through their own diagnostic printf as
-# `(long)ptrs[i].p`, which truncates on x64 (C4311 x14). Both files are
-# vendored verbatim from upstream/flex/tests/, so the cast is suppressed here
-# rather than corrected in the source -- keeping `diff upstream/flex/tests`
-# empty is worth more than a warning in a test's own trace output.
+# mem_nr.l and mem_r.l print pointers as `(long)ptrs[i].p`, which cuts off
+# the top 32 bits on x64 (C4311 x14). It is only their own debug output, and
+# both files are copies of upstream/flex/tests/. We turn the warning off here
+# so the files stay identical to upstream.
 # See docs/build-warnings-plan.md, Phase 5.
 if(MSVC)
     foreach(name mem_nr mem_r)
@@ -244,12 +243,6 @@ function(add_flex_cxx_test name)
         "${CMAKE_SOURCE_DIR}/common/misc"
         "${CMAKE_SOURCE_DIR}/flex/src"
         "${CMAKE_CURRENT_BINARY_DIR}")
-    # The root CMakeLists globally does -Dinline=__inline -Drestrict=__restrict
-    # for the C product; in C++ these macroize keywords (illegal, e.g. MSVC's
-    # <xkeycheck.h> and __declspec(restrict) in the CRT). Undefine them here.
-    if(MSVC)
-        target_compile_options(flextest_${name} PRIVATE /Uinline /Urestrict)
-    endif()
 
     set(input "")
     if(T_INPUT)
@@ -317,7 +310,7 @@ target_include_directories(flextest_cxx_batch PRIVATE
     "${CMAKE_SOURCE_DIR}/flex/src"
     "${CMAKE_CURRENT_BINARY_DIR}")
 if(MSVC)
-    target_compile_options(flextest_cxx_batch PRIVATE /Uinline /Urestrict /we4244)
+    target_compile_options(flextest_cxx_batch PRIVATE /we4244)
 endif()
 add_test(NAME flex.cxx_batch_lexer_input
     COMMAND ${CMAKE_COMMAND}
@@ -514,9 +507,6 @@ add_executable(flextest_cxx_yywrap "${CMAKE_CURRENT_BINARY_DIR}/cxx_yywrap.cc")
 target_include_directories(flextest_cxx_yywrap PRIVATE
     "${CMAKE_SOURCE_DIR}/common/misc"
     "${CMAKE_SOURCE_DIR}/flex/src")
-if(MSVC)
-    target_compile_options(flextest_cxx_yywrap PRIVATE /Uinline /Urestrict)
-endif()
 add_test(NAME flex.cxx_yywrap
     COMMAND ${CMAKE_COMMAND}
         -DTEST_EXE=$<TARGET_FILE:flextest_cxx_yywrap>
@@ -569,13 +559,12 @@ function(add_flex_bison_test name)
 endfunction()
 
 if(TARGET win_bison)
-    # These three .y files are vendored verbatim from upstream/flex/tests/ and
-    # still use the deprecated `%pure-parser`, so win_bison emits -Wdeprecated
-    # plus the -Wother "rerun with --update" note for each. Running --update
-    # would put us out of sync with upstream flex's test suite, so the two
-    # warnings are turned off for these rules instead. Our own
-    # core_yylex_wrapper_parser.y was updated to `%define api.pure` and needs
-    # no flags. See docs/build-warnings-plan.md, Phase 5.
+    # These three .y files are copies of upstream/flex/tests/ and still use the
+    # old `%pure-parser`, so win_bison warns twice for each: -Wdeprecated and
+    # the -Wother "rerun with --update" note. We do not run --update, because
+    # then the files would differ from upstream. Turn both warnings off here.
+    # Our own core_yylex_wrapper_parser.y was changed to `%define api.pure`
+    # instead. See docs/build-warnings-plan.md, Phase 5.
     set(WFB_UPSTREAM_GRAMMAR_OPTIONS -Wno-deprecated -Wno-other)
     add_flex_bison_test(bison_nr     BISON_OPTIONS ${WFB_UPSTREAM_GRAMMAR_OPTIONS})
     add_flex_bison_test(bison_yylloc BISON_OPTIONS ${WFB_UPSTREAM_GRAMMAR_OPTIONS})

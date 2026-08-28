@@ -38,6 +38,10 @@
   * MSVC warnings in vendored upstream code (gnulib, m4, bison) are now
     disabled per target, so the warnings we can act on are no longer buried;
     configure with -DWFB_VENDOR_WARNINGS=ON to see them again
+  * CMake 3.16 or newer is now required (was 3.10, though the build already
+    used commands that need 3.12); the inline/restrict compatibility defines
+    are now applied to C only, instead of being defined for every language and
+    undefined again in each C++ target
   * added a CTest suite -- the flex 2.6.4 suite, bison compile-run and
     golden-diagnostic tests, and port-specific tests -- plus runtests.bat;
     run as a gate on AppVeyor

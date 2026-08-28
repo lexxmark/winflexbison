@@ -130,13 +130,6 @@ function(add_bison_cxx_run_test name)
 
     add_executable(bisontest_${name} "${gen}" ${main_srcs})
     target_include_directories(bisontest_${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-    if(MSVC)
-        # Same rationale as flex's C++ tests (tests/flex/CMakeLists.txt Phase 3):
-        # undo the project-global -Dinline=__inline -Drestrict=__restrict, which
-        # macroize keywords illegally in C++ headers transitively included by
-        # the generated C++ skeleton.
-        target_compile_options(bisontest_${name} PRIVATE /Uinline /Urestrict)
-    endif()
 
     set(input "")
     if(T_INPUT)
@@ -165,10 +158,10 @@ add_bison_cxx_run_test(many_tokens
     GRAMMAR many_tokens.y
     SRC     many_tokens_main.cc)
 if(MSVC)
-    # ~900 tokens make the C++ skeleton emit `switch` blocks that carry only a
-    # `default:` label (C4065 x13). That is the skeleton's shape, not this
-    # test's; the grammar exists to prove the C2026 line-length fix, so the
-    # warning is silenced here. See docs/build-warnings-plan.md, Phase 5.
+    # With ~900 tokens the C++ skeleton writes `switch` blocks that have only
+    # a `default:` label (C4065 x13). That comes from the skeleton, not from
+    # this test, so turn the warning off.
+    # See docs/build-warnings-plan.md, Phase 5.
     target_compile_options(bisontest_many_tokens PRIVATE /wd4065)
 endif()
 
