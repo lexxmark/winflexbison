@@ -88,6 +88,16 @@ typedef size_t uintptr_t;
      _Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
 #  define IGNORE_TYPE_LIMITS_END \
      _Pragma ("GCC diagnostic pop")
+# elif defined _MSC_VER
+   /* MSVC equivalent (winflexbison).  The INT_*_WRAPV expansions in the
+      marked regions compare against type limits on purpose, which MSVC
+      reports as C4307 (signed constant overflow) and C4308 (negative
+      constant to unsigned).  */
+#  define IGNORE_TYPE_LIMITS_BEGIN \
+     __pragma (warning (push)) \
+     __pragma (warning (disable : 4307 4308))
+#  define IGNORE_TYPE_LIMITS_END \
+     __pragma (warning (pop))
 # else
 #  define IGNORE_TYPE_LIMITS_BEGIN
 #  define IGNORE_TYPE_LIMITS_END
