@@ -70,7 +70,7 @@ char* add_tmp_dir(const char* tmp_file_name)
 FILE* mkstempFILE (char *pref, const char *mode)
 {
 	char dmode[16];
-	char* name;
+	const char* name;
 
 	if (!pref || !*pref)
 		return NULL;
@@ -482,7 +482,9 @@ int filter_m4_p (struct filter *chain)
     argv[i++] = "-P";
     argv[i++] = NULL;
 
-	return main_m4 (i-1, argv, chain->in_file, chain->out_file);
+	/* main_m4 takes m4's own "char *const *argv" signature, so cast away the
+	   const on the array elements; main_m4 does not write through it. */
+	return main_m4 (i-1, (char *const *) argv, chain->in_file, chain->out_file);
 }
 
 /** Adjust the line numbers in the #line directives of the generated scanner.

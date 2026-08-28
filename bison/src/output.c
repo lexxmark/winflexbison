@@ -814,7 +814,7 @@ output_skeleton (void)
   if (trace_flag & trace_muscles)
     muscles_output (stderr);
   {
-    char* p = pid_tempname("~m4_in_");
+    const char* p = pid_tempname("~m4_in_");
     /* "D": delete-on-close, so the temp is removed even on abnormal exit
        (only used via this FILE* handle, never reopened by name). */
     m4_in = fopen(strcpy(m4_in_file_name, p), "wb+D");
@@ -832,14 +832,16 @@ output_skeleton (void)
   /* Read and process m4's output.  */
   timevar_push (tv_m4);
   {
-    char *p = pid_tempname("~m4_out_");
+    const char *p = pid_tempname("~m4_out_");
     m4_out = fopen(strcpy(m4_out_file_name, p), "wb+D");
     if (!m4_out)
       error (EXIT_FAILURE, get_errno (),
              "fopen");
   }
 
-  if (main_m4(i-1, argv, m4_in, m4_out))
+  /* main_m4 takes m4's own "char *const *argv" signature, so cast away the
+     const on the array elements; main_m4 does not write through it. */
+  if (main_m4(i-1, (char *const *) argv, m4_in, m4_out))
       error (EXIT_FAILURE, get_errno (),
              "m4 failed");
 

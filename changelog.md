@@ -38,6 +38,9 @@
   * MSVC warnings in vendored upstream code (gnulib, m4, bison) are now
     disabled per target, so the warnings we can act on are no longer buried;
     configure with -DWFB_VENDOR_WARNINGS=ON to see them again
+  * win_bison --trace=automaton now prints goto_map values with %zu instead of
+    %ld, so values above 2^32 are no longer cut short on x64 (developer trace
+    output only)
   * CMake 3.16 or newer is now required (was 3.10, though the build already
     used commands that need 3.12); the inline/restrict compatibility defines
     are now applied to C only, instead of being defined for every language and

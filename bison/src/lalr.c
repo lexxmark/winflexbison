@@ -149,7 +149,7 @@ set_goto_map (void)
   if (trace_flag & trace_automaton)
     {
       for (int i = 0; i < nnterms; ++i)
-        fprintf (stderr, "goto_map[%d (%s)] = %ld .. %ld\n",
+        fprintf (stderr, "goto_map[%d (%s)] = %zu .. %zu\n",
                  i, symbols[ntokens + i]->tag,
                  goto_map[i], goto_map[i+1] - 1);
       for (int i = 0; i < ngotos; ++i)
