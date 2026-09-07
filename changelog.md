@@ -11,6 +11,11 @@
     PTRDIFF_MAX only through <stdint.h>, which the skeleton reads only for
     C99 and later, so the type fell back to long and every 64-bit build
     warned C4244 on the parser stack size (#95)
+  * fixed 9 C4005 macro-redefinition warnings in every generated C++ scanner
+    built with MSVC: the scanner defined INT8_MIN and eight more limit macros,
+    then <iostream> pulled in the SDK's <stdint.h>, which defines them again.
+    Generated scanners now carry only the flex_int*_t typedefs, in a new
+    flex/src/flexint_shared.h, as upstream flex does since 2.6.4 (#29)
   * fixed C4244 in generated C++ scanners: yyFlexLexer::LexerInput returned
     yyin.gcount() (a std::streamsize) as int, warning on every x64 build of a
     non-interactive scanner (#73; same one-line cast upstream flex uses)

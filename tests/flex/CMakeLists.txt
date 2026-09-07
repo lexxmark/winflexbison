@@ -184,6 +184,10 @@ set_tests_properties(flex.header_file_flag PROPERTIES LABELS "flex")
 # against the SDK's own <stdint.h> (C4005). Recompile the already-generated
 # basic_nr.c a second time with that specific warning promoted to an error
 # -- the assertion IS the compile step succeeding.
+#
+# Note this C scanner never includes <stdint.h>, so nothing here can collide
+# and the test passes on its own. flex.flexint_h_stdint_cxx below is the one
+# that actually catches the bug.
 add_executable(flextest_flexint_h_stdint "${CMAKE_CURRENT_BINARY_DIR}/basic_nr.c")
 target_link_libraries(flextest_flexint_h_stdint PRIVATE winflexbison_common)
 target_include_directories(flextest_flexint_h_stdint PRIVATE "${CMAKE_SOURCE_DIR}/flex/src")
@@ -282,6 +286,34 @@ add_test(NAME flex.cxx_no_register_keyword
         -DEXPECT_MATCH=FALSE
         -P "${FLEX_CONTENT_CHECK_RUNNER}")
 set_tests_properties(flex.cxx_no_register_keyword PROPERTIES LABELS "flex")
+
+# ---------------------------------------------------------------------------
+# Issue #29, the C++ half. In C++ mode MSVC never defines __STDC_VERSION__, so
+# the generated scanner's FLEXINT_H block always took the non-C99 branch and
+# defined INT8_MIN and eight more limit macros. <iostream>, included a few
+# lines further down, pulls in the SDK's <stdint.h>, which defines them again
+# -- 9 x C4005 in every C++ scanner MSVC compiles. Fixed by moving the
+# typedefs into flex/src/flexint_shared.h and having the skeleton include that
+# instead of flexint.h, so generated scanners carry no limit macros at all.
+#
+# flex.flexint_h_stdint above pins the same warning on a C scanner, where no
+# <stdint.h> ever follows, so it passes trivially and never covered this path.
+# Compile the already-generated cxx_basic.cc a second time with C4005 promoted
+# to an error -- the assertion IS the compile step succeeding.
+add_executable(flextest_flexint_h_stdint_cxx "${CMAKE_CURRENT_BINARY_DIR}/cxx_basic.cc")
+target_include_directories(flextest_flexint_h_stdint_cxx PRIVATE
+    "${CMAKE_SOURCE_DIR}/common/misc"
+    "${CMAKE_SOURCE_DIR}/flex/src"
+    "${CMAKE_CURRENT_BINARY_DIR}")
+if(MSVC)
+    target_compile_options(flextest_flexint_h_stdint_cxx PRIVATE /we4005)
+endif()
+add_test(NAME flex.flexint_h_stdint_cxx
+    COMMAND ${CMAKE_COMMAND}
+        -DTEST_EXE=$<TARGET_FILE:flextest_flexint_h_stdint_cxx>
+        "-DINPUT=${FLEX_CASES_DIR}/cxx_basic.txt"
+        -P "${FLEX_RUNNER}")
+set_tests_properties(flex.flexint_h_stdint_cxx PROPERTIES SKIP_RETURN_CODE 77 LABELS "flex")
 
 # ---------------------------------------------------------------------------
 # Issue #73: yyFlexLexer::LexerInput ended with `return yyin.gcount();`, and

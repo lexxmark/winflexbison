@@ -231,7 +231,7 @@ m4_ifdef( [[M4_YY_TABLES_EXTERNAL]],
 /* end standard C headers. */
 
 %if-c-or-c++
-m4preproc_include(`flexint.h')
+m4preproc_include(`flexint_shared.h')
 %endif
 
 /* begin standard C++ headers. */
