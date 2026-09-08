@@ -123,10 +123,16 @@ before_build:
 # The first line types the log itself on failure: AppVeyor stops the job at the
 # first non-zero step, so without that a broken build would show no output at
 # all.
+#
+# The findstr line MUST stay single-quoted. A plain YAML scalar cannot hold
+# ": " -- the parser reads it as a key/value split, so an unquoted version of
+# this line either becomes a mapping (silently not the command we meant) or
+# fails the whole file with "Mapping values are not allowed in this context".
+# Both happened here before the quotes went on.
 build_script:
   - cmake --build . --config %configuration% > build.log 2>&1 || (type build.log & exit /b 1)
   - type build.log
-  - findstr /c:": warning " build.log && (echo GATE: build produced warnings, see above & exit /b 1) || exit /b 0
+  - 'findstr /c:": warning " build.log && (echo GATE - build produced warnings, see above & exit /b 1) || exit /b 0'
 
 # Windows CTest gate: EVERY build cell. The test executables are compiled in all
 # of them regardless (ALL_BUILD includes them), so running them costs only test
