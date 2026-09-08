@@ -94,8 +94,30 @@ before_build:
   - cd build
   - cmake -G "Visual Studio %VSVERSION%" -DCPACK_PACKAGE_VERSION="%APPVEYOR_REPO_TAG_NAME%" %CMAKE_OPTIONS% ..
 
+# The build log is captured rather than streamed so the warning gate below can
+# read it; `type` puts it back on the console, so the job output is unchanged
+# apart from arriving at the end of the step instead of live.
+#
+# Zero warnings is the state the tree is in as of the build-warnings cleanup
+# (see docs/build-warnings-plan.md in the superproject), and this is what keeps
+# it that way. /WX covers the test targets from CMake, but deliberately NOT the
+# vendored ones -- win_flex, win_bison, winflexbison_common, fl and y -- because
+# a compiler error there would break the build on upgrade day. This gate covers
+# them instead: a new warning anywhere turns the cell red, and the log says
+# what it was, which is a decision to make rather than a build to fix.
+#
+# findstr is case-sensitive with /c, so it matches compiler output
+# ("foo.c(12,1): warning C4244: ...") and not MSBuild's "0 Warning(s)" summary.
+# To land an upgrade before the warnings are dealt with, comment out the
+# findstr line -- do not weaken it to a count.
+#
+# The first line types the log itself on failure: AppVeyor stops the job at the
+# first non-zero step, so without that a broken build would show no output at
+# all.
 build_script:
-  - cmake --build . --config %configuration%
+  - cmake --build . --config %configuration% > build.log 2>&1 || (type build.log & exit /b 1)
+  - type build.log
+  - findstr /c:" warning " build.log && (echo GATE: build produced warnings, see above & exit /b 1) || exit /b 0
 
 # Windows CTest gate: EVERY build cell. The test executables are compiled in all
 # of them regardless (ALL_BUILD includes them), so running them costs only test

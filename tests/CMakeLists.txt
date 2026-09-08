@@ -16,6 +16,27 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY         "${CMAKE_CURRENT_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_CURRENT_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bin")
 
+# Warnings are errors in the test targets, and only there. Every executable
+# below compiles output that win_flex or win_bison just generated, so a new
+# warning here means our tools started emitting worse code -- which is exactly
+# how #73 (C4244), #95 (C4244 via a 32-bit YYPTRDIFF_T) and #29 (C4005) each
+# reached users. Those were all found by hand, months late; this makes the
+# build say it.
+#
+# NOT on win_flex, win_bison, winflexbison_common, fl or y. Those are vendored
+# upstream sources, so a newer MSVC or a re-vendor would break the build on
+# upgrade day instead of printing a line to read. See docs/build-warnings-plan.md.
+#
+# Targets that need an exception already carry a narrow /wd (C4065 on
+# bisontest_many_tokens, C4311 on the two flex mem tests); /WX does not
+# override those. If an upstream upgrade brings a warning that needs thought
+# rather than a fix, configure with -DWFB_TESTS_WERROR=OFF to get the old
+# behaviour back while you deal with it.
+option(WFB_TESTS_WERROR "Treat warnings as errors in the test targets" ON)
+if(MSVC AND WFB_TESTS_WERROR)
+    add_compile_options(/WX)
+endif()
+
 # win_bison reads its skeletons from bison/data/ at run time, so a generated
 # parser depends on those files as surely as on the grammar it came from --
 # but nothing in the build said so, and an incremental build after a skeleton

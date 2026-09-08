@@ -43,6 +43,9 @@
   * MSVC warnings in vendored upstream code (gnulib, m4, bison) are now
     disabled per target, so the warnings we can act on are no longer buried;
     configure with -DWFB_VENDOR_WARNINGS=ON to see them again
+  * the test targets now build with /WX, so a generated scanner or parser that
+    starts warning fails the build; configure with -DWFB_TESTS_WERROR=OFF to
+    turn that off. The tools themselves are not built with /WX
   * win_bison --trace=automaton now prints goto_map values with %zu instead of
     %ld, so values above 2^32 are no longer cut short on x64 (developer trace
     output only)
