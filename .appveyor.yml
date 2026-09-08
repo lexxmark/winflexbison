@@ -106,8 +106,17 @@ before_build:
 # them instead: a new warning anywhere turns the cell red, and the log says
 # what it was, which is a decision to make rather than a build to fix.
 #
-# findstr is case-sensitive with /c, so it matches compiler output
-# ("foo.c(12,1): warning C4244: ...") and not MSBuild's "0 Warning(s)" summary.
+# The pattern is ": warning " and not " warning ", and findstr /c is
+# case-sensitive. Together that matches the one shape a real diagnostic has --
+# "foo.c(12,1): warning C4244: ..." from cl, "... : warning MSB3026: ..." from
+# MSBuild -- while ignoring prose that merely contains the word. Two things
+# would otherwise trip it: MSBuild's "0 Warning(s)" summary (wrong case), and
+# CMake's own "This warning is for project developers" line, which follows
+# every CMP0091/CMP0092 deprecation notice. That CMake text normally never
+# reaches build.log, since configure runs in before_build -- but ZERO_CHECK
+# re-runs configure inside the build whenever CMakeLists.txt changes, which is
+# exactly when someone is least pleased to get a spurious red cell.
+#
 # To land an upgrade before the warnings are dealt with, comment out the
 # findstr line -- do not weaken it to a count.
 #
@@ -117,7 +126,7 @@ before_build:
 build_script:
   - cmake --build . --config %configuration% > build.log 2>&1 || (type build.log & exit /b 1)
   - type build.log
-  - findstr /c:" warning " build.log && (echo GATE: build produced warnings, see above & exit /b 1) || exit /b 0
+  - findstr /c:": warning " build.log && (echo GATE: build produced warnings, see above & exit /b 1) || exit /b 0
 
 # Windows CTest gate: EVERY build cell. The test executables are compiled in all
 # of them regardless (ALL_BUILD includes them), so running them costs only test
