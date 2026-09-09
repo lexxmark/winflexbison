@@ -11,10 +11,33 @@ Both win_flex and win_bison are based on upstream sources but depend on system l
 
 ## License
 
-Flex uses a [BSD license](flex/src/COPYING), GNU Bison is [licensed under the GNU General Public License (GPLv3+)](bison/src/COPYING).  
-All build scripts in WinFlexBison are distributed under GPLv3+. See [COPYING](COPYING) for details.
+WinFlexBison bundles four upstream projects, and both shipped executables are combined works that
+include several of them:
 
-All documentation, especially those under custom_build_rules/doc, is distributed under the GNU Free Documentation License (FDL 1.3+).
+* [Flex](https://github.com/westes/flex/) — BSD license
+  ([flex/src/COPYING](https://github.com/lexxmark/winflexbison/blob/master/flex/src/COPYING),
+  shipped in the release package as `COPYING.flex`)
+* [GNU Bison](https://www.gnu.org/software/bison/) — GPLv3+
+  ([bison/src/COPYING](https://github.com/lexxmark/winflexbison/blob/master/bison/src/COPYING),
+  shipped as `COPYING.bison`)
+* [GNU M4](https://www.gnu.org/software/m4/) — GPLv3+. Both tools run m4 over their skeletons;
+  this port runs it in-process instead of as a child process, so M4 is linked into **win_flex.exe
+  as well as win_bison.exe**
+* [gnulib](https://www.gnu.org/software/gnulib/) — GPLv3+, a few files LGPL. Supplies the POSIX
+  functions MSVC does not have, including the regular expression engine win_flex uses
+
+Because GNU M4 and gnulib are linked into both executables, **win_flex.exe and win_bison.exe are
+distributed under GPLv3+**, even though flex's own sources are under a BSD license. Everything
+WinFlexBison itself adds — the Windows portability code, the build scripts, the custom build
+rules — is GPLv3+ too. See [COPYING](COPYING) for the license text.
+
+The scanners and parsers you *generate* with these tools are not covered by that. Flex's BSD
+license places no copyleft on generated scanners, and the Bison skeletons carry the special
+exception that lets you distribute a generated parser under terms of your choice; that exception
+is reproduced at the top of every parser win_bison writes.
+
+All documentation, especially the images under custom_build_rules/docs, is distributed under the
+GNU Free Documentation License (FDL 1.3+). See [COPYING.DOC](COPYING.DOC).
 
 
 ## Downloads

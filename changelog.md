@@ -60,6 +60,10 @@
     under MSYS2
   * win_bison --version now reports Copyright (C) 2021, the year of the
     bundled bison 3.8.2; the hand-written config.h still said 2020
+  * README now states what the shipped binaries actually contain: both
+    win_flex.exe and win_bison.exe link GNU M4 and gnulib, so both are
+    distributed under GPLv3+ even though flex's own sources are BSD. Scanners
+    and parsers you generate are unaffected
 
 ### version 2.5.25
   * upgrade win_bison to version 3.8.2
