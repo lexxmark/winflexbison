@@ -58,6 +58,8 @@
     run as a gate on AppVeyor
   * added the full bison GNU Autotest (776 groups) as an opt-in harness run
     under MSYS2
+  * win_bison --version now reports Copyright (C) 2021, the year of the
+    bundled bison 3.8.2; the hand-written config.h still said 2020
 
 ### version 2.5.25
   * upgrade win_bison to version 3.8.2

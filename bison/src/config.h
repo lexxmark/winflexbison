@@ -2,7 +2,7 @@
 
 #define PACKAGE_BUGREPORT "https://github.com/lexxmark/winflexbison/issues"
 #define VERSION "3.8.2"
-#define PACKAGE_COPYRIGHT_YEAR 2020
+#define PACKAGE_COPYRIGHT_YEAR 2021
 #define LOCALEDIR ""
 #define PACKAGE_STRING "bison"
 #define PACKAGE_URL "https://github.com/lexxmark/winflexbison"
