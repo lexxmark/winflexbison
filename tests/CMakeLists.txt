@@ -49,6 +49,12 @@ endif()
 # they are caught. Adding or removing a skeleton file needs a re-run of cmake.
 file(GLOB_RECURSE WFB_BISON_SKELETONS "${CMAKE_SOURCE_DIR}/bison/data/*")
 
+# "The generated file must (not) contain this" assertion, used by both the flex
+# and the bison suite -- the only way to test output we cannot compile here (a
+# C++-only construct, a D parser on a worker without a D compiler). It lived in
+# tests/flex/ while flex was its only user. See run_content_check.cmake.
+set(WFB_CONTENT_CHECK "${CMAKE_CURRENT_SOURCE_DIR}/run_content_check.cmake")
+
 add_subdirectory(flex)
 add_subdirectory(bison)
 add_subdirectory(winflexbison)

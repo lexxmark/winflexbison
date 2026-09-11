@@ -5,6 +5,10 @@
   * 2.5.x versions include bison version 3.x
   
 ### unreleased
+  * fixed the D skeletons producing code that does not compile: a parser using
+    %code lexer wrote "implements" where D spells inheritance ":", and
+    SymbolKind.toString used std.range names the generated file never imports.
+    Both are upstream's own fixes, made after bison 3.8.2 was released (#89)
   * fixed win_bison not finding its data directory when started through a
     symbolic link, e.g. the links winget creates in its Links folder (#97)
   * fixed YYPTRDIFF_T being 32-bit in generated parsers on x64: MSVC exposes

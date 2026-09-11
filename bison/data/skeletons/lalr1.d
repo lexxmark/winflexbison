@@ -269,9 +269,10 @@ b4_user_union_members
     }
   }]])[
 
-]b4_lexer_if([[  private class YYLexer implements Lexer {
+]b4_lexer_if([[private class YYLexer: Lexer
+{
 ]b4_percent_code_get([[lexer]])[
-  }
+}
 ]])[
   /** The object doing lexical analysis for us.  */
   private Lexer yylexer;

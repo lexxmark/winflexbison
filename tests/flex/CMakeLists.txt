@@ -278,13 +278,12 @@ add_flex_cxx_test(cxx_multiple_scanners
 # error on. Check the content of an already-generated C++ scanner rather than
 # adding a new fixture: cxx_basic.cc (from add_flex_cxx_test above) is built
 # with --wincompat like every other scanner in this suite.
-set(FLEX_CONTENT_CHECK_RUNNER "${CMAKE_CURRENT_SOURCE_DIR}/run_content_check.cmake")
 add_test(NAME flex.cxx_no_register_keyword
     COMMAND ${CMAKE_COMMAND}
         -DFILE=${CMAKE_CURRENT_BINARY_DIR}/cxx_basic.cc
         "-DPATTERN=[^A-Za-z0-9_]register[^A-Za-z0-9_]"
         -DEXPECT_MATCH=FALSE
-        -P "${FLEX_CONTENT_CHECK_RUNNER}")
+        -P "${WFB_CONTENT_CHECK}")
 set_tests_properties(flex.cxx_no_register_keyword PROPERTIES LABELS "flex")
 
 # ---------------------------------------------------------------------------

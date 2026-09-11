@@ -83,7 +83,22 @@ init:
 # run.sh looks for it at PORT_ROOT/../upstream/bison -- which exists in the
 # superproject but not in a bare AppVeyor checkout of this repo. Shallow is
 # enough: only the tree at v3.8.2 is read, never its history.
+#
+# A D compiler for the issue #89 skeleton test, in one build cell only. The
+# generated D parser is checked by content everywhere (that gate needs nothing
+# installed); this turns the same file into a real compile once per build. It
+# goes in an existing cell rather than a cell of its own because jobs here run
+# serially: a new cell would rebuild win_bison from scratch, ~6 min on every
+# push, to reach a 0.1 s check. This cell takes ~5 min of a 60 min budget.
+#
+# Deliberately non-fatal -- the `|| echo` swallows a choco failure (and says so
+# in the log) without `exit /b`, which would end the whole install script and
+# silently skip any line added after this one. If the install does not happen,
+# CMake finds no D compiler, does not register bison.d_skeleton_compiles, and
+# the cell stays green on the content checks. A Chocolatey outage must not
+# redden a build over an optional extra.
 install:
+  - if "%WFB_JOB%"=="build" if "%VSVERSION%"=="17 2022" if "%platform%"=="x64" if "%configuration%"=="Release" (choco install ldc -y --no-progress || echo LDC install failed - the D compile check will not run)
   - if "%WFB_JOB%"=="autotest" C:\msys64\usr\bin\bash -lc "pacman -Sy --noconfirm --needed autoconf2.71 m4 perl diffutils sed grep gawk mingw-w64-x86_64-gcc"
   - if "%WFB_JOB%"=="autotest" git clone --quiet --depth 1 --branch v3.8.2 https://github.com/akimd/bison.git "%APPVEYOR_BUILD_FOLDER%\..\upstream\bison"
 

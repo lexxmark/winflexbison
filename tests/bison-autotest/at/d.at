@@ -112,6 +112,13 @@ AT_CHECK_D_GREP([[class YYParser : BaseClass]])
 AT_CHECK_D_MINIMAL([%define api.parser.extends {Interface}], [], [], [interface Interface {}])
 AT_CHECK_D_GREP([[class YYParser : Interface]])
 
+AT_CHECK_D_MINIMAL([%code lexer
+{
+  Symbol yylex () {return Symbol();}
+  void yyerror (string s) {import std.stdio;writeln(s);}
+}], [], [], [])
+AT_CHECK_D_GREP([[private class YYLexer: Lexer]])
+
 AT_CHECK_D_MINIMAL(
 [%define api.parser.extends {BaseClass}
 %define api.parser.implements {Interface}], [], [],

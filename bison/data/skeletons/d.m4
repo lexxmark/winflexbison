@@ -284,8 +284,7 @@ m4_define([b4_declare_symbol_enum],
      that double-quoting is unnecessary unless the string contains an
      apostrophe, a comma, or backslash (other than backslash-backslash).
      YYSTR is taken from yytname.  */
-    final void toString(W)(W sink) const
-    if (isOutputRange!(W, char))
+    final void toString(void delegate(const(char)[]) sink) const
     {
       immutable string[] yy_sname = @{
   ]b4_symbol_names[
@@ -296,7 +295,7 @@ m4_define([b4_declare_symbol_enum],
   ]b4_translatable[
       @};]])[
 
-      put(sink, yy_sname[yycode_]);
+      sink.formattedWrite!"%s"(yy_sname[yycode_]);
     }
   }
 ]])
