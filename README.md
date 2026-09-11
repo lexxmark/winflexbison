@@ -1,4 +1,4 @@
-master: [![master build status](https://ci.appveyor.com/api/projects/status/j9s6854v3pvig28t/branch/master?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison-2rnxh/branch/master) &nbsp; dev: [![dev build status](https://ci.appveyor.com/api/projects/status/j9s6854v3pvig28t/branch/dev?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison-2rnxh/branch/dev)
+master: [![master build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/master?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/master) &nbsp; dev: [![dev build status](https://ci.appveyor.com/api/projects/status/58lcjnr0mb9uc8c8/branch/dev?svg=true)](https://ci.appveyor.com/project/lexxmark/winflexbison/branch/dev)
 
 # WinFlexBison - Flex and Bison for Windows
 
@@ -79,7 +79,7 @@ shell. Latest status:
 It is deliberately non-gating: it reports on upstream bison behaviour, and its
 xfail set can shift with the worker's locale and toolchain, so it is a signal to
 read rather than a gate to trip. The job appears in the
-[AppVeyor build](https://ci.appveyor.com/project/lexxmark/winflexbison-2rnxh) as
+[AppVeyor build](https://ci.appveyor.com/project/lexxmark/winflexbison) as
 the `WFB_JOB=autotest` cell — AppVeyor badges are per project rather than per
 job, so it has no badge of its own. See
 [`tests/bison-autotest/README.md`](tests/bison-autotest/README.md) for how to run
