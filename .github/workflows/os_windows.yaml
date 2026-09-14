@@ -49,8 +49,12 @@ jobs:
       # and with only the C compiler named CMake picks clang++ for C++ -- the GNU
       # driver next to clang-cl's MSVC one. CMake rejects that mix, so configure
       # failed on every run.
+      #
+      # TEMPORARY: WFB_TESTS_WERROR=OFF so the build runs to completion instead
+      # of stopping at the first clang-only warning, to inventory the whole set
+      # in one run. Revert once the suppressions are in.
       run: |
-        cmake -S . -B build -G "Ninja" -DCMAKE_C_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCPACK_PACKAGE_VERSION="$env:PACKAGE_VERSION" -DUSE_STATIC_RUNTIME=ON
+        cmake -S . -B build -G "Ninja" -DCMAKE_C_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCPACK_PACKAGE_VERSION="$env:PACKAGE_VERSION" -DUSE_STATIC_RUNTIME=ON -DWFB_TESTS_WERROR=OFF
 
     - name: Build with CMake
       run: cmake --build build --config "${{ matrix.build_type }}"
