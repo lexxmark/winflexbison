@@ -69,10 +69,17 @@ endforeach()
 # the top 32 bits on x64 (C4311 x14). It is only their own debug output, and
 # both files are copies of upstream/flex/tests/. We turn the warning off here
 # so the files stay identical to upstream.
+#
+# clang-cl needs the suppression spelled its own way: it does not map /wd4311
+# onto its equivalent warning, so under /WX the same casts came back as
+# -Wvoid-pointer-to-int-cast errors and broke the GitHub Actions build.
 # See docs/build-warnings-plan.md, Phase 5.
 if(MSVC)
     foreach(name mem_nr mem_r)
         target_compile_options(flextest_${name} PRIVATE /wd4311)
+        if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+            target_compile_options(flextest_${name} PRIVATE -Wno-void-pointer-to-int-cast)
+        endif()
     endforeach()
 endif()
 
