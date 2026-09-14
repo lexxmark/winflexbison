@@ -35,6 +35,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/bin")
 option(WFB_TESTS_WERROR "Treat warnings as errors in the test targets" ON)
 if(MSVC AND WFB_TESTS_WERROR)
     add_compile_options(/WX)
+
+    # clang-cl warns at its default level about things MSVC does not mention,
+    # and the two below are in every scanner flex generates: it emits yyunput
+    # and input whether the scanner calls them or not. That is upstream
+    # behaviour, not our tools generating worse code, so /WX must not fail on
+    # it. MSVC's counterpart (C4505) is off at /W3, which is why only the
+    # clang-cl CI job ever saw these.
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        add_compile_options(-Wno-unused-function -Wno-unneeded-internal-declaration)
+    endif()
 endif()
 
 # win_bison reads its skeletons from bison/data/ at run time, so a generated
