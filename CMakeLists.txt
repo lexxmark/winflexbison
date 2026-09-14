@@ -65,7 +65,14 @@ add_compile_definitions(
 # library (libcpmtd) -- unresolved _malloc_dbg/_free_dbg/_calloc_dbg at link.
 # C targets were unaffected because this line only touches the CXX flags.
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W3 /Od /Zi /EHsc")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W3 /GL /Od /Oi /Gy /Zi /EHsc")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W3 /Od /Oi /Gy /Zi /EHsc")
+
+# /GL is MSVC's whole-program optimisation. clang-cl accepts the flag, does
+# nothing with it, and warns "argument unused during compilation" on every C++
+# translation unit -- which /WX in the test targets turns into an error.
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " /GL")
+endif()
 
 # Define Release by default
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type")

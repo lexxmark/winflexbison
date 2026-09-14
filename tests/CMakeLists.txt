@@ -36,14 +36,27 @@ option(WFB_TESTS_WERROR "Treat warnings as errors in the test targets" ON)
 if(MSVC AND WFB_TESTS_WERROR)
     add_compile_options(/WX)
 
-    # clang-cl warns at its default level about things MSVC does not mention,
-    # and the two below are in every scanner flex generates: it emits yyunput
-    # and input whether the scanner calls them or not. That is upstream
-    # behaviour, not our tools generating worse code, so /WX must not fail on
-    # it. MSVC's counterpart (C4505) is off at /W3, which is why only the
-    # clang-cl CI job ever saw these.
+    # clang-cl warns at its default level about things MSVC never mentions, and
+    # every such warning in this directory comes from upstream rather than from
+    # our tools generating worse code -- so /WX must not fail on them. The list
+    # below is the complete set, taken from a full clang-cl build with
+    # WFB_TESTS_WERROR=OFF; if a re-vendor adds a new one, inventory it the same
+    # way instead of guessing.
+    #
+    #   misleading-indentation        how flex lays out its generated REJECT and
+    #                                 line-number code (49 targets)
+    #   unused-but-set-variable       `fp` in header_r_main.c/top_main.c, read
+    #                                 only inside assert(), so NDEBUG makes it
+    #                                 look dead; yynerrs_ in bison's C++ skeleton
+    #   unneeded-internal-declaration flex emits input/yyinput whether the
+    #   unused-function                scanner calls them or not (MSVC's C4505 is
+    #                                 off at /W3, so only clang-cl sees these)
     if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-        add_compile_options(-Wno-unused-function -Wno-unneeded-internal-declaration)
+        add_compile_options(
+            -Wno-misleading-indentation
+            -Wno-unused-but-set-variable
+            -Wno-unneeded-internal-declaration
+            -Wno-unused-function)
     endif()
 endif()
 
