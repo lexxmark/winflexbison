@@ -359,6 +359,57 @@ set_tests_properties(flex.cxx_batch_lexer_input PROPERTIES
     SKIP_RETURN_CODE 77 LABELS "flex")
 
 # ---------------------------------------------------------------------------
+# Issue #70: `%option c++ noyywrap header=...` produced a scanner that could
+# not be linked. flex writes its prolog once per OUTPUT STREAM, so the
+# `int yyFlexLexer::yywrap() { return 1; }` it emits when noyywrap is set went
+# into both the .cc and the generated header. Including that header from a
+# second translation unit gave the linker two definitions of the same symbol:
+#
+#   ScannerX.obj : error LNK2005: "public: virtual int __cdecl
+#                  yyFlexLexer::yywrap(void)" already defined in main.obj
+#
+# Fixed in b2d5968 (2021-01-07) by emitting `inline` (flex/src/main.c), which
+# makes the duplicate legal -- the two definitions are byte-identical, so the
+# linker folds them. That is a deliberate divergence from upstream flex, which
+# still emits no `inline`; see westes/flex#472 and the port-change catalog.
+# One word in a string literal is exactly what a re-vendor silently reverts,
+# and until now nothing in the suite noticed.
+#
+# It takes all three options together, which is why no existing case covered
+# it: cxx_basic.ll has c++ and noyywrap but no header and keeps its main in
+# the same file, and the header_* cases are C, where no yyFlexLexer exists.
+#
+# The assertion IS the link step succeeding -- a regression here fails the
+# build, not the test run. Running the binary afterwards only confirms it is
+# sane. The scanner declares its own header via %option header=, so win_flex
+# writes it into the build dir (hence WORKING_DIRECTORY); both outputs are
+# declared so CMake regenerates them when the fixture changes.
+add_custom_command(
+    OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/cxx_noyywrap_header.cc"
+            "${CMAKE_CURRENT_BINARY_DIR}/cxx_noyywrap_header.hpp"
+    COMMAND $<TARGET_FILE:win_flex> --wincompat
+            -o "cxx_noyywrap_header.cc"
+            "${FLEX_CASES_DIR}/cxx_noyywrap_header.ll"
+    DEPENDS win_flex "${FLEX_CASES_DIR}/cxx_noyywrap_header.ll"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "flex(c++): generating cxx_noyywrap_header.cc/.hpp"
+    VERBATIM)
+add_executable(flextest_cxx_noyywrap_header
+    "${CMAKE_CURRENT_BINARY_DIR}/cxx_noyywrap_header.cc"
+    "${FLEX_CASES_DIR}/cxx_noyywrap_header_main.cc")
+target_include_directories(flextest_cxx_noyywrap_header PRIVATE
+    "${CMAKE_SOURCE_DIR}/common/misc"
+    "${CMAKE_SOURCE_DIR}/flex/src"
+    "${CMAKE_CURRENT_BINARY_DIR}")
+add_test(NAME flex.cxx_noyywrap_header
+    COMMAND ${CMAKE_COMMAND}
+        -DTEST_EXE=$<TARGET_FILE:flextest_cxx_noyywrap_header>
+        "-DINPUT=${FLEX_CASES_DIR}/cxx_noyywrap_header.txt"
+        -P "${FLEX_RUNNER}")
+set_tests_properties(flex.cxx_noyywrap_header PROPERTIES
+    SKIP_RETURN_CODE 77 LABELS "flex")
+
+# ---------------------------------------------------------------------------
 # Phase 4: reject + table tests. All four are generated from the single
 # reject.l4 template with different win_flex flags and compile defines:
 #   reject_nr  : plain                          -> reads stdin
