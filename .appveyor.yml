@@ -26,14 +26,42 @@ environment:
     # before -j2), a failure there should not be able to abort packaging, and
     # allow_failures below makes it non-gating honestly -- the job goes red while
     # the build stays green -- instead of by discarding the exit code.
+    #
+    # ...and one job is no longer enough. Even at -j2 the suite crept back up to
+    # 43-51 min of test time on top of ~8.5 min of setup, and build 1.0.185 died
+    # on AppVeyor's 60-minute wall at group 730 of 776 -- a timeout, not a test
+    # failure, with the 12 documented xfails all long past. Nothing had
+    # regressed; the margin had simply run out, and worker speed varies enough
+    # (1.0.184 took 56m02s for the same work) that it was going to keep
+    # happening.
+    #
+    # So the suite is split across two cells by group range. WFB_AT_RANGE is
+    # handed to run.sh, which forwards it to the generated testsuite; autotest
+    # spells "1..490" as "-490" and "491..end" as "491-", so the two halves are
+    # exhaustive and non-overlapping, and the open-ended second half keeps
+    # covering everything if a future bison adds groups.
+    #
+    # 490 is a measured split, not a midpoint of 776: the groups are very
+    # uneven. In the 1.0.185 log groups 1-485 took 25.7 min of the 51.4 min it
+    # managed, so the halves land at roughly 26 and 28.5 min -- ~35 min a job
+    # once setup is added, which is margin rather than a coin toss.
+    #
+    # The cost is one more serial cell repeating the ~8.5 min setup (deps,
+    # baseline clone, win_bison build). That is the price of the headroom; if it
+    # ever needs paying down, cache the build tree rather than re-merging the
+    # halves.
     - VSVERSION: "17 2022"
       WFB_JOB: autotest
+      WFB_AT_RANGE: "-490"
+    - VSVERSION: "17 2022"
+      WFB_JOB: autotest
+      WFB_AT_RANGE: "491-"
 
 # The 2 build entries x 2 configurations x 2 platforms give the same 8 build jobs
-# as before. The autotest entry would add 4 more, so 3 are excluded: it runs once,
-# on x64/Release, because it exercises bison's BEHAVIOUR rather than the
-# toolchain/platform/configuration a cell represents -- running it 4x would cost
-# 4x the time for no additional signal.
+# as before. The two autotest entries would add 4 each, so 6 of those 8 are
+# excluded: each half runs once, on x64/Release, because it exercises bison's
+# BEHAVIOUR rather than the toolchain/platform/configuration a cell represents --
+# running it 4x would cost 4x the time for no additional signal. 10 jobs total.
 #
 # VS2026 was tried and removed. The "Visual Studio 2026" worker image exists and
 # ships MSBuild 18.7.8, but its CMake (4.1.2) has no "Visual Studio 18 2026"
@@ -169,10 +197,21 @@ build_script:
 # is a timeout defence, not a speed tweak: serial, the suite took 53 min of a
 # 59m03s job against AppVeyor's 60-minute per-job limit; -j2 brought it to 40 min
 # of 46. Parallel safety is measured, not assumed -- -j16 on 32 cores and -j2 on
-# this worker both reproduced all 776 serial verdicts exactly.
+# this worker both reproduced all 776 serial verdicts exactly. -j2 alone stopped
+# being enough (see WFB_AT_RANGE above); the two defences stack rather than
+# replace each other.
+#
+# %WFB_AT_RANGE% is unquoted on purpose -- it is one bare autotest range token
+# ("-490" / "491-"), and quoting it would hand the testsuite an empty argument
+# in any cell that does not set it. run.sh passes "$@" straight through, and
+# prepends its own -j, so the testsuite sees `-j2 -490`.
+#
+# Each half post-processes xfails independently and that needs no split-aware
+# bookkeeping: BISON_XFAIL is matched against the groups that actually failed,
+# so the numbers belonging to the other half simply never come up.
 test_script:
   - if not "%WFB_JOB%"=="autotest" ctest --test-dir "%APPVEYOR_BUILD_FOLDER%\build" -C %configuration% --output-on-failure --no-tests=error
-  - if "%WFB_JOB%"=="autotest" (set WFB_JOBS=2 && C:\msys64\usr\bin\bash -lc "$(cygpath -u '%APPVEYOR_BUILD_FOLDER%')/tests/bison-autotest/run.sh")
+  - if "%WFB_JOB%"=="autotest" (set WFB_JOBS=2 && C:\msys64\usr\bin\bash -lc "$(cygpath -u '%APPVEYOR_BUILD_FOLDER%')/tests/bison-autotest/run.sh %WFB_AT_RANGE%")
 
 # Packaging runs after the tests so a failing test aborts the build before a
 # zip exists. AppVeyor collects artifacts after after_test, so this still ships.

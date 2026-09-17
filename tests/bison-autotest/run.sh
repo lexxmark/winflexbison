@@ -19,7 +19,15 @@
 #   tests/bison-autotest/run.sh [testsuite args...]
 #   tests/bison-autotest/run.sh -k input        # only groups matching 'input'
 #   tests/bison-autotest/run.sh 1 2 3            # specific group numbers
+#   tests/bison-autotest/run.sh -490             # groups 1..490
+#   tests/bison-autotest/run.sh 491-             # groups 491..end
 #   BISON=/path/to/win_bison.exe WORK=/tmp/x tests/bison-autotest/run.sh
+#
+# Ranges are how CI stays inside AppVeyor's 60-minute per-job limit: the two
+# autotest cells run "-490" and "491-" rather than one cell running all 776
+# groups, which timed out at group 730. The halves are exhaustive and disjoint,
+# and each scores its own failures against the full BISON_XFAIL list below --
+# groups from the other half never fail because they never run.
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"

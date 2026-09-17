@@ -78,10 +78,11 @@ shell. Latest status:
 
 It is deliberately non-gating: it reports on upstream bison behaviour, and its
 xfail set can shift with the worker's locale and toolchain, so it is a signal to
-read rather than a gate to trip. The job appears in the
-[AppVeyor build](https://ci.appveyor.com/project/lexxmark/winflexbison) as
-the `WFB_JOB=autotest` cell — AppVeyor badges are per project rather than per
-job, so it has no badge of its own. See
+read rather than a gate to trip. It appears in the
+[AppVeyor build](https://ci.appveyor.com/project/lexxmark/winflexbison) as two
+`WFB_JOB=autotest` cells, splitting the 776 groups by range so neither half runs
+into AppVeyor's 60-minute per-job limit — AppVeyor badges are per project rather
+than per job, so they have no badge of their own. See
 [`tests/bison-autotest/README.md`](tests/bison-autotest/README.md) for how to run
 it and what each xfail means.
 
