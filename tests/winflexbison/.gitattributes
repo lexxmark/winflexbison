@@ -5,3 +5,6 @@
 # into a duplicate of the LF pass, so exempt it from normalization entirely.
 # The test also checks the bytes at run time, in case this rule ever stops working.
 cases/crlf_input.y -text
+# Same reason: winflexbison.update_keeps_line_endings needs a CRLF grammar to
+# prove that --update writes it back as CRLF.
+cases/update_crlf.y -text

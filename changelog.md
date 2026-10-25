@@ -5,6 +5,10 @@
   * 2.5.x versions include bison version 3.x
   
 ### unreleased
+  * win_bison writes LF again, not CRLF, in generated parsers, headers,
+    .output reports and .dot graphs. 2.5.16 did this; the bison update in
+    2.5.17 lost it by mistake, so 2.5.17 to 2.5.25 wrote CRLF. --xml output
+    does not change (it was already LF), and neither does win_flex output
   * fixed the D skeletons producing code that does not compile: a parser using
     %code lexer wrote "implements" where D spells inheritance ":", and
     SymbolKind.toString used std.range names the generated file never imports.
@@ -23,15 +27,14 @@
   * fixed C4244 in generated C++ scanners: yyFlexLexer::LexerInput returned
     yyin.gcount() (a std::streamsize) as int, warning on every x64 build of a
     non-interactive scanner (#73; same one-line cast upstream flex uses)
-  * win_bison now writes LF in generated files (parsers, headers, .output
-    reports, .dot graphs), matching upstream, instead of CRLF
   * fixed garbled or blank source lines in win_bison caret diagnostics
   * fixed stray "_m4eof" delimiter lines leaking into generated code and into
     skeleton-emitted diagnostics
   * fixed "bison: /dev/null: cannot open" appended to stderr by every run that
     issued a diagnostic
   * fixed win_bison --update/--fixit failing with "cannot backup: Permission
-    denied" when the rewritten grammar also produced a caret diagnostic
+    denied" when the rewritten grammar also produced a caret diagnostic. It
+    also keeps the grammar's own line endings: a CRLF file stays CRLF
   * win_flex/win_bison temp files are now delete-on-close, so they no longer
     leak when the tool crashes or is killed
   * fixed random failures when several win_flex/win_bison run concurrently, as

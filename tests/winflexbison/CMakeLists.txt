@@ -104,6 +104,20 @@ foreach(tool bison flex)
 endforeach()
 
 # ---------------------------------------------------------------------------
+# --update/--fixit rewrites the user's own grammar, not generated output, so it
+# must keep that file's line endings: CRLF stays CRLF, LF stays LF. Without
+# this, the binary-mode writes above turned a CRLF grammar entirely LF.
+add_test(NAME winflexbison.update_keeps_line_endings
+    COMMAND ${CMAKE_COMMAND}
+        -DTEST_EXE=$<TARGET_FILE:win_bison>
+        "-DSCRATCH=${CMAKE_CURRENT_BINARY_DIR}/update_eol"
+        "-DFIXTURE_LF=${CMAKE_CURRENT_SOURCE_DIR}/../bison/cases/update_deprecated.y"
+        "-DFIXTURE_CRLF=${CMAKE_CURRENT_SOURCE_DIR}/cases/update_crlf.y"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/run_update_eol_test.cmake")
+set_tests_properties(winflexbison.update_keeps_line_endings PROPERTIES
+    LABELS "winflexbison")
+
+# ---------------------------------------------------------------------------
 # Issue #39: a CMake build with USE_STATIC_RUNTIME=ON must not pull in the
 # dynamic-CRT DLL (vcruntime140.dll) the way a plain /MD build does. Only
 # meaningful (and only registered) when that option is actually on, mirroring

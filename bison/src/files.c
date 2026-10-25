@@ -150,9 +150,12 @@ xfopen (const char *name, const char *mode)
      per-file "wb" output fixes from commit a32e862, several of which were lost
      when bison was re-vendored for 3.8.2; keeping it in xfopen makes it robust
      across future upgrades.  (The caret reader in location.c opens binary
-     directly, since it needs true byte offsets.)  */
+     directly, since it needs true byte offsets.)  A caller that really wants
+     text-mode output passes 't' (MSVC's explicit text mode); --update does,
+     to keep a CRLF grammar CRLF (fixits.c).  */
   char binmode[8];
-  if ((strchr (mode, 'w') || strchr (mode, 'a')) && !strchr (mode, 'b'))
+  if ((strchr (mode, 'w') || strchr (mode, 'a'))
+      && !strchr (mode, 'b') && !strchr (mode, 't'))
     {
       snprintf (binmode, sizeof binmode, "%sb", mode);
       mode = binmode;

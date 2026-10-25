@@ -103,6 +103,20 @@ fixits_empty (void)
 }
 
 
+/* Windows port: whether the first line of FILE ends in CRLF.  */
+static bool
+uses_crlf (char const *file)
+{
+  FILE *f = xfopen (file, "rb");
+  int prev = EOF;
+  int c;
+  while ((c = getc (f)) != EOF && c != '\n')
+    prev = c;
+  xfclose (f);
+  return c == '\n' && prev == '\r';
+}
+
+
 void
 fixits_run (void)
 {
@@ -126,7 +140,12 @@ fixits_run (void)
     error (EXIT_FAILURE, get_errno (),
            _("%s: cannot backup"), quotearg_colon (input));
   FILE *in = xfopen (backup, "r");
-  FILE *out = xfopen (input, "w");
+  /* Windows port: xfopen forces binary mode for writes, so generated files
+     are LF.  But this file is the user's own grammar, so keep its line
+     endings: if it used CRLF, write it in text mode ("wt"), which turns each
+     \n back into CRLF.  The input is read in text mode either way, so the
+     offsets below still match the scanner's.  */
+  FILE *out = xfopen (input, uses_crlf (backup) ? "wt" : "w");
   size_t line = 1;
   size_t offset = 1;
   void const *p = NULL;
