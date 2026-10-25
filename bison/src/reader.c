@@ -788,7 +788,8 @@ prepare_percent_define_front_end_variables (void)
       muscle_percent_define_default ("lr.default-reduction", "accepting");
     free (lr_type);
   }
-  muscle_percent_define_default ("tool.xsltproc", "xsltproc");
+  /* CVE-2026-56389: tool.xsltproc removed; print_html () always runs
+     "xsltproc" from PATH (upstream commit 3169c1e7).  */
 
   /* Check %define front-end variables.  */
   {

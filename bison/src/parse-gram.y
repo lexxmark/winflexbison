@@ -96,7 +96,9 @@
   static char const *translate_code_braceless (char *code, location loc);
 
   /* Handle a %header directive.  */
-  static void handle_header (char const *value);
+  static void handle_header (location const *loc, char const *value);
+  /* Whether a %output/%header file name is safe (no path separator).  */
+  static bool valid_output_file_name (char const *file);
 
   /* Handle a %error-verbose directive.  */
   static void handle_error_verbose (location const *loc, char const *directive);
@@ -337,7 +339,7 @@ prologue_declaration:
       muscle_percent_define_insert ($2, @$, $3.kind, $3.chars,
                                     MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE);
     }
-| "%header" string.opt             { handle_header ($2); }
+| "%header" string.opt             { handle_header (&@2, $2); }
 | "%error-verbose"                 { handle_error_verbose (&@$, $1); }
 | "%expect" INT_LITERAL            { expected_sr_conflicts = $2; }
 | "%expect-rr" INT_LITERAL         { expected_rr_conflicts = $2; }
@@ -356,7 +358,15 @@ prologue_declaration:
 | "%name-prefix" STRING         { handle_name_prefix (&@$, $1, $2); }
 | "%no-lines"                   { no_lines_flag = true; }
 | "%nondeterministic-parser"    { nondeterministic_parser = true; }
-| "%output" STRING              { spec_outfile = unquote ($2); gram_scanner_last_string_free (); }
+| "%output" STRING
+    {
+      char *file = unquote ($2);
+      if (valid_output_file_name (file))
+        spec_outfile = file;
+      else
+        complain (&@2, complaint, _("invalid %%output file name ignored"));
+      gram_scanner_last_string_free ();
+    }
 | "%param" { current_param = $1; } params { current_param = param_none; }
 | "%pure-parser"                { handle_pure_parser (&@$, $1); }
 | "%require" STRING             { handle_require (&@2, $2); }
@@ -952,14 +962,29 @@ add_param (param_type type, char *decl, location loc)
 }
 
 
+/* Windows port (CVE-2026-56390): a grammar's %output/%header value must not
+   be able to write outside the output directory.  Upstream commit 8d101c19
+   rejects any name containing '/'; on Windows a path separator is also '\\',
+   and a drive-relative or absolute name such as "C:..." uses ':', so reject
+   all three.  */
+static bool
+valid_output_file_name (char const *file)
+{
+  return !strpbrk (file, "/\\:");
+}
+
+
 static void
-handle_header (char const *value)
+handle_header (location const *loc, char const *value)
 {
   header_flag = true;
   if (value)
     {
       char *file = unquote (value);
-      spec_header_file = xstrdup (file);
+      if (valid_output_file_name (file))
+        spec_header_file = xstrdup (file);
+      else
+        complain (loc, complaint, _("invalid %%header file name ignored"));
       gram_scanner_last_string_free ();
       unquote_free (file);
     }

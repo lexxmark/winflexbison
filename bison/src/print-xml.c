@@ -543,10 +543,12 @@ print_html (void)
   assert (xml_flag);
 
   char *xml2html = xpath_join (pkgdatadir (), "xslt/xml2xhtml.xsl");
-  char *xsltproc = muscle_percent_define_get ("tool.xsltproc");
+  /* CVE-2026-56389: do not let the grammar choose the program to run.
+     Upstream commit 3169c1e7 dropped the undocumented %define tool.xsltproc
+     and always runs "xsltproc" from PATH.  */
   char const *argv[11];
   int i = 0;
-  argv[i++] = xsltproc;
+  argv[i++] = "xsltproc";
   argv[i++] = "-o";
   argv[i++] = spec_html_file;
   argv[i++] = xml2html;
@@ -572,6 +574,5 @@ print_html (void)
                /* termsigp */ NULL);
   if (status)
     complain (NULL, complaint, _("%s failed with status %d"), argv[0], status);
-  free (xsltproc);
   free (xml2html);
 }

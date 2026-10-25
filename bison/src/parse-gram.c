@@ -277,7 +277,8 @@ typedef enum yysymbol_kind_t yysymbol_kind_t;
   static char const *translate_code_braceless (char *code, location loc);
 
   /* Handle a %header directive.  */
-  static void handle_header (char const *value);
+  static void handle_header (location const *loc, char const *value);
+  static bool valid_output_file_name (char const *file);
 
   /* Handle a %error-verbose directive.  */
   static void handle_error_verbose (location const *loc, char const *directive);
@@ -2217,7 +2218,7 @@ yyreduce:
 
   case 9: /* prologue_declaration: "%header" string.opt  */
 #line 340 "src/parse-gram.y"
-                                   { handle_header ((yyvsp[0].yykind_75)); }
+                                   { handle_header (&(yylsp[0]), (yyvsp[0].yykind_75)); }
 #line 2222 "src/parse-gram.c"
     break;
 
@@ -2289,7 +2290,14 @@ yyreduce:
 
   case 20: /* prologue_declaration: "%output" "string"  */
 #line 359 "src/parse-gram.y"
-                                { spec_outfile = unquote ((yyvsp[0].STRING)); gram_scanner_last_string_free (); }
+                                {
+      char *file = unquote ((yyvsp[0].STRING));
+      if (valid_output_file_name (file))
+        spec_outfile = file;
+      else
+        complain (&(yylsp[0]), complaint, _("invalid %%output file name ignored"));
+      gram_scanner_last_string_free ();
+    }
 #line 2294 "src/parse-gram.c"
     break;
 
@@ -3290,14 +3298,29 @@ add_param (param_type type, char *decl, location loc)
 }
 
 
+/* Windows port (CVE-2026-56390): a grammar's %output/%header value must not
+   be able to write outside the output directory.  Upstream commit 8d101c19
+   rejects any name containing '/'; on Windows a path separator is also '\\',
+   and a drive-relative or absolute name such as "C:..." uses ':', so reject
+   all three.  */
+static bool
+valid_output_file_name (char const *file)
+{
+  return !strpbrk (file, "/\\:");
+}
+
+
 static void
-handle_header (char const *value)
+handle_header (location const *loc, char const *value)
 {
   header_flag = true;
   if (value)
     {
       char *file = unquote (value);
-      spec_header_file = xstrdup (file);
+      if (valid_output_file_name (file))
+        spec_header_file = xstrdup (file);
+      else
+        complain (loc, complaint, _("invalid %%header file name ignored"));
       gram_scanner_last_string_free ();
       unquote_free (file);
     }

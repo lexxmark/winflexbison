@@ -5,6 +5,12 @@
   * 2.5.x versions include bison version 3.x
   
 ### unreleased
+  * security: win_bison no longer lets a grammar file write outside the output
+    directory. %output and %header names containing a path separator (/, \ or
+    a drive letter) are now rejected (CVE-2026-56390, upstream fix 8d101c19)
+  * security: win_bison --html no longer lets a grammar choose the program it
+    runs. The %define tool.xsltproc override is gone; it always runs xsltproc
+    from PATH (CVE-2026-56389, upstream fix 3169c1e7)
   * win_bison writes LF again, not CRLF, in generated parsers, headers,
     .output reports and .dot graphs. 2.5.16 did this; the bison update in
     2.5.17 lost it by mistake, so 2.5.17 to 2.5.25 wrote CRLF. --xml output

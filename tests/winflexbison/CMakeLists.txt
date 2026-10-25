@@ -118,6 +118,22 @@ set_tests_properties(winflexbison.update_keeps_line_endings PROPERTIES
     LABELS "winflexbison")
 
 # ---------------------------------------------------------------------------
+# A grammar is untrusted input. Two backported bison CVE fixes:
+#   CVE-2026-56390 -- %output/%header cannot write outside the output dir.
+#   CVE-2026-56389 -- %define tool.xsltproc cannot steer the --html tool.
+# Both failed before the fix (the traversal wrote ../pwned_*, the tool ran).
+add_test(NAME winflexbison.grammar_security
+    COMMAND ${CMAKE_COMMAND}
+        -DTEST_EXE=$<TARGET_FILE:win_bison>
+        "-DSCRATCH=${CMAKE_CURRENT_BINARY_DIR}/grammar_security"
+        "-DUNSAFE_FIXTURE=${CMAKE_CURRENT_SOURCE_DIR}/cases/unsafe_output.y"
+        "-DXSLT_FIXTURE=${CMAKE_CURRENT_SOURCE_DIR}/cases/html_tool.y"
+        "-DSAFE_FIXTURE=${CMAKE_CURRENT_SOURCE_DIR}/../bison/cases/calc.y"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/run_grammar_security_test.cmake")
+set_tests_properties(winflexbison.grammar_security PROPERTIES
+    LABELS "winflexbison")
+
+# ---------------------------------------------------------------------------
 # Issue #39: a CMake build with USE_STATIC_RUNTIME=ON must not pull in the
 # dynamic-CRT DLL (vcruntime140.dll) the way a plain /MD build does. Only
 # meaningful (and only registered) when that option is actually on, mirroring
