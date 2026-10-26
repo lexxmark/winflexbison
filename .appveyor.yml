@@ -106,6 +106,14 @@ init:
 # gcc/g++ present. Without them the compile tiers auto-skip, a different set of
 # groups runs, and the list stops describing reality.
 #
+# The full upgrade (-Syuu) comes first and runs twice: the first pass may only
+# update MSYS2's core and stop, the second does the rest. Do not fold it back
+# into one `pacman -Sy ... <pkgs>`: that syncs the database but upgrades only
+# the named packages, a partial upgrade that breaks whenever upstream reshapes
+# a package the image already has. It broke builds 1.0.188/1.0.189 that way
+# (gcc 16.2.0-6 split gcc-libs into libgcc and friends, and everything else on
+# the image still depended on the old gcc-libs).
+#
 # The baseline clone is required too: two groups read fixtures from it
 # (regression.at wants src/parse-gram.y, torture.at wants tests/linear), and
 # run.sh looks for it at PORT_ROOT/../upstream/bison -- which exists in the
@@ -127,7 +135,9 @@ init:
 # redden a build over an optional extra.
 install:
   - if "%WFB_JOB%"=="build" if "%VSVERSION%"=="17 2022" if "%platform%"=="x64" if "%configuration%"=="Release" (choco install ldc -y --no-progress || echo LDC install failed - the D compile check will not run)
-  - if "%WFB_JOB%"=="autotest" C:\msys64\usr\bin\bash -lc "pacman -Sy --noconfirm --needed autoconf2.71 m4 perl diffutils sed grep gawk mingw-w64-x86_64-gcc"
+  - if "%WFB_JOB%"=="autotest" C:\msys64\usr\bin\bash -lc "pacman -Syuu --noconfirm"
+  - if "%WFB_JOB%"=="autotest" C:\msys64\usr\bin\bash -lc "pacman -Syuu --noconfirm"
+  - if "%WFB_JOB%"=="autotest" C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed autoconf2.71 m4 perl diffutils sed grep gawk mingw-w64-x86_64-gcc"
   - if "%WFB_JOB%"=="autotest" git clone --quiet --depth 1 --branch v3.8.2 https://github.com/akimd/bison.git "%APPVEYOR_BUILD_FOLDER%\..\upstream\bison"
 
 before_build:
